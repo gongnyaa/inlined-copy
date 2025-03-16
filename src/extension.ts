@@ -7,11 +7,11 @@ import { ParameterProcessor } from './parameterProcessor';
  * Activates the extension
  * @param context The extension context
  */
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   console.log('inlined Copy extension is now active');
 
   // Register the copyInline command
-  let disposable = vscode.commands.registerCommand('inlined-copy.copyInline', async () => {
+  const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', async () => {
     try {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -54,6 +54,6 @@ export function activate(context: vscode.ExtensionContext) {
 /**
  * Deactivates the extension
  */
-export function deactivate() {
+export function deactivate(): void {
   // Clean up resources if needed
 }

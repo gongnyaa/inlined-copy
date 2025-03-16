@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+// No need for vscode import as it's not used in this file
 
 /**
  * Extracts sections from Markdown content based on headings
