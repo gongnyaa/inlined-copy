@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SectionExtractor } from './sectionExtractor';
 
 /**
- * Expands file references in the format ![[filename]] with the content of the referenced file
+ * Expands file references in the format ![[filename]] or ![[filename#heading]] with the content of the referenced file
  */
 export class FileExpander {
   /**
@@ -13,16 +14,17 @@ export class FileExpander {
    * @returns The expanded text with file references replaced by their content
    */
   public static async expandFileReferences(text: string, basePath: string): Promise<string> {
-    // Regular expression to match ![[filename]] patterns
-    const fileReferenceRegex = /!\[\[(.*?)\]\]/g;
+    // Regular expression to match ![[filename]] or ![[filename#heading]] patterns
+    const fileReferenceRegex = /!\[\[(.*?)(?:#(.*?))?\]\]/g;
     
     let result = text;
     let match;
     
     // Find all file references in the text
     while ((match = fileReferenceRegex.exec(text)) !== null) {
-      const fullMatch = match[0]; // The entire ![[filename]] match
+      const fullMatch = match[0]; // The entire ![[filename]] or ![[filename#heading]] match
       const filePath = match[1].trim(); // The filename part
+      const heading = match[2] ? match[2].trim() : null; // The heading part if present
       
       try {
         // Resolve the file path (handle both absolute and relative paths)
@@ -31,11 +33,23 @@ export class FileExpander {
         // Read the file content
         const fileContent = await this.readFileContent(resolvedPath);
         
+        // Extract section if heading is specified
+        let contentToInsert = fileContent;
+        if (heading) {
+          const sectionContent = SectionExtractor.extractSection(fileContent, heading);
+          if (sectionContent) {
+            contentToInsert = sectionContent;
+          } else {
+            vscode.window.showWarningMessage(`Heading "${heading}" not found in file "${filePath}"`);
+          }
+        }
+        
         // Replace the file reference with the file content
-        result = result.replace(fullMatch, fileContent);
+        result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         // If file not found or other error, leave the reference as is and log error
         console.error(`Error expanding file reference ${fullMatch}: ${error}`);
+        vscode.window.showErrorMessage(`Error expanding file reference: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
