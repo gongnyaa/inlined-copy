@@ -132,6 +132,15 @@ You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + 
 2. Run `pnpm install` / `pnpm install`を実行
 3. Press F5 to launch debugging / F5キーでデバッグ実行
 
+### Local Test
+pnpm install    # 初回のみ
+pnpm run compile
+code --extensionDevelopmentPath=${PWD}
+code . --extensionDevelopmentPath=$PWD
+Ctrl+Shift+P (Mac: Cmd+Shift+P)でコマンドパレットを開く　Inlined Copy: Copy Inline
+
+
+
 ### Building and Packaging / ビルドとパッケージング
 
 To build the extension:
