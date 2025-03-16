@@ -61,6 +61,31 @@ inlined Copyは、VSCode上でMarkdownファイルなどに記述された特殊
 * Issueを起票しバグ報告や機能提案を行ってください
 * コード規約やLintなど、詳細はCONTRIBUTING.mdを参照（予定）
 
+## 技術スタック
+
+1. Node.js (v18+)
+   * VSCode拡張機能の実行環境
+2. pnpm
+   * 依存関係管理ツール
+   * 主要コマンド: `pnpm install`, `pnpm update`
+3. TypeScript
+   * 拡張機能の実装言語
+   * コンパイル: `pnpm tsc -p ./`
+4. ESLint + Prettier
+   * コード品質とスタイル統一ツール
+   * コマンド: `pnpm run lint`, `pnpm run lint:fix`
+5. Vitest
+   * テストフレームワーク
+   * コマンド: `pnpm test`, `pnpm run test:coverage`
+6. VSCode Extension API
+   * 拡張機能開発フレームワーク
+   * デバッグ起動: F5キー
+
+### セットアップ
+1. pnpmインストール
+2. `pnpm install`
+3. F5キーでデバッグ実行
+
 ## ライセンス
 
 * MIT License
