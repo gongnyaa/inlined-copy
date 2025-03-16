@@ -1,6 +1,5 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { FileExpander } from '../../fileExpander';
 import { ParameterProcessor } from '../../parameterProcessor';
 import { SectionExtractor } from '../../sectionExtractor';
