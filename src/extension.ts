@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileExpander } from './fileExpander';
+import { ParameterProcessor } from './parameterProcessor';
 
 /**
  * Activates the extension
@@ -34,11 +35,14 @@ export function activate(context: vscode.ExtensionContext) {
       const currentDir = path.dirname(currentFilePath);
 
       // Process the text - expand file references
-      const processedText = await FileExpander.expandFileReferences(text, currentDir);
+      let processedText = await FileExpander.expandFileReferences(text, currentDir);
+      
+      // Process parameters
+      processedText = await ParameterProcessor.processParameters(processedText);
 
       // Copy the processed text to clipboard
       await vscode.env.clipboard.writeText(processedText);
-      vscode.window.showInformationMessage('Text copied to clipboard with expanded references');
+      vscode.window.showInformationMessage('Text copied to clipboard with expanded references and parameters');
     } catch (error) {
       vscode.window.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
