@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import { FileExpander } from './fileExpander';
 
 /**
  * Activates the extension
@@ -29,10 +29,16 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      // For now, just copy the text to clipboard
-      // In future versions, we'll implement file expansion and parameter processing
-      await vscode.env.clipboard.writeText(text);
-      vscode.window.showInformationMessage('Text copied to clipboard');
+      // Get the directory of the current file to resolve relative paths
+      const currentFilePath = editor.document.uri.fsPath;
+      const currentDir = path.dirname(currentFilePath);
+
+      // Process the text - expand file references
+      const processedText = await FileExpander.expandFileReferences(text, currentDir);
+
+      // Copy the processed text to clipboard
+      await vscode.env.clipboard.writeText(processedText);
+      vscode.window.showInformationMessage('Text copied to clipboard with expanded references');
     } catch (error) {
       vscode.window.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
