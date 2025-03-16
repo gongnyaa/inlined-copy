@@ -21,8 +21,6 @@ import { ParameterProcessor } from '../../parameterProcessor';
 import { SectionExtractor } from '../../sectionExtractor';
 
 describe('Extension Test Suite', () => {
-  // vscode.window.showInformationMessage('Start all tests.');
-
   it('FileExpander should be defined', () => {
     expect(FileExpander).toBeDefined();
   });

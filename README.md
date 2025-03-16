@@ -117,10 +117,10 @@ You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + 
    * Code quality and style unification tools
    * コード品質とスタイル統一ツール
    * Commands: `pnpm run lint`, `pnpm run lint:fix`
-5. Mocha
+5. Vitest
    * Test framework
    * テストフレームワーク
-   * Commands: `pnpm test`
+   * Commands: `pnpm test`, `pnpm run test:coverage`
 6. VS Code Extension API
    * Extension development framework
    * 拡張機能開発フレームワーク
