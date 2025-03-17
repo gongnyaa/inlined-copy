@@ -23,6 +23,9 @@ Developed as an open-source project, it's designed for the following workflows:
 ### 1. Ver 1 – ![[ファイル名]] 展開コピー
 * ![[ファイル名]] を検知して、対象ファイルの全文をコピー
 * ファイルパス(相対/絶対)にも対応
+* プロジェクトルートからの検索、近接性ベースの検索、ワークスペース全体の検索など、インテリジェントなパス解決
+* 複数のファイル候補がある場合は選択UIを表示
+* ファイルが見つからない場合は類似ファイルを提案
 
 ### 2. Ver 2 – ![[ファイル名#見出し名]] 展開コピー
 * ![[ファイル名#見出し名]]で見出しセクションを抽出してコピー
@@ -82,6 +85,8 @@ You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + 
 - `{{parameter=defaultValue}}` - Prompts for a value with a default
 
 - `![[ファイル名]]` - 参照されたファイルの全内容に展開されます
+  - 相対パス、絶対パス、プロジェクトルートからのパス、近接性ベースのパスなど、様々な形式のパスをサポート
+  - 複数のファイル候補がある場合は選択UIが表示されます
 - `![[ファイル名#見出し]]` - 参照されたファイル内の指定された見出しのセクションに展開されます
 - `{{パラメータ}}` - パラメータを置き換える値の入力を求めます
 - `{{パラメータ=デフォルト値}}` - デフォルト値を持つ値の入力を求めます
@@ -159,6 +164,7 @@ vsce package
 - Circular references between files are not currently detected
 - Very large files may cause performance issues
 - The extension currently only works with local files
+- ファイル検索のキャッシュは現在、拡張機能の再起動時にのみクリアされます
 
 - ファイル間の循環参照は現在検出されません
 - 非常に大きなファイルはパフォーマンスの問題を引き起こす可能性があります
