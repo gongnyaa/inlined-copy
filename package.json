@@ -38,7 +38,17 @@
         "mac": "cmd+shift+c",
         "when": "editorTextFocus"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Inlined Copy",
+      "properties": {
+        "inlined-copy.maxSearchDepth": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum depth for proximity-based file search"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
@@ -59,7 +69,7 @@
     "eslint": "^7.32.0",
     "glob": "^7.2.3",
     "typescript": "^4.9.5",
-    "vitest": "^3.0.8",
+    "vitest": "^3.0.9",
     "vscode-test": "^1.6.1"
   }
 }

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { FileResult, fileSuccess, fileFailure } from './fileResult';
 
 /**
  * Intelligent file path resolution for the inlined-copy extension
@@ -18,38 +19,39 @@ export class FileResolver {
    * Resolves a file path using multiple strategies
    * @param filePath The file path to resolve
    * @param basePath The base path for resolving relative paths
-   * @returns The resolved absolute file path or null if not found
+   * @returns A FileResult with the resolved path or error
    */
-  public static async resolveFilePath(filePath: string, basePath: string): Promise<string | null> {
+  public static async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
     // Strategy 1: Direct path resolution (absolute or relative)
     const directPath = this.resolveDirectPath(filePath, basePath);
     if (directPath) {
-      return directPath;
+      return fileSuccess(directPath);
     }
     
     // Strategy 2: Project root-based resolution
     const rootBasedPath = await this.resolveFromProjectRoot(filePath);
     if (rootBasedPath) {
-      return rootBasedPath;
+      return fileSuccess(rootBasedPath);
     }
     
     // Strategy 3: Proximity-based resolution
     const proximityPath = await this.resolveByProximity(filePath, basePath);
     if (proximityPath) {
-      return proximityPath;
+      return fileSuccess(proximityPath);
     }
     
     // Strategy 4: Workspace-wide search
     const candidates = await this.findFileInWorkspace(filePath);
-    if (candidates.length === 1) {
-      return candidates[0];
-    } else if (candidates.length > 1) {
-      // If multiple candidates found, ask user to select one
-      return await this.promptUserToSelectFile(candidates);
+    if (candidates.length > 0) {
+      // Select best candidate based on proximity
+      const bestCandidate = await this.selectBestFileCandidate(candidates, basePath);
+      if (bestCandidate) {
+        return fileSuccess(bestCandidate);
+      }
     }
     
     // No file found with any strategy
-    return null;
+    return fileFailure(`File not found: ${filePath}`);
   }
   
   /**
@@ -103,8 +105,10 @@ export class FileResolver {
    * @returns The resolved absolute file path or null if not found
    */
   private static async resolveByProximity(filePath: string, basePath: string): Promise<string | null> {
-    // Maximum number of parent directories to check
-    const MAX_DEPTH = 3;
+    // Get maximum search depth from configuration
+    const config = vscode.workspace.getConfiguration('inlined-copy');
+    const MAX_DEPTH = config.get<number>('maxSearchDepth') || 3;
+    
     let currentDir = basePath;
     const filename = path.basename(filePath);
     
@@ -165,39 +169,57 @@ export class FileResolver {
       return filePaths;
     } catch (error) {
       console.error('Error searching for files:', error);
+      // Notify user of the error
+      vscode.window.showErrorMessage(`Error searching for files: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
   
   /**
-   * Prompts the user to select a file from multiple candidates
+   * Selects the best file from multiple candidates based on proximity to base path
    * @param candidates Array of file paths to choose from
-   * @returns The selected file path or null if cancelled
+   * @param basePath The base path to calculate proximity from
+   * @returns The selected file path or null if no candidates
    */
-  private static async promptUserToSelectFile(candidates: string[]): Promise<string | null> {
+  private static async selectBestFileCandidate(candidates: string[], basePath: string): Promise<string | null> {
     if (candidates.length === 0) {
       return null;
     }
     
-    // Create QuickPick items from file paths
-    const items = candidates.map(filePath => {
-      const filename = path.basename(filePath);
-      const relativePath = vscode.workspace.asRelativePath(filePath);
+    // If only one candidate, return it
+    if (candidates.length === 1) {
+      return candidates[0];
+    }
+    
+    // Calculate proximity score for each candidate (lower is better)
+    const scoredCandidates = candidates.map(filePath => {
+      // Simple proximity score based on common path segments
+      const baseSegments = basePath.split(path.sep);
+      const fileSegments = filePath.split(path.sep);
+      
+      let commonSegments = 0;
+      for (let i = 0; i < Math.min(baseSegments.length, fileSegments.length); i++) {
+        if (baseSegments[i] === fileSegments[i]) {
+          commonSegments++;
+        } else {
+          break;
+        }
+      }
+      
+      // Score is inverse of common segments (lower is better)
+      const proximityScore = baseSegments.length + fileSegments.length - 2 * commonSegments;
       
       return {
-        label: filename,
-        description: relativePath,
-        detail: filePath
+        filePath,
+        proximityScore
       };
     });
     
-    // Show QuickPick UI
-    const selected = await vscode.window.showQuickPick(items, {
-      placeHolder: 'Multiple files found. Select one:',
-      canPickMany: false
-    });
+    // Sort by proximity score (ascending)
+    scoredCandidates.sort((a, b) => a.proximityScore - b.proximityScore);
     
-    return selected ? selected.detail : null;
+    // Return the best candidate (lowest score)
+    return scoredCandidates[0].filePath;
   }
   
   /**
@@ -231,6 +253,8 @@ export class FileResolver {
       return uris.map(uri => vscode.workspace.asRelativePath(uri));
     } catch (error) {
       console.error('Error getting suggestions:', error);
+      // Notify user of the error
+      vscode.window.showErrorMessage(`Error getting file suggestions: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }

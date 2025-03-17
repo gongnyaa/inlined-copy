@@ -2,16 +2,16 @@
  * Mock implementation of VS Code Uri class for testing
  */
 export class MockUri {
-  static file(path: string): any {
+  static file(filePath: string): Record<string, unknown> {
     return {
-      fsPath: path,
+      fsPath: filePath,
       scheme: 'file',
       authority: '',
-      path: path,
+      path: filePath,
       query: '',
       fragment: '',
-      with: () => this.file(path),
-      toString: () => `file://${path}`
+      with: () => this.file(filePath),
+      toString: () => `file://${filePath}`
     };
   }
 }
