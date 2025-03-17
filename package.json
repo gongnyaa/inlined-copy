@@ -46,6 +46,11 @@
           "type": "number",
           "default": 3,
           "description": "Maximum depth for proximity-based file search"
+        },
+        "inlined-copy.maxFileSize": {
+          "type": "number",
+          "default": 5242880,
+          "description": "Maximum file size in bytes (default: 5MB)"
         }
       }
     }
