@@ -161,14 +161,43 @@ vsce package
 
 ### Known Limitations / 既知の制限
 
-- Circular references between files are not currently detected
-- Very large files may cause performance issues
 - The extension currently only works with local files
 - ファイル検索のキャッシュはファイル変更時に自動的に更新されます
 
-- ファイル間の循環参照は現在検出されません
-- 非常に大きなファイルはパフォーマンスの問題を引き起こす可能性があります
 - 拡張機能は現在、ローカルファイルでのみ動作します
+
+### Error Handling / エラー処理
+
+The extension includes robust error handling for various scenarios:
+
+- **Large File Detection**: Files exceeding the configured size limit will not be processed to prevent performance issues
+- **Duplicate Reference Detection**: When the same file is referenced multiple times, only the first occurrence is expanded
+- **Circular Reference Detection**: Detects and prevents infinite loops caused by files referencing each other
+- **File Not Found**: Provides suggestions for similar files when a referenced file cannot be found
+
+拡張機能には、さまざまなシナリオに対する堅牢なエラー処理が含まれています：
+
+- **大容量ファイル検出**: 設定されたサイズ制限を超えるファイルは、パフォーマンスの問題を防ぐために処理されません
+- **重複参照検出**: 同じファイルが複数回参照されている場合、最初の出現のみが展開されます
+- **循環参照検出**: ファイルが相互に参照することによる無限ループを検出して防止します
+- **ファイルが見つからない**: 参照されたファイルが見つからない場合、類似のファイルの候補を提案します
+
+#### Error Messages / エラーメッセージ
+
+- **Large Data Exception**: "File size exceeds maximum allowed limit" - The file is too large to process
+- **Duplicate Reference**: "Duplicate reference detected" - The same file is referenced multiple times
+- **Circular Reference**: "Circular reference detected" - A circular dependency between files was found
+- **File Not Found**: "File not found" - The referenced file could not be located
+
+#### Configuration Options / 設定オプション
+
+- **inlined-copy.maxFileSize**: Maximum file size in bytes (default: 5MB)
+  - Adjust this setting if you need to work with larger files
+  - Example: Set to 10485760 for a 10MB limit
+
+- **inlined-copy.maxFileSize**: 処理可能な最大ファイルサイズ（バイト単位、デフォルト：5MB）
+  - より大きなファイルを処理する必要がある場合は、この設定を調整してください
+  - 例：10MBの制限を設定するには10485760に設定します
 
 ## This project specific knowledge
 
@@ -189,6 +218,15 @@ vsce package
 - 非同期処理の扱いは、Promiseベースの実装で変更する旨
 - VS Code APIの多くは非同期であり、`async/await`パターンを使用して実装します
 - ファイル操作やUI表示などの非同期処理は、常にPromiseチェーンで適切にエラーハンドリングします
+
+### エラー処理
+
+- エラー処理は、カスタムエラークラスを使用して実装されています
+- 主なエラータイプ：`LargeDataException`, `DuplicateReferenceException`, `CircularReferenceException`
+- エラーは`FileResult`型を使用して伝達され、成功または失敗の状態と追加情報を含みます
+- ユーザーエクスペリエンスを向上させるため、エラーの種類に応じて適切なメッセージを表示します
+- 設定を通じてエラー処理の動作をカスタマイズできます（例：`maxFileSize`）
+- パフォーマンス最適化のため、大きなファイルはストリーミング処理され、ファイル内容はキャッシュされます
 
 ## License / ライセンス
 

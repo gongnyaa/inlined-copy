@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import { SectionExtractor } from './sectionExtractor';
 import { FileResolver } from './fileResolver/fileResolver';
+import { LargeDataException, DuplicateReferenceException, CircularReferenceException, errorToFileResult } from './errors/errorTypes';
 
 /**
  * Expands file references in the format ![[filename]] or ![[filename#heading]] with the content of the referenced file
@@ -11,14 +13,18 @@ export class FileExpander {
    * Expands file references in the given text
    * @param text The text containing file references
    * @param basePath The base path to resolve relative file paths
+   * @param visitedPaths Optional array of file paths that have been visited (for circular reference detection)
    * @returns The expanded text with file references replaced by their content
    */
-  public static async expandFileReferences(text: string, basePath: string): Promise<string> {
+  public static async expandFileReferences(text: string, basePath: string, visitedPaths: string[] = []): Promise<string> {
     // Regular expression to match ![[filename]] or ![[filename#heading]] patterns
     const fileReferenceRegex = /!\[\[(.*?)(?:#(.*?))?\]\]/g;
     
     let result = text;
     let match;
+    
+    // Track processed files to detect duplicates
+    const processedFiles = new Set<string>();
     
     // Find all file references in the text
     while ((match = fileReferenceRegex.exec(text)) !== null) {
@@ -29,6 +35,24 @@ export class FileExpander {
       try {
         // Resolve the file path (handle both absolute and relative paths)
         const resolvedPath = await this.resolveFilePath(filePath, basePath);
+        
+        // Check for circular references
+        if (visitedPaths.includes(resolvedPath)) {
+          const pathChain = [...visitedPaths, resolvedPath].map(p => path.basename(p)).join(' → ');
+          throw new CircularReferenceException(`Circular reference detected: ${pathChain}`);
+        }
+        
+        // Check for duplicate references
+        if (processedFiles.has(resolvedPath)) {
+          const relativePath = path.relative(basePath, resolvedPath);
+          const warning = new DuplicateReferenceException(`Duplicate reference detected: ${relativePath}`);
+          vscode.window.showWarningMessage(warning.message);
+          // Keep the original reference for duplicates
+          continue;
+        }
+        
+        // Add to processed files
+        processedFiles.add(resolvedPath);
         
         // Read the file content
         const fileContent = await this.readFileContent(resolvedPath);
@@ -44,14 +68,25 @@ export class FileExpander {
           }
         }
         
+        // Recursively expand references in the inserted content
+        // Create a new array of visited paths to avoid modifying the original
+        const newVisitedPaths = [...visitedPaths, resolvedPath];
+        contentToInsert = await this.expandFileReferences(contentToInsert, path.dirname(resolvedPath), newVisitedPaths);
+        
         // Replace the file reference with the file content
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         // If file not found or other error, leave the reference as is and log error
         console.error(`Error expanding file reference ${fullMatch}: ${error}`);
         
-        // Show information message instead of error for file not found
-        if (error instanceof Error && error.message.startsWith('File not found:')) {
+        // Show appropriate message based on error type
+        if (error instanceof LargeDataException) {
+          vscode.window.showWarningMessage(`Large file detected: ${error.message}`);
+        } else if (error instanceof DuplicateReferenceException) {
+          vscode.window.showWarningMessage(error.message);
+        } else if (error instanceof CircularReferenceException) {
+          vscode.window.showErrorMessage(error.message);
+        } else if (error instanceof Error && error.message.startsWith('File not found:')) {
           vscode.window.showInformationMessage(`ファイルが見つからなかったため、そのまま表示しています: ${filePath}`);
         } else {
           // For other errors, show error message
@@ -89,21 +124,93 @@ export class FileExpander {
     return result.path;
   }
   
+  // Cache for file content to improve performance
+  private static fileContentCache: Map<string, string> = new Map();
+  
   /**
    * Reads the content of a file
    * @param filePath The path to the file
    * @returns The content of the file
+   * @throws LargeDataException if the file size exceeds the configured limit
    */
   private static async readFileContent(filePath: string): Promise<string> {
+    // Check cache first for better performance
+    if (this.fileContentCache.has(filePath)) {
+      return this.fileContentCache.get(filePath)!;
+    }
+    
+    // Get maximum file size from configuration
+    const config = vscode.workspace.getConfiguration('inlined-copy');
+    const MAX_FILE_SIZE = config.get<number>('maxFileSize') || 1024 * 1024 * 5; // 5MB default
+    
+    // Check file size before reading
+    try {
+      const stats = fs.statSync(filePath);
+      if (stats.size > MAX_FILE_SIZE) {
+        throw new LargeDataException(`File size (${(stats.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed limit (${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)`);
+      }
+      
+      // For files approaching the size limit, use streaming to reduce memory usage
+      if (stats.size > MAX_FILE_SIZE / 2) {
+        return this.readFileContentStreaming(filePath);
+      }
+      
+      // For smaller files, use regular file reading
+      const content = await new Promise<string>((resolve, reject) => {
+        fs.readFile(filePath, 'utf8', (err, data) => {
+          if (err) {
+            reject(new Error(`Failed to read file: ${err.message}`));
+            return;
+          }
+          
+          resolve(data);
+        });
+      });
+      
+      // Cache the content
+      this.fileContentCache.set(filePath, content);
+      
+      return content;
+    } catch (error) {
+      if (error instanceof LargeDataException) {
+        throw error;
+      }
+      throw new Error(`Failed to access file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
+  /**
+   * Reads the content of a file using streaming for better memory efficiency
+   * @param filePath The path to the file
+   * @returns The content of the file
+   */
+  private static readFileContentStreaming(filePath: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-          reject(new Error(`Failed to read file: ${err.message}`));
-          return;
-        }
-        
-        resolve(data);
+      const chunks: Buffer[] = [];
+      const stream = fs.createReadStream(filePath);
+      
+      stream.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      
+      stream.on('error', (err) => {
+        reject(new Error(`Failed to read file stream: ${err.message}`));
+      });
+      
+      stream.on('end', () => {
+        const content = Buffer.concat(chunks).toString('utf8');
+        // Cache the content
+        this.fileContentCache.set(filePath, content);
+        resolve(content);
       });
     });
+  }
+  
+  /**
+   * Clears the file content cache
+   * Should be called when files are modified
+   */
+  public static clearCache(): void {
+    this.fileContentCache.clear();
   }
 }
