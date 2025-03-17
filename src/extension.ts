@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileExpander } from './fileExpander';
 import { ParameterProcessor } from './parameterProcessor';
+import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 
 /**
  * Activates the extension
@@ -15,7 +16,7 @@ export function activate(context: vscode.ExtensionContext): void {
     try {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        vscode.window.showWarningMessage('No active editor found');
+        VSCodeEnvironment.showWarningMessage('No active editor found');
         return;
       }
 
@@ -26,7 +27,7 @@ export function activate(context: vscode.ExtensionContext): void {
         : editor.document.getText(selection);
 
       if (!text) {
-        vscode.window.showWarningMessage('No text to process');
+        VSCodeEnvironment.showWarningMessage('No text to process');
         return;
       }
 
@@ -41,17 +42,17 @@ export function activate(context: vscode.ExtensionContext): void {
       processedText = await ParameterProcessor.processParameters(processedText);
 
       // Copy the processed text to clipboard
-      await vscode.env.clipboard.writeText(processedText);
-      vscode.window.showInformationMessage('Text copied to clipboard with expanded references and parameters');
+      await VSCodeEnvironment.writeClipboard(processedText);
+      VSCodeEnvironment.showInformationMessage('Text copied to clipboard with expanded references and parameters');
     } catch (error) {
-      vscode.window.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      VSCodeEnvironment.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   });
 
   context.subscriptions.push(disposable);
 
   // Set up FileSystemWatcher to invalidate cache when files change
-  const mdWatcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+  const mdWatcher = VSCodeEnvironment.createFileSystemWatcher('**/*.md');
   const fileChangeHandler = () => {
     // Clear the file cache when files change
     // Import FileResolver dynamically to avoid circular dependencies

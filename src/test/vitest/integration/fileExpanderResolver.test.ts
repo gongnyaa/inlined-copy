@@ -1,7 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { FileExpander } from '../../../fileExpander';
-import { FileResolver } from '../../../fileResolver/fileResolver';
-import { fileSuccess, fileFailure } from '../../../fileResolver/fileResult';
+
+// Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
+vi.mock('../../../utils/vscodeEnvironment', () => {
+  return {
+    VSCodeEnvironment: {
+      showInformationMessage: vi.fn(),
+      showWarningMessage: vi.fn(),
+      showErrorMessage: vi.fn(),
+      getConfiguration: vi.fn().mockImplementation((section: string, key: string, defaultValue: unknown) => {
+        if (section === 'inlined-copy' && key === 'maxFileSize') return 1024; // 1KB for testing
+        if (section === 'inlined-copy' && key === 'maxRecursionDepth') return 1; // Default for testing
+        return defaultValue;
+      }),
+      writeClipboard: vi.fn(),
+      createFileSystemWatcher: vi.fn()
+    }
+  };
+});
 
 // Mock vscode module
 vi.mock('vscode', () => {
@@ -27,16 +42,42 @@ vi.mock('vscode', () => {
   };
 });
 
+import { FileExpander } from '../../../fileExpander';
+import { FileResolver } from '../../../fileResolver/fileResolver';
+import { fileSuccess, fileFailure } from '../../../fileResolver/fileResult';
+
+// Create a mock stream factory
+const createMockStream = () => {
+  const mockStream = {
+    on: vi.fn()
+  };
+  
+  // Make on() return the mockStream for chaining
+  mockStream.on.mockImplementation((event, callback) => {
+    if (event === 'data') {
+      callback(Buffer.from('# Test Content'));
+    }
+    if (event === 'end') {
+      setTimeout(() => callback(), 0);
+    }
+    return mockStream;
+  });
+  
+  return mockStream;
+};
+
 // Mock fs module
 vi.mock('fs', () => ({
   existsSync: vi.fn(),
+  statSync: vi.fn().mockReturnValue({ size: 100 }), // Add statSync mock
   readFile: vi.fn((path, options, callback) => {
     if (typeof options === 'function') {
       callback = options;
       options = 'utf8';
     }
     callback(null, '# Test Content');
-  })
+  }),
+  createReadStream: vi.fn().mockImplementation(() => createMockStream())
 }));
 
 describe('FileExpander with FileResolver Integration', () => {
@@ -52,11 +93,18 @@ describe('FileExpander with FileResolver Integration', () => {
   });
   
   it('should use FileResolver to resolve file paths', async () => {
+    // Mock the FileExpander.readFileContent method to return test content
+    const originalReadFileContent = (FileExpander as any).readFileContent;
+    (FileExpander as any).readFileContent = vi.fn().mockResolvedValue('# Test Content');
+    
     const text = 'Test with ![[file.md]]';
     const result = await FileExpander.expandFileReferences(text, mockBasePath);
     
     expect(FileResolver.resolveFilePath).toHaveBeenCalledWith('file.md', mockBasePath);
     expect(result).toContain(mockContent);
+    
+    // Restore original method
+    (FileExpander as any).readFileContent = originalReadFileContent;
   });
   
   it('should handle file not found errors with suggestions', async () => {

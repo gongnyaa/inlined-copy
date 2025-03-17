@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { FileResult, fileSuccess, fileFailure } from './fileResult';
+import { VSCodeEnvironment } from '../utils/vscodeEnvironment';
 
 /**
  * Intelligent file path resolution for the inlined-copy extension
@@ -106,8 +107,7 @@ export class FileResolver {
    */
   private static async resolveByProximity(filePath: string, basePath: string): Promise<string | null> {
     // Get maximum search depth from configuration
-    const config = vscode.workspace.getConfiguration('inlined-copy');
-    const MAX_DEPTH = config.get<number>('maxSearchDepth') || 3;
+    const MAX_DEPTH = VSCodeEnvironment.getConfiguration('inlined-copy', 'maxSearchDepth', 3);
     
     let currentDir = basePath;
     const filename = path.basename(filePath);
@@ -170,7 +170,7 @@ export class FileResolver {
     } catch (error) {
       console.error('Error searching for files:', error);
       // Notify user of the error
-      vscode.window.showErrorMessage(`Error searching for files: ${error instanceof Error ? error.message : String(error)}`);
+      VSCodeEnvironment.showErrorMessage(`Error searching for files: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
@@ -254,7 +254,7 @@ export class FileResolver {
     } catch (error) {
       console.error('Error getting suggestions:', error);
       // Notify user of the error
-      vscode.window.showErrorMessage(`Error getting file suggestions: ${error instanceof Error ? error.message : String(error)}`);
+      VSCodeEnvironment.showErrorMessage(`Error getting file suggestions: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
