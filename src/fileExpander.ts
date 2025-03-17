@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
 import { SectionExtractor } from './sectionExtractor';
+import { FileResolver } from './fileResolver/fileResolver';
 
 /**
  * Expands file references in the format ![[filename]] or ![[filename#heading]] with the content of the referenced file
@@ -28,7 +28,7 @@ export class FileExpander {
       
       try {
         // Resolve the file path (handle both absolute and relative paths)
-        const resolvedPath = this.resolveFilePath(filePath, basePath);
+        const resolvedPath = await this.resolveFilePath(filePath, basePath);
         
         // Read the file content
         const fileContent = await this.readFileContent(resolvedPath);
@@ -49,7 +49,11 @@ export class FileExpander {
       } catch (error) {
         // If file not found or other error, leave the reference as is and log error
         console.error(`Error expanding file reference ${fullMatch}: ${error}`);
-        vscode.window.showErrorMessage(`Error expanding file reference: ${error instanceof Error ? error.message : String(error)}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`Error expanding file reference: ${errorMessage}`);
+        
+        // Keep the original reference in the text
+        result = result.replace(fullMatch, fullMatch);
       }
     }
     
@@ -62,12 +66,20 @@ export class FileExpander {
    * @param basePath The base path for resolving relative paths
    * @returns The resolved absolute file path
    */
-  private static resolveFilePath(filePath: string, basePath: string): string {
-    if (path.isAbsolute(filePath)) {
-      return filePath;
+  private static async resolveFilePath(filePath: string, basePath: string): Promise<string> {
+    const resolvedPath = await FileResolver.resolveFilePath(filePath, basePath);
+    
+    if (!resolvedPath) {
+      // Get suggestions for similar files
+      const suggestions = await FileResolver.getSuggestions(filePath);
+      const suggestionText = suggestions.length > 0 
+        ? `\nSimilar files found:\n${suggestions.join('\n')}` 
+        : '';
+      
+      throw new Error(`File not found: ${filePath}${suggestionText}`);
     }
     
-    return path.resolve(basePath, filePath);
+    return resolvedPath;
   }
   
   /**
