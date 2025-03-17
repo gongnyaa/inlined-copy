@@ -49,6 +49,22 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   context.subscriptions.push(disposable);
+
+  // Set up FileSystemWatcher to invalidate cache when files change
+  const mdWatcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+  const fileChangeHandler = () => {
+    // Clear the file cache when files change
+    // Import FileResolver dynamically to avoid circular dependencies
+    import('./fileResolver/fileResolver').then(module => {
+      module.FileResolver.clearCache();
+    });
+  };
+  
+  mdWatcher.onDidChange(fileChangeHandler);
+  mdWatcher.onDidCreate(fileChangeHandler);
+  mdWatcher.onDidDelete(fileChangeHandler);
+  
+  context.subscriptions.push(mdWatcher);
 }
 
 /**

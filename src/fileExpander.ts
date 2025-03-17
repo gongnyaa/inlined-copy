@@ -49,8 +49,15 @@ export class FileExpander {
       } catch (error) {
         // If file not found or other error, leave the reference as is and log error
         console.error(`Error expanding file reference ${fullMatch}: ${error}`);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        vscode.window.showErrorMessage(`Error expanding file reference: ${errorMessage}`);
+        
+        // Show information message instead of error for file not found
+        if (error instanceof Error && error.message.startsWith('File not found:')) {
+          vscode.window.showInformationMessage(`ファイルが見つからなかったため、そのまま表示しています: ${filePath}`);
+        } else {
+          // For other errors, show error message
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          vscode.window.showErrorMessage(`Error expanding file reference: ${errorMessage}`);
+        }
         
         // Keep the original reference in the text
         result = result.replace(fullMatch, fullMatch);
@@ -67,9 +74,9 @@ export class FileExpander {
    * @returns The resolved absolute file path
    */
   private static async resolveFilePath(filePath: string, basePath: string): Promise<string> {
-    const resolvedPath = await FileResolver.resolveFilePath(filePath, basePath);
+    const result = await FileResolver.resolveFilePath(filePath, basePath);
     
-    if (!resolvedPath) {
+    if (!result.success) {
       // Get suggestions for similar files
       const suggestions = await FileResolver.getSuggestions(filePath);
       const suggestionText = suggestions.length > 0 
@@ -79,7 +86,7 @@ export class FileExpander {
       throw new Error(`File not found: ${filePath}${suggestionText}`);
     }
     
-    return resolvedPath;
+    return result.path;
   }
   
   /**

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FileExpander } from '../../../fileExpander';
 import { FileResolver } from '../../../fileResolver/fileResolver';
+import { fileSuccess, fileFailure } from '../../../fileResolver/fileResult';
 
 // Mock vscode module
 vi.mock('vscode', () => {
@@ -47,7 +48,7 @@ describe('FileExpander with FileResolver Integration', () => {
     vi.resetAllMocks();
     
     // Mock FileResolver.resolveFilePath
-    vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValue('/resolved/path/file.md');
+    vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValue(fileSuccess('/resolved/path/file.md'));
   });
   
   it('should use FileResolver to resolve file paths', async () => {
@@ -59,8 +60,8 @@ describe('FileExpander with FileResolver Integration', () => {
   });
   
   it('should handle file not found errors with suggestions', async () => {
-    // Mock FileResolver to return null (file not found)
-    vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValueOnce(null);
+    // Mock FileResolver to return failure (file not found)
+    vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValueOnce(fileFailure('File not found: nonexistent.md'));
     
     // Mock suggestions
     vi.spyOn(FileResolver, 'getSuggestions').mockResolvedValueOnce(['similar1.md', 'similar2.md']);

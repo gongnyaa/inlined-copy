@@ -164,11 +164,31 @@ vsce package
 - Circular references between files are not currently detected
 - Very large files may cause performance issues
 - The extension currently only works with local files
-- ファイル検索のキャッシュは現在、拡張機能の再起動時にのみクリアされます
+- ファイル検索のキャッシュはファイル変更時に自動的に更新されます
 
 - ファイル間の循環参照は現在検出されません
 - 非常に大きなファイルはパフォーマンスの問題を引き起こす可能性があります
 - 拡張機能は現在、ローカルファイルでのみ動作します
+
+## This project specific knowledge
+
+### VS Code API
+
+- VSCodeに関するコーディング時は、適宜VS Code APIドキュメントを参照する事
+- VS Code拡張機能の開発では、公式ドキュメントが最も信頼できる情報源です
+- 特に`vscode.workspace`と`vscode.window`のAPIは頻繁に使用されます
+
+### テスト
+
+- VS Code APIのモックに関する型エラーに関する対応指針
+- モックは`vi.mock('vscode')`を使用し、必要なAPIのみを実装することで型エラーを回避できます
+- `MockUri`クラスを使用してVS Code URIオブジェクトをモックします
+
+### 非同期処理
+
+- 非同期処理の扱いは、Promiseベースの実装で変更する旨
+- VS Code APIの多くは非同期であり、`async/await`パターンを使用して実装します
+- ファイル操作やUI表示などの非同期処理は、常にPromiseチェーンで適切にエラーハンドリングします
 
 ## License / ライセンス
 
