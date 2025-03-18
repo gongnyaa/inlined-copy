@@ -1,9 +1,7 @@
 /**
  * Result type for file resolution operations
  */
-export type FileResult = 
-  | { success: true; path: string }
-  | { success: false; error: string };
+export type FileResult = { success: true; path: string } | { success: false; error: string };
 
 /**
  * Creates a successful file result

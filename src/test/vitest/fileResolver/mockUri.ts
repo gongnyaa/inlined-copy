@@ -11,7 +11,7 @@ export class MockUri {
       query: '',
       fragment: '',
       with: () => this.file(filePath),
-      toString: () => `file://${filePath}`
+      toString: () => `file://${filePath}`,
     };
   }
 }

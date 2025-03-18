@@ -17,11 +17,11 @@ export class SectionExtractor {
 
     // Normalize the heading (remove leading # if present)
     const normalizedHeading = heading.replace(/^#+\s*/, '').trim();
-    
+
     // Find all headings in the content
     const headingRegex = /^(#{1,6})\s+(.+)$/gm;
     const headings: { level: number; title: string; index: number }[] = [];
-    
+
     let match;
     while ((match = headingRegex.exec(content)) !== null) {
       const level = match[1].length;
@@ -29,22 +29,22 @@ export class SectionExtractor {
       headings.push({
         level,
         title,
-        index: match.index
+        index: match.index,
       });
     }
-    
+
     // Find the target heading
-    const targetHeadingIndex = headings.findIndex(h => 
-      h.title.toLowerCase() === normalizedHeading.toLowerCase()
+    const targetHeadingIndex = headings.findIndex(
+      h => h.title.toLowerCase() === normalizedHeading.toLowerCase()
     );
-    
+
     if (targetHeadingIndex === -1) {
       return null; // Heading not found
     }
-    
+
     const targetHeading = headings[targetHeadingIndex];
     const startIndex = targetHeading.index;
-    
+
     // Find the end of the section (next heading of same or higher level)
     let endIndex = content.length;
     for (let i = targetHeadingIndex + 1; i < headings.length; i++) {
@@ -53,7 +53,7 @@ export class SectionExtractor {
         break;
       }
     }
-    
+
     // Extract the section content
     return content.substring(startIndex, endIndex).trim();
   }
