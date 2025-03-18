@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 
 /**
  * Processes parameter placeholders in the format {{parameter}} or {{parameter=defaultValue}}
@@ -7,9 +8,19 @@ export class ParameterProcessor {
   /**
    * Processes parameter placeholders in the given text
    * @param text The text containing parameter placeholders
+   * @param currentDepth Current recursion depth (default: 0)
    * @returns The processed text with parameter placeholders replaced by user input
    */
-  public static async processParameters(text: string): Promise<string> {
+  public static async processParameters(text: string, currentDepth = 0): Promise<string> {
+    // Get maximum parameter recursion depth from configuration
+    const MAX_PARAM_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration('inlined-copy', 'maxParameterRecursionDepth', 1);
+    
+    // Check if recursion depth exceeds limit
+    if (currentDepth > MAX_PARAM_RECURSION_DEPTH) {
+      // Don't process parameters at this depth, return text as is
+      return text;
+    }
+    
     // Regular expression to match {{parameter}} or {{parameter=defaultValue}} patterns
     const paramRegex = /\{\{([^=}]+)(?:=([^}]+))?\}\}/g;
     
