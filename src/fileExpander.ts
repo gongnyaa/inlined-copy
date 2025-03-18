@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SectionExtractor } from './sectionExtractor';
 import { FileResolver } from './fileResolver/fileResolver';
-import { ParameterProcessor } from './parameterProcessor';
 import { 
   LargeDataException, 
   DuplicateReferenceException, 
@@ -94,9 +93,6 @@ export class FileExpander {
           newVisitedPaths,
           currentDepth + 1
         );
-        
-        // Process parameters in the inserted content with the current depth + 1
-        contentToInsert = await ParameterProcessor.processParameters(contentToInsert, currentDepth + 1);
         
         // Replace the file reference with the file content
         result = result.replace(fullMatch, contentToInsert);
