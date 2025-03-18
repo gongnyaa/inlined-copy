@@ -171,6 +171,70 @@ The extension provides the following configuration options:
   - Value 2: Parameters in the main document and one level of referenced files are processed
   - Value 3: Parameters in the main document and two levels of referenced files are processed
 
+- **inlined-copy.logLevel**: Log level for the extension (default: "info")
+  - Controls the verbosity of logs in the output channel and console
+  - Available levels: "none", "error", "warn", "info", "debug"
+  - Higher levels include all lower level logs (e.g., "info" includes "error" and "warn")
+  - Set to "debug" for detailed troubleshooting information
+
+- **inlined-copy.debugMode**: Enable debug mode (default: false)
+  - When enabled, shows more detailed logs and messages to the user
+  - Useful for extension development and troubleshooting
+
+## Logging
+
+### LogManager Overview
+
+The extension includes a centralized `LogManager` class that provides consistent logging capabilities throughout the codebase. Key benefits include:
+
+- **Unified logging interface** for all extension components
+- **Configurable log levels** to control verbosity
+- **Debug mode** for development and troubleshooting
+- **Output channel integration** for persistent logs in VS Code
+
+### Using LogManager
+
+The `LogManager` provides four main logging methods with different severity levels:
+
+```typescript
+// Debug messages (only shown at debug log level)
+LogManager.debug("Processing file reference: " + filePath);
+
+// Informational messages
+LogManager.info("File successfully expanded", true); // Second parameter shows message to user
+
+// Warning messages (shown to user by default)
+LogManager.warn("Duplicate reference detected: " + fileName);
+
+// Error messages (shown to user by default)
+LogManager.error("Failed to resolve file path: " + filePath);
+```
+
+Each method accepts:
+1. A message string
+2. An optional boolean parameter to control whether the message is shown to the user
+
+### Configuring Logging
+
+Users can configure logging behavior through VS Code settings:
+
+1. Open VS Code settings (File > Preferences > Settings)
+2. Search for "inlined-copy"
+3. Adjust the following settings:
+   - **inlined-copy.logLevel**: Set the log verbosity ("none", "error", "warn", "info", "debug")
+   - **inlined-copy.debugMode**: Enable to show more detailed messages to the user
+
+### Best Practices
+
+- Use appropriate log levels:
+  - `debug`: Detailed information for development and troubleshooting
+  - `info`: General operational information
+  - `warn`: Potential issues that don't prevent operation
+  - `error`: Errors that prevent successful operation
+- Avoid excessive logging in performance-critical code paths
+- Set log level to "error" or "warn" in production for better performance
+- Enable debug mode only when troubleshooting issues
+
 ## Project-Specific Knowledge
 
 ### VS Code API
