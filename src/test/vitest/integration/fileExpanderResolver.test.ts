@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
 
 // Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
 vi.mock('../../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment
+}));
+
+// Mock LogManager - must be before other imports to avoid hoisting issues
+vi.mock('../../../utils/logManager', () => ({
+  LogManager: mockLogManager
 }));
 
 // Mock vscode module
@@ -76,6 +82,7 @@ describe('FileExpander with FileResolver Integration', () => {
     // Reset all mocks
     vi.resetAllMocks();
     resetMockVSCodeEnvironment();
+    resetMockLogManager();
     
     // Mock FileResolver.resolveFilePath
     vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValue(fileSuccess('/resolved/path/file.md'));

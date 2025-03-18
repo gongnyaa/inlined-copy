@@ -63,6 +63,23 @@
           "default": 1,
           "maximum": 3,
           "description": "Maximum depth for parameter expansion (default: 1, max: 3). Controls how deeply nested parameters are expanded inside referenced files."
+        },
+        "inlined-copy.logLevel": {
+          "type": "string",
+          "enum": [
+            "none",
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
+          "default": "info",
+          "description": "Log level for the extension (none, error, warn, info, debug)"
+        },
+        "inlined-copy.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug mode to show more detailed logs and messages"
         }
       }
     }
@@ -83,6 +100,7 @@
     "@types/vscode": "^1.98.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
+    "@vitest/coverage-v8": "3.0.9",
     "eslint": "^7.32.0",
     "glob": "^7.2.3",
     "typescript": "^4.9.5",

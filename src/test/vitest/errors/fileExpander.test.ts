@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
+import { LogManager } from '../../../utils/logManager';
 
 // Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
 vi.mock('../../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment
+}));
+
+// Mock LogManager - must be before other imports to avoid hoisting issues
+vi.mock('../../../utils/logManager', () => ({
+  LogManager: mockLogManager
 }));
 
 import * as fs from 'fs';
@@ -44,6 +51,8 @@ describe('FileExpander', () => {
     vi.clearAllMocks();
     // Reset VSCodeEnvironment mock
     resetMockVSCodeEnvironment();
+    // Reset LogManager mock
+    resetMockLogManager();
     // Reset the file content cache
     (FileExpander as any).fileContentCache = new Map();
   });
@@ -79,7 +88,7 @@ describe('FileExpander', () => {
         expect(result).toBe(text);
         
         // Expect warning message to be shown
-        expect(VSCodeEnvironment.showWarningMessage).toHaveBeenCalledWith(
+        expect(mockLogManager.warn).toHaveBeenCalledWith(
           expect.stringContaining('Large file detected')
         );
       } finally {
@@ -114,7 +123,7 @@ describe('FileExpander', () => {
         const result = text.replace('![[file.txt]]', 'File content');
         
         // Show warning for duplicate
-        VSCodeEnvironment.showWarningMessage('Duplicate reference detected: file.txt');
+        LogManager.warn('Duplicate reference detected: file.txt');
         
         return result;
       });
@@ -128,7 +137,7 @@ describe('FileExpander', () => {
         expect(result).toBe('Reference 1: File content and Reference 2: ![[file.txt]]');
         
         // Expect warning message for duplicate
-        expect(VSCodeEnvironment.showWarningMessage).toHaveBeenCalledWith(
+        expect(mockLogManager.warn).toHaveBeenCalledWith(
           expect.stringContaining('Duplicate reference detected')
         );
       } finally {
@@ -184,7 +193,7 @@ describe('FileExpander', () => {
       const result = await FileExpander.expandFileReferences(text, '/base/path');
       
       // Expect error message for circular reference
-      expect(VSCodeEnvironment.showErrorMessage).toHaveBeenCalledWith(
+      expect(mockLogManager.error).toHaveBeenCalledWith(
         expect.stringContaining('Circular reference detected')
       );
       
@@ -246,7 +255,7 @@ describe('FileExpander', () => {
       const result = await FileExpander.expandFileReferences(text, '/base/path');
       
       // Expect warning message for recursion depth
-      expect(VSCodeEnvironment.showWarningMessage).toHaveBeenCalledWith(
+      expect(mockLogManager.warn).toHaveBeenCalledWith(
         expect.stringContaining('Maximum recursion depth')
       );
       

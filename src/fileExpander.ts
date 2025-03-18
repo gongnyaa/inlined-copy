@@ -11,6 +11,7 @@ import {
   errorToFileResult 
 } from './errors/errorTypes';
 import { VSCodeEnvironment } from './utils/vscodeEnvironment';
+import { LogManager } from './utils/logManager';
 
 /**
  * Expands file references in the format ![[filename]] or ![[filename#heading]] with the content of the referenced file
@@ -25,13 +26,13 @@ export class FileExpander {
    * @returns The expanded text with file references replaced by their content
    */
   public static async expandFileReferences(text: string, basePath: string, visitedPaths: string[] = [], currentDepth = 0): Promise<string> {
-    console.log(`Expanding file references at depth ${currentDepth}`);
+    LogManager.debug(`Expanding file references at depth ${currentDepth}`);
     // Get maximum recursion depth from configuration
     const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration('inlined-copy', 'maxRecursionDepth', 1);
     
     // Check if recursion depth exceeds limit
     if (currentDepth > MAX_RECURSION_DEPTH) {
-      console.log(`Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}, throwing exception.`);
+      LogManager.debug(`Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}, throwing exception.`);
       throw new RecursionDepthException(`Maximum recursion depth (${MAX_RECURSION_DEPTH}) exceeded`);
     }
     
@@ -64,7 +65,7 @@ export class FileExpander {
         if (processedFiles.has(resolvedPath)) {
           const relativePath = path.relative(basePath, resolvedPath);
           const warning = new DuplicateReferenceException(`Duplicate reference detected: ${relativePath}`);
-          VSCodeEnvironment.showWarningMessage(warning.message);
+          LogManager.warn(warning.message);
           // Keep the original reference for duplicates
           continue;
         }
@@ -82,7 +83,7 @@ export class FileExpander {
           if (sectionContent) {
             contentToInsert = sectionContent;
           } else {
-            VSCodeEnvironment.showWarningMessage(`Heading "${heading}" not found in file "${filePath}"`);
+            LogManager.warn(`Heading "${heading}" not found in file "${filePath}"`);
           }
         }
         
@@ -102,23 +103,23 @@ export class FileExpander {
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         // If file not found or other error, leave the reference as is and log error
-        console.error(`Error expanding file reference ${fullMatch}: ${error}`);
+        LogManager.error(`Error expanding file reference ${fullMatch}: ${error}`);
         
         // Show appropriate message based on error type
         if (error instanceof LargeDataException) {
-          VSCodeEnvironment.showWarningMessage(`Large file detected: ${error.message}`);
+          LogManager.warn(`Large file detected: ${error.message}`);
         } else if (error instanceof DuplicateReferenceException) {
-          VSCodeEnvironment.showWarningMessage(error.message);
+          LogManager.warn(error.message);
         } else if (error instanceof CircularReferenceException) {
-          VSCodeEnvironment.showErrorMessage(error.message);
+          LogManager.error(error.message);
         } else if (error instanceof RecursionDepthException) {
-          VSCodeEnvironment.showWarningMessage(error.message);
+          LogManager.warn(error.message);
         } else if (error instanceof Error && error.message.startsWith('File not found:')) {
-          VSCodeEnvironment.showInformationMessage(`File not found, keeping original reference: ${filePath}`);
+          LogManager.info(`File not found, keeping original reference: ${filePath}`);
         } else {
           // For other errors, show error message
           const errorMessage = error instanceof Error ? error.message : String(error);
-          VSCodeEnvironment.showErrorMessage(`Error expanding file reference: ${errorMessage}`);
+          LogManager.error(`Error expanding file reference: ${errorMessage}`);
         }
         
         // Keep the original reference in the text

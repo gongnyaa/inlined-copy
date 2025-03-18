@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolver } from '../../../fileResolver/fileResolver';
@@ -8,6 +9,11 @@ import { fileSuccess, fileFailure } from '../../../fileResolver/fileResult';
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment
+}));
+
+// Mock LogManager
+vi.mock('../../../utils/logManager', () => ({
+  LogManager: mockLogManager
 }));
 
 // Mock modules
@@ -36,6 +42,7 @@ describe('FileResolver', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     resetMockVSCodeEnvironment();
+    resetMockLogManager();
   });
   
   afterEach(() => {

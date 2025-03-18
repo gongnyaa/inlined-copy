@@ -3,20 +3,23 @@ import * as path from 'path';
 import { FileExpander } from './fileExpander';
 import { ParameterProcessor } from './parameterProcessor';
 import { VSCodeEnvironment } from './utils/vscodeEnvironment';
+import { LogManager } from './utils/logManager';
 
 /**
  * Activates the extension
  * @param context The extension context
  */
 export function activate(context: vscode.ExtensionContext): void {
-  console.log('inlined Copy extension is now active');
+  // Initialize LogManager
+  LogManager.initialize(context);
+  LogManager.info('inlined Copy extension is now active');
 
   // Register the copyInline command
   const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', async () => {
     try {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        VSCodeEnvironment.showWarningMessage('No active editor found');
+        LogManager.warn('No active editor found', true);
         return;
       }
 
@@ -27,7 +30,7 @@ export function activate(context: vscode.ExtensionContext): void {
         : editor.document.getText(selection);
 
       if (!text) {
-        VSCodeEnvironment.showWarningMessage('No text to process');
+        LogManager.warn('No text to process', true);
         return;
       }
 
@@ -43,9 +46,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
       // Copy the processed text to clipboard
       await VSCodeEnvironment.writeClipboard(processedText);
-      VSCodeEnvironment.showInformationMessage('Text copied to clipboard with expanded references and parameters');
+      LogManager.info('Text copied to clipboard with expanded references and parameters', true);
     } catch (error) {
-      VSCodeEnvironment.showErrorMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      LogManager.error(`Error: ${error instanceof Error ? error.message : String(error)}`, true);
     }
   });
 
@@ -61,11 +64,13 @@ export function activate(context: vscode.ExtensionContext): void {
     // Import FileResolver dynamically to avoid circular dependencies
     import('./fileResolver/fileResolver').then(module => {
       module.FileResolver.clearCache();
+      LogManager.debug('FileResolver cache cleared due to file system changes');
     });
     
     // Clear the FileExpander cache as well
     import('./fileExpander').then(module => {
       module.FileExpander.clearCache();
+      LogManager.debug('FileExpander cache cleared due to file system changes');
     });
   };
   
@@ -83,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   
   // Log the watched patterns
-  console.log(`Watching file patterns: ${config.join(', ')}`);
+  LogManager.debug(`Watching file patterns: ${config.join(', ')}`);
 }
 
 /**
@@ -91,4 +96,6 @@ export function activate(context: vscode.ExtensionContext): void {
  */
 export function deactivate(): void {
   // Clean up resources if needed
+  LogManager.dispose();
+  LogManager.debug('inlined Copy extension is now deactivated');
 }
