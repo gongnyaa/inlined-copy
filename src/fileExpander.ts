@@ -94,6 +94,8 @@ export class FileExpander {
           currentDepth + 1
         );
         
+        // Parameters will be processed after all file references are expanded
+        
         // Replace the file reference with the file content
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
