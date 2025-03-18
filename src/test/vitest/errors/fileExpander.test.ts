@@ -1,22 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
 
 // Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
-vi.mock('../../../utils/vscodeEnvironment', () => {
-  return {
-    VSCodeEnvironment: {
-      showInformationMessage: vi.fn(),
-      showWarningMessage: vi.fn(),
-      showErrorMessage: vi.fn(),
-      getConfiguration: vi.fn().mockImplementation((section, key, defaultValue) => {
-        if (section === 'inlined-copy' && key === 'maxFileSize') return 1024; // 1KB for testing
-        if (section === 'inlined-copy' && key === 'maxRecursionDepth') return 1; // Default for testing
-        return defaultValue;
-      }),
-      writeClipboard: vi.fn(),
-      createFileSystemWatcher: vi.fn()
-    }
-  };
-});
+vi.mock('../../../utils/vscodeEnvironment', () => ({
+  VSCodeEnvironment: mockVSCodeEnvironment
+}));
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -55,10 +43,7 @@ describe('FileExpander', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset VSCodeEnvironment mock
-    vi.mocked(VSCodeEnvironment.showInformationMessage).mockClear();
-    vi.mocked(VSCodeEnvironment.showWarningMessage).mockClear();
-    vi.mocked(VSCodeEnvironment.showErrorMessage).mockClear();
-    vi.mocked(VSCodeEnvironment.getConfiguration).mockClear();
+    resetMockVSCodeEnvironment();
     // Reset the file content cache
     (FileExpander as any).fileContentCache = new Map();
   });

@@ -1,4 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from './mocks/vscodeEnvironment.mock';
+
+// Mock VSCodeEnvironment
+vi.mock('../../utils/vscodeEnvironment', () => ({
+  VSCodeEnvironment: mockVSCodeEnvironment
+}));
 
 // Mock vscode module
 vi.mock('vscode', () => {
@@ -21,6 +27,11 @@ import { ParameterProcessor } from '../../parameterProcessor';
 import { SectionExtractor } from '../../sectionExtractor';
 
 describe('Extension Test Suite', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    resetMockVSCodeEnvironment();
+  });
+  
   it('FileExpander should be defined', () => {
     expect(FileExpander).toBeDefined();
   });

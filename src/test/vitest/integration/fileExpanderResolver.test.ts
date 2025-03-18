@@ -1,22 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
 
 // Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
-vi.mock('../../../utils/vscodeEnvironment', () => {
-  return {
-    VSCodeEnvironment: {
-      showInformationMessage: vi.fn(),
-      showWarningMessage: vi.fn(),
-      showErrorMessage: vi.fn(),
-      getConfiguration: vi.fn().mockImplementation((section: string, key: string, defaultValue: unknown) => {
-        if (section === 'inlined-copy' && key === 'maxFileSize') return 1024; // 1KB for testing
-        if (section === 'inlined-copy' && key === 'maxRecursionDepth') return 1; // Default for testing
-        return defaultValue;
-      }),
-      writeClipboard: vi.fn(),
-      createFileSystemWatcher: vi.fn()
-    }
-  };
-});
+vi.mock('../../../utils/vscodeEnvironment', () => ({
+  VSCodeEnvironment: mockVSCodeEnvironment
+}));
 
 // Mock vscode module
 vi.mock('vscode', () => {
@@ -87,6 +75,7 @@ describe('FileExpander with FileResolver Integration', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.resetAllMocks();
+    resetMockVSCodeEnvironment();
     
     // Mock FileResolver.resolveFilePath
     vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValue(fileSuccess('/resolved/path/file.md'));
