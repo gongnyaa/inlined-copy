@@ -184,7 +184,10 @@ The extension provides the following configuration options:
 - Guidelines for handling type errors related to VS Code API mocking
 - Use `vi.mock('vscode')` and implement only the necessary APIs to avoid type errors
 - Use the `MockUri` class to mock VS Code URI objects
-
+- Mock VSCodeEnvironment for configuration tests using mockImplementation to simulate different settings
+- When testing parameter processing, create helper functions to simulate the behavior without direct VSCode dependencies
+- Use vi.resetAllMocks() in beforeEach to ensure clean test state
+- 
 ### Asynchronous Processing
 
 - Asynchronous handling is implemented using Promise-based patterns
