@@ -25,11 +25,13 @@ export class FileExpander {
    * @returns The expanded text with file references replaced by their content
    */
   public static async expandFileReferences(text: string, basePath: string, visitedPaths: string[] = [], currentDepth = 0): Promise<string> {
+    console.log(`Expanding file references at depth ${currentDepth}`);
     // Get maximum recursion depth from configuration
     const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration('inlined-copy', 'maxRecursionDepth', 1);
     
     // Check if recursion depth exceeds limit
     if (currentDepth > MAX_RECURSION_DEPTH) {
+      console.log(`Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}, throwing exception.`);
       throw new RecursionDepthException(`Maximum recursion depth (${MAX_RECURSION_DEPTH}) exceeded`);
     }
     
