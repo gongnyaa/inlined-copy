@@ -322,13 +322,42 @@ Users can configure logging behavior through VS Code settings:
 
 ### Testing
 
+#### Test Framework and Setup
+
+- Vitest is used as the test framework for unit and integration tests
+- Tests are located in `src/test/vitest/` directory, organized by component
+- Use `pnpm test` to run all tests, or `pnpm run test:coverage` for coverage reports
+- Mock implementations are provided for VS Code API and filesystem operations
+
+#### Edge Case Testing
+
+The extension includes comprehensive edge case tests to ensure reliability:
+
+1. **Special Character Path Resolution Tests**
+   - Tests handling of paths with spaces, special characters (#, $, %, !, etc.)
+   - Verifies correct resolution of nested paths with special characters
+   - Ensures consistent behavior across different operating systems
+
+2. **Performance Tests**
+   - Measures processing time for various file sizes (from small to 5MB+)
+   - Tests scaling with multiple files (10, 50, 100+ files)
+   - Ensures efficient handling of large documents with many references
+
+3. **Circular Reference Tests**
+   - Detects direct self-references (file referencing itself)
+   - Identifies circular references between two files (A → B → A)
+   - Handles longer circular reference chains (A → B → C → A)
+   - Verifies appropriate error messages are displayed to users
+
+#### Testing Best Practices
+
 - Guidelines for handling type errors related to VS Code API mocking
 - Use `vi.mock('vscode')` and implement only the necessary APIs to avoid type errors
 - Use the `MockUri` class to mock VS Code URI objects
 - Mock VSCodeEnvironment for configuration tests using mockImplementation to simulate different settings
 - When testing parameter processing, create helper functions to simulate the behavior without direct VSCode dependencies
 - Use vi.resetAllMocks() in beforeEach to ensure clean test state
--
+- For edge case tests, create isolated test environments with controlled file structures
 
 ### Asynchronous Processing
 

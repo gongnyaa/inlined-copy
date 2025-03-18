@@ -9,5 +9,6 @@ export default defineConfig({
     deps: {
       external: ['vscode'],
     },
+    setupFiles: ['./vitest.setup.ts'],
   },
 });
