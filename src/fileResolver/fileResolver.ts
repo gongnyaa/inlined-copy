@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { FileResult, fileSuccess, fileFailure } from './fileResult';
 import { VSCodeEnvironment } from '../utils/vscodeEnvironment';
+import { LogManager } from '../utils/logManager';
 
 /**
  * Intelligent file path resolution for the inlined-copy extension
@@ -168,9 +169,9 @@ export class FileResolver {
       
       return filePaths;
     } catch (error) {
-      console.error('Error searching for files:', error);
+      LogManager.error(`Error searching for files: ${error}`);
       // Notify user of the error
-      VSCodeEnvironment.showErrorMessage(`Error searching for files: ${error instanceof Error ? error.message : String(error)}`);
+      LogManager.error(`Error searching for files: ${error instanceof Error ? error.message : String(error)}`, true);
       return [];
     }
   }
@@ -252,9 +253,9 @@ export class FileResolver {
       
       return uris.map(uri => vscode.workspace.asRelativePath(uri));
     } catch (error) {
-      console.error('Error getting suggestions:', error);
+      LogManager.error(`Error getting suggestions: ${error}`);
       // Notify user of the error
-      VSCodeEnvironment.showErrorMessage(`Error getting file suggestions: ${error instanceof Error ? error.message : String(error)}`);
+      LogManager.error(`Error getting file suggestions: ${error instanceof Error ? error.message : String(error)}`, true);
       return [];
     }
   }

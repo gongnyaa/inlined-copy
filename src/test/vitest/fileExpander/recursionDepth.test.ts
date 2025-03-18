@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileExpander } from '../../../fileExpander';
@@ -10,6 +11,11 @@ import { RecursionDepthException } from '../../../errors/errorTypes';
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment
+}));
+
+// Mock LogManager
+vi.mock('../../../utils/logManager', () => ({
+  LogManager: mockLogManager
 }));
 
 // Mock fs module
@@ -55,6 +61,7 @@ describe('FileExpander Recursion Depth', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     resetMockVSCodeEnvironment();
+    resetMockLogManager();
     
     // Reset the file content cache
     (FileExpander as any).fileContentCache = new Map();

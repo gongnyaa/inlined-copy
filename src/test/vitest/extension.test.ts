@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from './mocks/vscodeEnvironment.mock';
+import { mockLogManager, resetMockLogManager } from './mocks/logManager.mock';
 
 // Mock VSCodeEnvironment
 vi.mock('../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment
+}));
+
+// Mock LogManager
+vi.mock('../../utils/logManager', () => ({
+  LogManager: mockLogManager
 }));
 
 // Mock vscode module
@@ -30,6 +36,7 @@ describe('Extension Test Suite', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     resetMockVSCodeEnvironment();
+    resetMockLogManager();
   });
   
   it('FileExpander should be defined', () => {
