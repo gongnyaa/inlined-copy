@@ -165,6 +165,12 @@ The extension provides the following configuration options:
   - Higher values allow more complex document structures but may impact performance
   - Example: Set to 2 to expand references within referenced files (but not further)
 
+- **inlined-copy.maxParameterRecursionDepth**: Maximum depth for parameter expansion (default: 1, max: 3)
+  - Controls how deeply nested parameters are expanded inside referenced files
+  - Value 1: Parameters in the main document are processed, but not in referenced files
+  - Value 2: Parameters in the main document and one level of referenced files are processed
+  - Value 3: Parameters in the main document and two levels of referenced files are processed
+
 ## Project-Specific Knowledge
 
 ### VS Code API

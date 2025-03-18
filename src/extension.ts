@@ -38,8 +38,8 @@ export function activate(context: vscode.ExtensionContext): void {
       // Process the text - expand file references
       let processedText = await FileExpander.expandFileReferences(text, currentDir);
       
-      // Process parameters
-      processedText = await ParameterProcessor.processParameters(processedText);
+      // Process parameters with initial depth 0
+      processedText = await ParameterProcessor.processParameters(processedText, 0);
 
       // Copy the processed text to clipboard
       await VSCodeEnvironment.writeClipboard(processedText);
