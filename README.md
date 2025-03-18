@@ -1,67 +1,57 @@
 # inlined-copy
 
-## Overview / 概要
+## Overview
 
 inlined Copy is a VS Code extension that parses special notations in Markdown files and expands them by inlining content from referenced files or sections, then copies the result to the clipboard.
-
-inlined Copyは、VSCode上でMarkdownファイルなどに記述された特殊記法を解析し、指定したファイル内容や見出し単位の内容をインライン展開してコピーする拡張機能です。
 
 Developed as an open-source project, it's designed for the following workflows:
 * Streamlining document template creation and content reuse
 * Referencing multiple files using the ![[filename]] notation for batch copying
 * Supporting section-level copying and parameter substitution ({{parameter}})
 
-オープンソースとして開発され、以下のようなワークフローを想定しています:
-* ドキュメントテンプレートやスニペット共有を効率化
-* ![[ファイル名]] 記法で複数のファイルを参照して、一括コピー
-* 見出し単位のコピーや、パラメータの差し替え（{{変数}}）にも対応
+## Key Features (Roadmap)
 
-## 主要機能 (ロードマップ)
+This project releases features incrementally. The implementation items for each version are as follows:
 
-本プロジェクトは機能を段階的にリリースします。各バージョンの実装項目は次のとおりです:
+### 1. Ver 1 – ![[filename]] Expansion and Copy
+* Detect ![[filename]] and copy the entire content of the target file
+* Support for file paths (relative/absolute)
+* Intelligent path resolution including project root search, proximity-based search, and workspace-wide search
+* Display selection UI when multiple file candidates exist
+* Suggest similar files when a file is not found
 
-### 1. Ver 1 – ![[ファイル名]] 展開コピー
-* ![[ファイル名]] を検知して、対象ファイルの全文をコピー
-* ファイルパス(相対/絶対)にも対応
-* プロジェクトルートからの検索、近接性ベースの検索、ワークスペース全体の検索など、インテリジェントなパス解決
-* 複数のファイル候補がある場合は選択UIを表示
-* ファイルが見つからない場合は類似ファイルを提案
+### 2. Ver 2 – ![[filename#heading]] Section Expansion
+* Extract and copy heading sections with ![[filename#heading]]
+* Support for various markdown heading levels and multiple sections
 
-### 2. Ver 2 – ![[ファイル名#見出し名]] 展開コピー
-* ![[ファイル名#見出し名]]で見出しセクションを抽出してコピー
-* マークダウンの見出しレベルや複数セクションへの対応など検討
+### 3. Ver 3 – Reference Tag Completion
+* Display file list suggestions when typing ![[ 
+* Show heading list suggestions when typing #
 
-### 3. Ver 3 – 参照タグの補完機能
-* ![[入力時にファイル一覧の候補を表示
-* #を入力したらファイル内の見出し一覧を候補として表示
+### 4. Ver 4 – {{parameter}} Input Function – Key-Value
+* Replace {{parameter}} with user-specified key-value input
+* Display popup during copy to get values from user and substitute
 
-### 4. Ver 4 – {{パラメータ名}} 入力機能 – Key-Value
-* {{パラメータ名}} をユーザーが指定するKey-Value入力で置換
-* コピー時にポップアップを表示し、ユーザーから値を取得して代入
+### 5. Ver 5 – {{parameter}} Input Function – Default Values
+* Support {{parameter=defaultValue}} syntax with default values in popup
+* Use default value if input field is empty
 
-### 5. Ver 5 – {{パラメータ名}} 入力機能 – 初期値設定
-* {{パラメータ名=初期値}}のように書くと、初期値がポップアップに反映
-* 入力欄が空の場合は初期値を使用
+### 6. Ver 6 – {{parameter}} Input Function – JSON Format Support
+* Enable **batch input** mechanism for multiple parameters (JSON format)
+* Example: Input {"name": "Devin", "project": "inlined Copy"} all at once
 
-### 6. Ver 6 – {{パラメータ名}} 入力機能 – Json形式に対応
-* 複数パラメータを**一括入力**可能にする仕組み (JSON形式)
-* 例: {"name": "Devin", "project": "inlined Copy"} をまとめて入力
+### 7. Ver 7 – Markdown Preview Integration
+* Real-time expansion of ![[...]] and {{...}} in VS Code Markdown preview
+* Easier confirmation before copying
 
-### 7. Ver 7 – Markdownプレビュー統合
-* VSCodeのMarkdownプレビューで![[...]]や{{...}}をリアルタイム展開
-* コピー前の確認が容易になる
-
-## Installation / インストール
+## Installation
 
 * **Development version**: Clone the GitHub repository, run `pnpm install && pnpm run compile`, then install using VS Code's "Extensions: Install from VSIX..." command.
 * **After marketplace publication**: Search for "inlined Copy" in the VS Code extensions tab and install.
 
-* **まだ未公開の場合**: GitHubリポジトリをクローンし、pnpm install && pnpm run compile後、VSCodeのExtensions: Install from VSIX...でインストール可能。
-* **マーケットプレース公開後**: VSCodeの拡張機能タブで inlined Copy を検索し、インストール。
+## Usage
 
-## Usage / 使い方
-
-### Basic Usage / 基本的な使い方
+### Basic Usage
 
 1. **Open the command palette**: `Ctrl + Shift + P` (Mac: `Cmd + Shift + P`)
 2. Select the **Inlined Copy: Copy Inline** command
@@ -70,83 +60,63 @@ Developed as an open-source project, it's designed for the following workflows:
 
 You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + C`)
 
-1. **コマンドパレットを開く**: `Ctrl + Shift + P` (Mac: `Cmd + Shift + P`)
-2. **Inlined Copy: Copy Inline** コマンドを選択
-3. **現在のエディタ内容**を解析し、![[...]] や {{...}} 等の特殊記法を一括で展開
-4. 生成されたテキストをクリップボードにコピー→任意の場所に貼り付け
-
-キーボードショートカット: `Ctrl + Shift + C` (Mac: `Cmd + Shift + C`) も使用できます。
-
-### Supported Notations / サポートされている記法
+### Supported Notations
 
 - `![[filename]]` - Expands to the entire content of the referenced file
+  - Supports various path formats: relative, absolute, project root, proximity-based paths
+  - Displays selection UI when multiple file candidates exist
 - `![[filename#heading]]` - Expands to the section under the specified heading in the referenced file
 - `{{parameter}}` - Prompts for a value to replace the parameter
 - `{{parameter=defaultValue}}` - Prompts for a value with a default
 
-- `![[ファイル名]]` - 参照されたファイルの全内容に展開されます
-  - 相対パス、絶対パス、プロジェクトルートからのパス、近接性ベースのパスなど、様々な形式のパスをサポート
-  - 複数のファイル候補がある場合は選択UIが表示されます
-- `![[ファイル名#見出し]]` - 参照されたファイル内の指定された見出しのセクションに展開されます
-- `{{パラメータ}}` - パラメータを置き換える値の入力を求めます
-- `{{パラメータ=デフォルト値}}` - デフォルト値を持つ値の入力を求めます
+Note: Additional features and settings may be added in future versions.
 
-※ バージョンによって追加機能が増え、操作手順や設定が増えることがあります。
-
-## Contributing / 開発への参加
+## Contributing
 
 * Contributions via [Fork & PR] are welcome
 * Please open issues for bug reports or feature suggestions
 * For code conventions and linting, refer to CONTRIBUTING.md (coming soon)
 
-* [Fork & PR] でのコントリビューションを歓迎します
-* Issueを起票しバグ報告や機能提案を行ってください
-* コード規約やLintなど、詳細はCONTRIBUTING.mdを参照（予定）
+## Development
 
-## Development / 開発
-
-### Technology Stack / 技術スタック
+### Technology Stack
 
 1. Node.js (v18+)
    * VS Code extension runtime environment
-   * VSCode拡張機能の実行環境
 2. pnpm
    * Dependency management tool
-   * 依存関係管理ツール
    * Main commands: `pnpm install`, `pnpm update`
 3. TypeScript
    * Implementation language for the extension
-   * 拡張機能の実装言語
    * Compile: `pnpm tsc -p ./`
 4. ESLint + Prettier
    * Code quality and style unification tools
-   * コード品質とスタイル統一ツール
    * Commands: `pnpm run lint`, `pnpm run lint:fix`
 5. Vitest
    * Test framework
-   * テストフレームワーク
    * Commands: `pnpm test`, `pnpm run test:coverage`
 6. VS Code Extension API
    * Extension development framework
-   * 拡張機能開発フレームワーク
    * Debug launch: F5 key
 
-### Setup / セットアップ
+### Setup
 
-1. Install pnpm / pnpmインストール
-2. Run `pnpm install` / `pnpm install`を実行
-3. Press F5 to launch debugging / F5キーでデバッグ実行
+1. Install pnpm
+2. Run `pnpm install`
+3. Press F5 to launch debugging
 
 ### Local Test
-pnpm install    # 初回のみ
+```
+pnpm install    # first time only
 pnpm run compile
 code --extensionDevelopmentPath=${PWD}
 code . --extensionDevelopmentPath=$PWD
-Ctrl+Shift+P (Mac: Cmd+Shift+P)でコマンドパレットを開く　Inlined Copy: Copy Inline
+```
+Open the command palette with Ctrl+Shift+P (Mac: Cmd+Shift+P) and select "Inlined Copy: Copy Inline"
 
 
 
-### Building and Packaging / ビルドとパッケージング
+### Building and Packaging
 
 To build the extension:
 ```
@@ -159,76 +129,72 @@ pnpm install -g @vscode/vsce
 vsce package
 ```
 
-### Known Limitations / 既知の制限
+### Known Limitations
 
 - The extension currently only works with local files
-- ファイル検索のキャッシュはファイル変更時に自動的に更新されます
+- File search cache is automatically updated when files change
 
-- 拡張機能は現在、ローカルファイルでのみ動作します
-
-### Error Handling / エラー処理
+### Error Handling
 
 The extension includes robust error handling for various scenarios:
 
 - **Large File Detection**: Files exceeding the configured size limit will not be processed to prevent performance issues
 - **Duplicate Reference Detection**: When the same file is referenced multiple times, only the first occurrence is expanded
 - **Circular Reference Detection**: Detects and prevents infinite loops caused by files referencing each other
+- **Recursion Depth Limit**: Controls how many levels of nested file references will be expanded
 - **File Not Found**: Provides suggestions for similar files when a referenced file cannot be found
 
-拡張機能には、さまざまなシナリオに対する堅牢なエラー処理が含まれています：
-
-- **大容量ファイル検出**: 設定されたサイズ制限を超えるファイルは、パフォーマンスの問題を防ぐために処理されません
-- **重複参照検出**: 同じファイルが複数回参照されている場合、最初の出現のみが展開されます
-- **循環参照検出**: ファイルが相互に参照することによる無限ループを検出して防止します
-- **ファイルが見つからない**: 参照されたファイルが見つからない場合、類似のファイルの候補を提案します
-
-#### Error Messages / エラーメッセージ
+#### Error Messages
 
 - **Large Data Exception**: "File size exceeds maximum allowed limit" - The file is too large to process
 - **Duplicate Reference**: "Duplicate reference detected" - The same file is referenced multiple times
 - **Circular Reference**: "Circular reference detected" - A circular dependency between files was found
+- **Recursion Depth Exceeded**: "Maximum recursion depth exceeded" - Too many levels of nested references
 - **File Not Found**: "File not found" - The referenced file could not be located
 
-#### Configuration Options / 設定オプション
+### Configuration Options
+
+The extension provides the following configuration options:
 
 - **inlined-copy.maxFileSize**: Maximum file size in bytes (default: 5MB)
-  - Adjust this setting if you need to work with larger files
+  - Prevents processing files larger than this size to avoid performance issues
   - Example: Set to 10485760 for a 10MB limit
 
-- **inlined-copy.maxFileSize**: 処理可能な最大ファイルサイズ（バイト単位、デフォルト：5MB）
-  - より大きなファイルを処理する必要がある場合は、この設定を調整してください
-  - 例：10MBの制限を設定するには10485760に設定します
+- **inlined-copy.maxRecursionDepth**: Maximum depth for recursive file expansion (default: 1, max: 3)
+  - Controls how many levels of nested file references will be expanded
+  - Higher values allow more complex document structures but may impact performance
+  - Example: Set to 2 to expand references within referenced files (but not further)
 
-## This project specific knowledge
+## Project-Specific Knowledge
 
 ### VS Code API
 
-- VSCodeに関するコーディング時は、適宜VS Code APIドキュメントを参照する事
-- VS Code拡張機能の開発では、公式ドキュメントが最も信頼できる情報源です
-- 特に`vscode.workspace`と`vscode.window`のAPIは頻繁に使用されます
+- When coding VS Code extensions, refer to the VS Code API documentation
+- The official documentation is the most reliable source for VS Code extension development
+- APIs from `vscode.workspace` and `vscode.window` are frequently used
 
-### テスト
+### Testing
 
-- VS Code APIのモックに関する型エラーに関する対応指針
-- モックは`vi.mock('vscode')`を使用し、必要なAPIのみを実装することで型エラーを回避できます
-- `MockUri`クラスを使用してVS Code URIオブジェクトをモックします
+- Guidelines for handling type errors related to VS Code API mocking
+- Use `vi.mock('vscode')` and implement only the necessary APIs to avoid type errors
+- Use the `MockUri` class to mock VS Code URI objects
 
-### 非同期処理
+### Asynchronous Processing
 
-- 非同期処理の扱いは、Promiseベースの実装で変更する旨
-- VS Code APIの多くは非同期であり、`async/await`パターンを使用して実装します
-- ファイル操作やUI表示などの非同期処理は、常にPromiseチェーンで適切にエラーハンドリングします
+- Asynchronous handling is implemented using Promise-based patterns
+- Many VS Code APIs are asynchronous and implemented using the `async/await` pattern
+- Asynchronous operations like file operations and UI display always use Promise chains with proper error handling
 
-### エラー処理
+### Error Handling
 
-- エラー処理は、カスタムエラークラスを使用して実装されています
-- 主なエラータイプ：`LargeDataException`, `DuplicateReferenceException`, `CircularReferenceException`
-- エラーは`FileResult`型を使用して伝達され、成功または失敗の状態と追加情報を含みます
-- ユーザーエクスペリエンスを向上させるため、エラーの種類に応じて適切なメッセージを表示します
-- 設定を通じてエラー処理の動作をカスタマイズできます（例：`maxFileSize`）
-- パフォーマンス最適化のため、大きなファイルはストリーミング処理され、ファイル内容はキャッシュされます
+- Error handling is implemented using custom error classes
+- Main error types: `LargeDataException`, `DuplicateReferenceException`, `CircularReferenceException`, `RecursionDepthException`
+- Errors are communicated using the `FileResult` type, which includes success or failure status and additional information
+- Appropriate messages are displayed based on the type of error to improve user experience
+- Error handling behavior can be customized through settings (e.g., `maxFileSize`, `maxRecursionDepth`)
+- For performance optimization, large files are processed using streaming, and file contents are cached
 
-## License / ライセンス
+## License
 
 * MIT License
 
