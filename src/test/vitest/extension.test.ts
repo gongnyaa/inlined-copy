@@ -4,12 +4,12 @@ import { mockLogManager, resetMockLogManager } from './mocks/logManager.mock';
 
 // Mock VSCodeEnvironment
 vi.mock('../../utils/vscodeEnvironment', () => ({
-  VSCodeEnvironment: mockVSCodeEnvironment
+  VSCodeEnvironment: mockVSCodeEnvironment,
 }));
 
 // Mock LogManager
 vi.mock('../../utils/logManager', () => ({
-  LogManager: mockLogManager
+  LogManager: mockLogManager,
 }));
 
 // Mock vscode module
@@ -18,13 +18,13 @@ vi.mock('vscode', () => {
     window: {
       showInformationMessage: vi.fn(),
       showErrorMessage: vi.fn(),
-      showWarningMessage: vi.fn()
+      showWarningMessage: vi.fn(),
     },
     env: {
       clipboard: {
-        writeText: vi.fn()
-      }
-    }
+        writeText: vi.fn(),
+      },
+    },
   };
 });
 
@@ -38,7 +38,7 @@ describe('Extension Test Suite', () => {
     resetMockVSCodeEnvironment();
     resetMockLogManager();
   });
-  
+
   it('FileExpander should be defined', () => {
     expect(FileExpander).toBeDefined();
   });

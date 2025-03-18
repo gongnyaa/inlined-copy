@@ -25,8 +25,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
       // Get the selected text or entire document if no selection
       const selection = editor.selection;
-      const text = selection.isEmpty 
-        ? editor.document.getText() 
+      const text = selection.isEmpty
+        ? editor.document.getText()
         : editor.document.getText(selection);
 
       if (!text) {
@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
       // Process the text - expand file references
       let processedText = await FileExpander.expandFileReferences(text, currentDir);
-      
+
       // Process parameters with initial depth 0
       processedText = await ParameterProcessor.processParameters(processedText, 0);
 
@@ -57,7 +57,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Set up FileSystemWatcher to invalidate cache when files change
   // Get configuration for file types to watch
   const config = VSCodeEnvironment.getConfiguration('inlined-copy', 'watchFileTypes', ['**/*.md']);
-  
+
   // Create a file change handler that clears both caches
   const fileChangeHandler = () => {
     // Clear the FileResolver cache when files change
@@ -66,17 +66,17 @@ export function activate(context: vscode.ExtensionContext): void {
       module.FileResolver.clearCache();
       LogManager.debug('FileResolver cache cleared due to file system changes');
     });
-    
+
     // Clear the FileExpander cache as well
     import('./fileExpander').then(module => {
       module.FileExpander.clearCache();
       LogManager.debug('FileExpander cache cleared due to file system changes');
     });
   };
-  
+
   // Create watchers for each pattern
   const watchers: vscode.FileSystemWatcher[] = [];
-  
+
   // Create a watcher for each pattern
   config.forEach(pattern => {
     const watcher = VSCodeEnvironment.createFileSystemWatcher(pattern);
@@ -86,7 +86,7 @@ export function activate(context: vscode.ExtensionContext): void {
     watchers.push(watcher);
     context.subscriptions.push(watcher);
   });
-  
+
   // Log the watched patterns
   LogManager.debug(`Watching file patterns: ${config.join(', ')}`);
 }

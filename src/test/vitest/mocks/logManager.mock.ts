@@ -11,7 +11,7 @@ export const mockLogManager = {
   error: vi.fn(),
   dispose: vi.fn(),
   getLogLevel: vi.fn(),
-  isDebugMode: vi.fn()
+  isDebugMode: vi.fn(),
 };
 
 /**

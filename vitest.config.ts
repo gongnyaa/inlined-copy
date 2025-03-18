@@ -7,7 +7,7 @@ export default defineConfig({
     include: ['src/test/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/out/**'],
     deps: {
-      external: ['vscode']
-    }
+      external: ['vscode'],
+    },
   },
 });

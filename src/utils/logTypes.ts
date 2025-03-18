@@ -6,7 +6,7 @@ export enum LogLevel {
   ERROR = 1,
   WARN = 2,
   INFO = 3,
-  DEBUG = 4
+  DEBUG = 4,
 }
 
 /**
@@ -15,5 +15,5 @@ export enum LogLevel {
 export const LOG_CONFIG = {
   SECTION: 'inlined-copy',
   LOG_LEVEL: 'logLevel',
-  DEBUG_MODE: 'debugMode'
+  DEBUG_MODE: 'debugMode',
 };

@@ -6,13 +6,13 @@ vi.mock('vscode', () => {
     window: {
       showInformationMessage: vi.fn(),
       showErrorMessage: vi.fn(),
-      showWarningMessage: vi.fn()
+      showWarningMessage: vi.fn(),
     },
     env: {
       clipboard: {
-        writeText: vi.fn()
-      }
-    }
+        writeText: vi.fn(),
+      },
+    },
   };
 });
 
