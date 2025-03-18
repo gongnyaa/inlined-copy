@@ -140,10 +140,17 @@ Vitest is used as the unit testing framework. Verify that all test cases pass wi
 
 #### Pre-commit Hooks
 
-Git hooks are set up to automatically run lint, format checks, type checks, and tests when committing. **Code validation runs automatically during commits, and commits will be blocked if there are issues.**
+Git hooks are set up to automatically run lint-staged, type checks, and tests when committing. **Code validation runs automatically during commits, and commits will be blocked if there are issues.**
 
+- **lint-staged**: Only checks and formats files that are staged for commit, improving performance by not processing the entire codebase. It automatically re-stages formatted files before the commit is completed.
+- **Type checking**: Ensures all TypeScript code is type-safe, regardless of whether it's staged or not.
+- **Tests**: Verifies that all tests pass before allowing the commit.
+
+Important notes about the pre-commit workflow:
 - If a hook fails, error details will be displayed in the terminal. Follow the instructions to fix the issues, then run `git add` and `git commit` again (you'll need to make a new commit after fixing).
 - If you need to temporarily skip hook processing (for emergency commits, etc.), you can disable it by setting the environment variable: `HUSKY=0 git commit ...`. However, as a rule, maintain the practice of passing quality checks before committing.
+- Be aware that lint-staged will automatically re-stage files after formatting, so the committed content may differ slightly from what you initially staged (but will be properly formatted).
+- The `pretest` script no longer runs linting before tests to avoid duplicate linting operations, as lint-staged already handles this during commit.
 
 #### Recommended Editor Settings
 
