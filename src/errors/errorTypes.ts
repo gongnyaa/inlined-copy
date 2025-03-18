@@ -33,6 +33,16 @@ export class CircularReferenceException extends Error {
 }
 
 /**
+ * Exception thrown when recursion depth exceeds the configured limit
+ */
+export class RecursionDepthException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RecursionDepthException';
+  }
+}
+
+/**
  * Converts an Error object to a FileResult format
  * @param error The error to convert
  * @returns A FileResult object with success=false and the error message
