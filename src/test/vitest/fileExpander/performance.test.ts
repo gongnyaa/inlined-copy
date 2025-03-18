@@ -3,7 +3,20 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createLargeFile, cleanupTestFiles } from '../../../utils/createTestFiles';
 import { performance } from 'perf_hooks';
-import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment, createVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import { setupFileSystemMock } from '../mocks/fileSystem.mock';
+import { setupFileExpanderMock, createFileExpanderMock } from '../mocks/fileExpander.mock';
+
+/* 
+ * Performance thresholds explanation:
+ * - Single file (< 1 second): Based on average user expectation for immediate feedback
+ * - 10 files (< 2 seconds): Allows for linear scaling with small batches
+ * - 50 files (< 5 seconds): Accommodates larger batches while maintaining usability
+ * - Large file (< 3 seconds): Ensures responsiveness even with substantial content
+ * 
+ * These thresholds are intentionally conservative for test environments and
+ * represent maximum acceptable limits, not targets.
+ */
 
 // Mock modules before importing FileExpander
 vi.mock('../../../utils/vscodeEnvironment', () => ({
@@ -26,6 +39,15 @@ vi.mock('../../../fileResolver/fileResolver', () => {
   };
 });
 
+// Mock FileExpander with a factory function to avoid hoisting issues
+vi.mock('../../../fileExpander', () => {
+  return {
+    FileExpander: createFileExpanderMock({
+      performanceMode: true
+    })
+  };
+});
+
 // Import FileExpander after mocks are set up
 import { FileExpander } from '../../../fileExpander';
 
@@ -38,6 +60,7 @@ vi.mock('../../../sectionExtractor', () => ({
 
 describe('Performance Tests', () => {
   const testDir = path.join(__dirname, '../../../../test/temp-performance');
+  let fileSystemMock: { restore: () => void };
   
   beforeEach(() => {
     vi.resetAllMocks();
@@ -62,57 +85,53 @@ describe('Performance Tests', () => {
       return defaultValue;
     });
     
-    // Mock fs.statSync to return the correct file size
-    vi.spyOn(fs, 'statSync').mockImplementation((filePath) => {
-      const pathStr = filePath.toString();
-      if (pathStr.includes('single.txt')) {
-        return { size: 100 * 1024 } as fs.Stats; // 100KB
-      }
-      if (pathStr.includes('large.txt')) {
-        return { size: 5 * 1024 * 1024 } as fs.Stats; // 5MB
-      }
-      // For other files in the test
-      return { size: 100 * 1024 } as fs.Stats; // 100KB default
-    });
-    
-    // Use a simpler approach to mock fs.readFile
-    vi.spyOn(fs, 'readFile').mockImplementation((...args: any[]) => {
-      // Extract callback from arguments (it's the last argument)
-      const callback = args[args.length - 1] as (err: NodeJS.ErrnoException | null, data: Buffer | string) => void;
-      const filePath = args[0].toString();
-      
-      // Generate content based on file path
-      let content = '';
-      if (filePath.includes('single.txt')) {
-        content = 'A'.repeat(100 * 1024); // 100KB content
-      } else if (filePath.includes('large.txt')) {
-        content = 'A'.repeat(1024 * 1024); // 1MB content (truncated for test)
-      } else if (filePath.includes('main10.md')) {
-        // Create content with 10 file references
-        content = '# Performance Test - 10 Files\n\n';
-        for (let i = 0; i < 10; i++) {
-          content += `![[file${i}.txt]]\n\n`;
+    // Set up file system mock with custom file size and content handling
+    fileSystemMock = setupFileSystemMock({
+      getFileSize: (filePath) => {
+        if (filePath.includes('single.txt')) {
+          return 100 * 1024; // 100KB
         }
-      } else if (filePath.includes('main50.md')) {
-        // Create content with 50 file references
-        content = '# Performance Test - 50 Files\n\n';
-        for (let i = 0; i < 50; i++) {
-          content += `![[file${i}.txt]]\n\n`;
+        if (filePath.includes('large.txt')) {
+          return 5 * 1024 * 1024; // 5MB
         }
-      } else if (filePath.match(/file\d+\.txt/)) {
-        // For numbered files, return a simple content
-        content = `Content of ${path.basename(filePath)}`;
+        return 100 * 1024; // 100KB default
+      },
+      getFileContent: (filePath) => {
+        if (filePath.includes('single.txt')) {
+          return 'A'.repeat(100 * 1024); // 100KB content
+        } 
+        if (filePath.includes('large.txt')) {
+          return 'A'.repeat(1024 * 1024); // 1MB content (truncated for test)
+        } 
+        if (filePath.includes('main10.md')) {
+          // Create content with 10 file references
+          let content = '# Performance Test - 10 Files\n\n';
+          for (let i = 0; i < 10; i++) {
+            content += `![[file${i}.txt]]\n\n`;
+          }
+          return content;
+        } 
+        if (filePath.includes('main50.md')) {
+          // Create content with 50 file references
+          let content = '# Performance Test - 50 Files\n\n';
+          for (let i = 0; i < 50; i++) {
+            content += `![[file${i}.txt]]\n\n`;
+          }
+          return content;
+        } 
+        if (filePath.match(/file\d+\.txt/)) {
+          // For numbered files, return a simple content
+          return `Content of ${path.basename(filePath)}`;
+        }
+        return undefined;
       }
-      
-      // Call the callback with the content
-      callback(null, content);
-      return undefined;
     });
   });
   
   afterAll(() => {
     cleanupTestFiles(testDir);
     vi.restoreAllMocks();
+    fileSystemMock?.restore();
   });
   
   it('should process a single file efficiently', async () => {

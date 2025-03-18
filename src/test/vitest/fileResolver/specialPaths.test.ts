@@ -1,47 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import * as path from 'path';
 import { MockUri } from './mockUri';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment, createVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import { setupFileSystemMock } from '../mocks/fileSystem.mock';
+import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
 
 // Mock LogManager before importing FileResolver
 vi.mock('../../../utils/logManager', () => ({
-  LogManager: {
-    getLogLevel: vi.fn().mockReturnValue(0), // LogLevel.NONE
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    setLogLevel: vi.fn()
-  }
+  LogManager: mockLogManager
 }));
 
 // Mock modules before importing FileResolver
 vi.mock('../../../utils/vscodeEnvironment', () => ({
-  VSCodeEnvironment: {
-    showInformationMessage: vi.fn(),
-    showWarningMessage: vi.fn(),
-    showErrorMessage: vi.fn(),
-    getConfiguration: vi.fn(),
-    writeClipboard: vi.fn(),
-    createFileSystemWatcher: vi.fn()
-  }
-}));
-
-// Mock fs module
-vi.mock('fs', () => ({
-  existsSync: vi.fn().mockReturnValue(true),
-  readFile: vi.fn().mockImplementation((path, options, callback) => {
-    if (typeof options === 'function') {
-      callback = options;
-    }
-    callback(null, 'Mock file content');
-  }),
-  statSync: vi.fn().mockReturnValue({ size: 1024 }),
-  mkdirSync: vi.fn(),
-  writeFileSync: vi.fn(),
-  readdirSync: vi.fn().mockReturnValue([]),
-  unlinkSync: vi.fn(),
-  rmdirSync: vi.fn(),
-  rmSync: vi.fn()
+  VSCodeEnvironment: mockVSCodeEnvironment
 }));
 
 // Mock vscode module
@@ -103,9 +74,18 @@ import { FileResolver } from '../../../fileResolver/fileResolver';
 
 describe('Special Path Resolution Tests', () => {
   const testDir = path.join(__dirname, '../../../../test/temp-special-paths');
+  let fileSystemMock: { restore: () => void };
   
   beforeEach(() => {
     vi.resetAllMocks();
+    resetMockVSCodeEnvironment();
+    resetMockLogManager();
+    
+    // Set up file system mock with special path handling
+    fileSystemMock = setupFileSystemMock({
+      fileContent: 'Mock file content',
+      fileSize: 1024
+    });
     
     // Reset the mock implementation for each test
     vi.mocked(FileResolver.resolveFilePath).mockImplementation((filePath, basePath) => {
@@ -118,6 +98,7 @@ describe('Special Path Resolution Tests', () => {
   
   afterAll(() => {
     vi.restoreAllMocks();
+    fileSystemMock?.restore();
   });
   
   it('should resolve paths with spaces correctly', async () => {

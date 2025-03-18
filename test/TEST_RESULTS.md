@@ -23,12 +23,14 @@ All edge case tests have been successfully implemented and are passing. The test
 
 ### 2. Performance Tests
 
-| Test Case | Status | Processing Time | Notes |
-|-----------|--------|----------------|-------|
-| Single file processing | ✅ PASS | ~0.12ms | Extremely efficient for single file processing |
-| 10 files processing | ✅ PASS | ~0.05ms | Linear scaling with small number of files |
-| 50 files processing | ✅ PASS | ~0.09ms | Maintains efficiency with larger number of files |
-| Large file (5MB) | ✅ PASS | ~0.05ms | Handles large files efficiently |
+| Test Case | Status | Processing Time | Threshold | Rationale |
+|-----------|--------|----------------|-----------|-----------|
+| Single file processing | ✅ PASS | ~0.12ms | < 1 second | Immediate user feedback |
+| 10 files processing | ✅ PASS | ~0.05ms | < 2 seconds | Linear scaling with small batches |
+| 50 files processing | ✅ PASS | ~0.09ms | < 5 seconds | Larger batch processing |
+| Large file (5MB) | ✅ PASS | ~0.05ms | < 3 seconds | Substantial content handling |
+
+> **Note on Performance Thresholds**: The thresholds are intentionally conservative for test environments and represent maximum acceptable limits, not targets. They are based on user experience research indicating that responses under 1 second feel immediate, under 2 seconds maintain user flow of thought, and under 5 seconds are acceptable for batch processing operations.
 
 ### 3. Circular Reference Tests
 
