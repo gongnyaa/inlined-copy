@@ -32,7 +32,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should process parameters at depth 0 with maxParameterRecursionDepth=1', async () => {
     // Set maxParameterRecursionDepth=1
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation((section, key, defaultValue) => {
-      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') return 1;
+      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {return 1;}
       return defaultValue;
     });
     
@@ -46,7 +46,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should not process parameters at depth 1 with maxParameterRecursionDepth=0', async () => {
     // Set maxParameterRecursionDepth=0
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation((section, key, defaultValue) => {
-      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') return 0;
+      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {return 0;}
       return defaultValue;
     });
     
@@ -61,7 +61,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should process parameters at depth 1 with maxParameterRecursionDepth=2', async () => {
     // Set maxParameterRecursionDepth=2
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation((section, key, defaultValue) => {
-      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') return 2;
+      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {return 2;}
       return defaultValue;
     });
     
@@ -76,7 +76,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should not process parameters at depth 3 with maxParameterRecursionDepth=2', async () => {
     // Set maxParameterRecursionDepth=2
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation((section, key, defaultValue) => {
-      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') return 2;
+      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {return 2;}
       return defaultValue;
     });
     
