@@ -62,8 +62,8 @@
 #### PRに追記
 
 - 作業の概要
-- タスク毎に見積もりと実際ACCの比較表
-- タスク毎に発生した想定外の問題と対策
+- タスク毎に見積もりと実際ACUs(そのタスクに関連するAUCの合計値)の比較表
+- タスク毎に発生した想定外の問題と対策（今後の頻繁に必要な対策と考えられる場合は、適切なドキュメントへの追加を提案）
 - プロダクトや技術負債に関する改善点（あれば）
 - 重大なリスクがある項目（セキュリティ・パフォーマンス・UX等）（あれば）
 
@@ -149,17 +149,11 @@
 - Next.js APIエンドポイントでのタイプエラー:
   → zod スキーマを使用して型安全性を確保
 
-## 7. 要更新ドキュメント
-
-- `[[03_component_list]]`: コンポーネントの把握・更新
-- `[[04_api]]`: 現在のAPIの把握・新規API追加
-- `[[05_database]]`: テーブルの定義更新
-
-## 8. PR追記事項
+## 7. PR追記事項
 
 - 作業概要: このPRではユーザー情報保存機能の実装を行いました
 - 見積もり vs 実績:
-  | ステップ | 見積もり(時間) | 実績(ACC) |
+  | ステップ | 見積もり(時間) | 実績(ACUs) |
   |---------|--------------|-----------|
   | DB変更 | 1.0 | 0.8 |
   | API実装 | 2.0 | 2.5 |
@@ -176,233 +170,31 @@
 
 ```
 
-# Inlined Copy
-
-**Extension ID**: `frecre.inlined-copy`
-
-## Overview
-
-**Inlined Copy** is a VS Code extension that parses special notations in Markdown files, expands them by inlining content from referenced files or sections, and then copies the result to the clipboard. It is developed as an open-source project, aiming to streamline various documentation and content reuse workflows, such as:
-
-- Generating document templates or snippets more efficiently  
-- Referencing multiple files with `![[filename]]` notation for batch copying  
-- Copying specific sections or substituting parameters using `{{parameter}}`  
-
-## Roadmap
-
-This project implements features in stages. The main milestones are:
-
-### Ver 1 – `![[filename]]` Inline Copy
-- Detects `![[filename]]` and copies the entire content of the referenced file
-- Supports both relative and absolute file paths
-
-### Ver 2 – `![[filename#heading]]` Inline Copy
-- Extracts and copies the content under a specific heading in the referenced file
-- Additional considerations: multi-level headings, multiple sections
-
-### Ver 3 – Reference Tag Autocomplete
-- Suggests file names when typing `![[`
-- Suggests headings when typing `#` after a file name
-
-### Ver 4 – `{{parameter}}` Input (Key-Value)
-- Prompts the user to input values for `{{parameter}}`
-- Replaces them upon copying
-
-### Ver 5 – `{{parameter=defaultValue}}` Input
-- Supports default values when prompting for parameters
-- Uses the default if the user leaves the prompt blank
-
-### Ver 6 – `{{parameter}}` Input (JSON)
-- Allows multiple parameters to be replaced in one go using JSON
-- Example: `{"name": "Devin", "project": "inlined Copy"}`
-
-### Ver 7 – Markdown Preview Integration
-- Real-time expansion of `![[...]]` and `{{...}}` in the VS Code Markdown preview
-- Preview the final content before copying
-
-## Installation
-
-### Development Version
-1. Clone the repository  
-2. Run `pnpm install && pnpm run compile`  
-3. Install the resulting VSIX package via VS Code’s **Extensions: Install from VSIX...**
-
-### Marketplace Publication
-Once published, you can install by searching for **Inlined Copy** (`frecre.inlined-copy`) in the VS Code Extensions marketplace.
-
-## Usage
-
-1. **Open the command palette**: `Ctrl + Shift + P` (Mac: `Cmd + Shift + P`)  
-2. Select **Inlined Copy: Copy Inline**  
-3. The extension analyzes the current editor content, expanding all `![[...]]` references and `{{...}}` parameters  
-4. The resulting text is copied to your clipboard, ready to be pasted anywhere  
-
-**Keyboard shortcut**: `Ctrl + Shift + C` (Mac: `Cmd + Shift + C`)
-
-### Supported Notations
-
-- `![[filename]]`  
-  Expands to the entire content of the referenced file  
-- `![[filename#heading]]`  
-  Expands only the content under the specified heading in the referenced file  
-- `{{parameter}}`  
-  Prompts the user to input a value for the parameter  
-- `{{parameter=defaultValue}}`  
-  Prompts the user with a default value
-
-## document Index
-
-- `README.md` : Overview of the project
-- `LICENSE.md` : License
-- `eslint.config.js` : ESLint configuration
-- `package.json` : Project configuration
-- `tsconfig.json` : TypeScript configuration
-- `.gitignore` : Git ignore
-- `vitest.config.ts` : Test configuration
-- `src` : Source code
-- `src/test` : Test code
-- `prompt` : Prompt template
-- `tasks` : task list
-
-## Contributing
-
-- Contributions via **Fork & PR** are welcome.  
-- Please open issues for bug reports or feature suggestions.  
-- Refer to `CONTRIBUTING.md` (in progress) for details on code standards and linting.
-
-## Development
-
-### Technology Stack
-
-1. **Node.js (v18+)**  
-   Used for the VS Code extension runtime environment.
-2. **pnpm**  
-   Dependency manager. Main commands: `pnpm install`, `pnpm update`.
-3. **TypeScript**  
-   Primary language for extension development. Compile: `pnpm tsc -p ./`.
-4. **ESLint + Prettier**  
-   For code quality and style consistency. Commands: `pnpm run lint`, `pnpm run lint:fix`.
-5. **Vitest**  
-   Test framework. Commands: `pnpm test`, `pnpm run test:coverage`.
-6. **VS Code Extension API**  
-   Used to create the extension. Debug with the `F5` key.
-
-### Setup
-
-1. Install [pnpm](https://pnpm.io)  
-2. Run `pnpm install`  
-3. Press **F5** to launch VS Code debugging
-
-### Local Test
-```bash
-pnpm install        # For initial setup
-pnpm run compile
-code --extensionDevelopmentPath=${PWD}
-
-Then open the command palette (Ctrl+Shift+P), run Inlined Copy: Copy Inline, and verify functionality.
-
-Building and Packaging
-
-pnpm run compile
-pnpm install -g @vscode/vsce
-vsce package
-
-Generates a .vsix file which can be installed in VS Code.
-
-Known Limitations
-	•	Circular references between files are not yet detected
-	•	Very large files may cause performance issues
-	•	Currently supports local files only
-
-License
-
-MIT License
-
-MIT License
-
-Copyright (c) 2025 gongnyaa
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-...
-
-(The full MIT license text applies as above.)
-
-
+![[README.md]]
 
 ```
 
 ## タスク固有の補足情報
 
 ```
-タスクの実施状況は以下の通り
-## 完了したタスク ✅
+実施手順案
+- Markdownパーサーの実装または導入（見出しの検出と階層構造の把握）
+- 見出しセクションの範囲抽出ロジックの実装（開始見出しから次の同レベル見出しまで）
+- 複数の見出しレベル（#, ##, ###など）のサポート
+- 見出しが存在しない場合は置換しない。トースト内に存在しなかった一覧を表示
+- テストケースの追加（単体テスト、統合テスト）
+- READMEへの使用例の追加
 
-### タスク1: 基本構造の準備
-- [x] yo codeによる拡張機能スキャフォールド作成
-- [x] package.jsonの設定（コマンド登録、キーボードショートカット、アクティベーションイベント）
-- [x] extension.tsの基本構造実装（アクティベーション処理、コマンド登録）
-- [x] GitHubリポジトリ初期化 & README記載
-
-### タスク2: コマンド「Copy Inline」の実装
-- [x] エディタのアクティブテキストを取得し、正規表現で![[ファイル名]]パターンを検出
-- [x] ファイルパス解決ロジック実装（絶対パス・相対パスの両方に対応）
-- [x] 指定ファイルを読み込んでテキストにインライン展開（複数パターン対応）
-- [x] 結合結果をクリップボードへコピーおよび成功通知表示
-
-### タスク3: 基本的なエラー処理
-- [x] ファイルが見つからない場合のエラーハンドリング
-- [x] ユーザーへの情報・警告・エラーメッセージ表示機能
-- [x] エラーログ出力機能
-
-### タスク4: 基本ドキュメント
-- [x] インストール手順の具体化
-- [x] 使用方法のステップバイステップガイド
-- [x] 次期バージョンの開発計画更新
-
-## 残りのタスク
-
-### タスク5: 拡張エラー処理 ⚠️
-- [ ] 大量/重複/循環参照の検出と対応
-- [ ] パフォーマンス最適化と大容量ファイル対応
-
-### タスク6: テスト拡充 ⚠️
-- [ ] Lint + Prettierの連携を強化
-- [ ] 単体テストの拡充（ファイル検出、パス解決、テキスト置換など）
-- [ ] 統合テストの実装（エンドツーエンドのテスト）
-- [ ] 手動テストのチェックリスト作成
-- [ ] エッジケースのテスト（大容量ファイル、特殊文字を含むパスなど）
-
-### タスク7: デプロイと公開準備 ❌
-- [ ] VSIX パッケージの作成とローカルテスト
-- [ ] 公開用アセット準備（アイコン、スクリーンショット、詳細説明）
-- [ ] 独立したライセンスファイルの追加
-- [ ] 初期バージョンのリリースノート作成
-
-### タスク8: 追加ドキュメント ⚠️
-- [ ] トラブルシューティングセクションの強化
-- [ ] 開発者向けドキュメントの作成（コントリビューションガイド）
-- [ ] サンプル使用例の追加
-
-### タスク9: インテリジェントなファイルパス解決の実装 ⚠️
-- [ ] プロジェクトルートからの絶対パス検索機能の実装
-- [ ] 近接性ベースの相対パス検索ロジックの追加
-- [ ] 複数候補がある場合のユーザー選択UIの実装
-- [ ] エラーメッセージの改善と検索候補の提示機能
-- [ ] 検索パフォーマンスの最適化（キャッシュ機構など）
+現在のタスク状況
+![[tasks.md]]
 
 ```
 
 ## タスク内容
 
 ```
-### タスク5: 拡張エラー処理 ⚠️
-- [ ] 大量/重複/循環参照の検出と対応
-- [ ] パフォーマンス最適化と大容量ファイル対応
+見出しセクション抽出機能の実装
+![[ファイル名#見出し名]] で指定されたセクションを抽出。見出し名自体は不要
 
-### タスク9: インテリジェントなファイルパス解決の実装 ⚠️
-- [ ] プロジェクトルートからの絶対パス検索機能の実装
-- [ ] 近接性ベースの相対パス検索ロジックの追加
-- [ ] 複数候補がある場合のユーザー選択UIの実装
-- [ ] エラーメッセージの改善と検索候補の提示機能
-- [ ] 検索パフォーマンスの最適化（キャッシュ機構など）
+
 ```
