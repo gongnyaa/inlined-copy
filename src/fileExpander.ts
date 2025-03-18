@@ -151,8 +151,8 @@ export class FileExpander {
     return result.path;
   }
   
-  // Cache for file content to improve performance
-  private static fileContentCache: Map<string, string> = new Map();
+  // Cache for file content to improve performance with timestamp tracking
+  private static fileContentCache: Map<string, { content: string, timestamp: number }> = new Map();
   
   /**
    * Reads the content of a file
@@ -161,21 +161,27 @@ export class FileExpander {
    * @throws LargeDataException if the file size exceeds the configured limit
    */
   private static async readFileContent(filePath: string): Promise<string> {
-    // Check cache first for better performance
-    if (this.fileContentCache.has(filePath)) {
-      return this.fileContentCache.get(filePath)!;
-    }
-    
-    // Get maximum file size from configuration
-    const MAX_FILE_SIZE = VSCodeEnvironment.getConfiguration(
-      'inlined-copy', 
-      'maxFileSize', 
-      1024 * 1024 * 5 // 5MB default
-    );
-    
-    // Check file size before reading
     try {
+      // Get file stats to check timestamp
       const stats = fs.statSync(filePath);
+      const lastModified = stats.mtime.getTime();
+      
+      // Check cache first for better performance
+      const cacheEntry = this.fileContentCache.get(filePath);
+      
+      // Use cache only if entry exists and timestamp matches
+      if (cacheEntry && cacheEntry.timestamp === lastModified) {
+        return cacheEntry.content;
+      }
+    
+      // Get maximum file size from configuration
+      const MAX_FILE_SIZE = VSCodeEnvironment.getConfiguration(
+        'inlined-copy', 
+        'maxFileSize', 
+        1024 * 1024 * 5 // 5MB default
+      );
+      
+      // Check file size before reading
       if (stats.size > MAX_FILE_SIZE) {
         throw new LargeDataException(`File size (${(stats.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed limit (${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)`);
       }
@@ -197,8 +203,11 @@ export class FileExpander {
         });
       });
       
-      // Cache the content
-      this.fileContentCache.set(filePath, content);
+      // Cache the content with timestamp
+      this.fileContentCache.set(filePath, {
+        content,
+        timestamp: lastModified
+      });
       
       return content;
     } catch (error) {
@@ -215,7 +224,18 @@ export class FileExpander {
    * @returns The content of the file
    */
   private static readFileContentStreaming(filePath: string): Promise<string> {
+    // Create a promise to read the file using streaming
     return new Promise<string>((resolve, reject) => {
+      // Get file stats to check timestamp
+      let lastModified: number;
+      try {
+        const stats = fs.statSync(filePath);
+        lastModified = stats.mtime.getTime();
+      } catch (error) {
+        reject(new Error(`Failed to get file stats: ${error instanceof Error ? error.message : String(error)}`));
+        return;
+      }
+      
       const chunks: Buffer[] = [];
       const stream = fs.createReadStream(filePath);
       
@@ -229,8 +249,11 @@ export class FileExpander {
       
       stream.on('end', () => {
         const content = Buffer.concat(chunks).toString('utf8');
-        // Cache the content
-        this.fileContentCache.set(filePath, content);
+        // Cache the content with timestamp
+        this.fileContentCache.set(filePath, {
+          content,
+          timestamp: lastModified
+        });
         resolve(content);
       });
     });

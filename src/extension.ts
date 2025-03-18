@@ -52,20 +52,38 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(disposable);
 
   // Set up FileSystemWatcher to invalidate cache when files change
-  const mdWatcher = VSCodeEnvironment.createFileSystemWatcher('**/*.md');
+  // Get configuration for file types to watch
+  const config = VSCodeEnvironment.getConfiguration('inlined-copy', 'watchFileTypes', ['**/*.md']);
+  
+  // Create a file change handler that clears both caches
   const fileChangeHandler = () => {
-    // Clear the file cache when files change
+    // Clear the FileResolver cache when files change
     // Import FileResolver dynamically to avoid circular dependencies
     import('./fileResolver/fileResolver').then(module => {
       module.FileResolver.clearCache();
     });
+    
+    // Clear the FileExpander cache as well
+    import('./fileExpander').then(module => {
+      module.FileExpander.clearCache();
+    });
   };
   
-  mdWatcher.onDidChange(fileChangeHandler);
-  mdWatcher.onDidCreate(fileChangeHandler);
-  mdWatcher.onDidDelete(fileChangeHandler);
+  // Create watchers for each pattern
+  const watchers: vscode.FileSystemWatcher[] = [];
   
-  context.subscriptions.push(mdWatcher);
+  // Create a watcher for each pattern
+  config.forEach(pattern => {
+    const watcher = VSCodeEnvironment.createFileSystemWatcher(pattern);
+    watcher.onDidChange(fileChangeHandler);
+    watcher.onDidCreate(fileChangeHandler);
+    watcher.onDidDelete(fileChangeHandler);
+    watchers.push(watcher);
+    context.subscriptions.push(watcher);
+  });
+  
+  // Log the watched patterns
+  console.log(`Watching file patterns: ${config.join(', ')}`);
 }
 
 /**
