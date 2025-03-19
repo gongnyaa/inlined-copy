@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock vscode module
 vi.mock('vscode', () => {
@@ -16,9 +17,11 @@ vi.mock('../../../utils/vscodeEnvironment', () => ({
 }));
 
 describe('ParameterProcessor Recursion Depth', () => {
+  // Set up standard test environment
+  const testEnv = setupStandardTestEnvironment();
+
   beforeEach(() => {
-    vi.resetAllMocks();
-    resetMockVSCodeEnvironment();
+    // Additional test-specific setup can be added here if needed
   });
 
   // Helper function to simulate parameter processing with depth control
@@ -36,7 +39,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should process parameters at depth 0 with maxParameterRecursionDepth=1', async () => {
     // Set maxParameterRecursionDepth=1
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {
           return 1;
         }
@@ -58,7 +61,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should not process parameters at depth 1 with maxParameterRecursionDepth=0', async () => {
     // Set maxParameterRecursionDepth=0
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {
           return 0;
         }
@@ -81,7 +84,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should process parameters at depth 1 with maxParameterRecursionDepth=2', async () => {
     // Set maxParameterRecursionDepth=2
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {
           return 2;
         }
@@ -104,7 +107,7 @@ describe('ParameterProcessor Recursion Depth', () => {
   it('should not process parameters at depth 3 with maxParameterRecursionDepth=2', async () => {
     // Set maxParameterRecursionDepth=2
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {
           return 2;
         }

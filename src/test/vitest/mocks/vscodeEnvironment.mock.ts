@@ -11,15 +11,19 @@ interface VSCodeEnvironmentMockOptions {
 
 /**
  * Creates a configured VSCodeEnvironment mock
+ * @param options Configuration options for the mock
+ * @returns A configured VSCodeEnvironment mock object
  */
-export function createVSCodeEnvironmentMock(options: VSCodeEnvironmentMockOptions = {}) {
+export function createVSCodeEnvironmentMock(
+  options: VSCodeEnvironmentMockOptions = {}
+): Record<string, any> {
   const defaultOptions = {
     maxFileSize: 1024, // 1KB for testing
     maxRecursionDepth: 1, // Default for testing
     maxParameterRecursionDepth: 1, // Default for testing
-    ...options
+    ...options,
   };
-  
+
   return {
     showInformationMessage: vi.fn(),
     showWarningMessage: vi.fn(),

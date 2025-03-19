@@ -394,6 +394,28 @@ Users can configure logging behavior through VS Code settings:
 
 ### Testing
 
+#### Overview and Best Practices
+
+The inlined-copy extension uses a comprehensive testing approach:
+
+- **Mock Strategy**: Layered mocking with base and specialized implementations
+- **Test Isolation**: Each test runs in its own environment with proper cleanup
+- **Common Utilities**: Reusable mock modules located in `src/test/vitest/mocks/`
+
+##### Performance Testing
+
+Performance tests use progressive scaling (1, 10, 50 files) with thresholds based on UX research:
+- < 1 second: Perceived as immediate
+- < 2 seconds: Maintains flow of thought
+- < 5 seconds: Maximum acceptable delay for batch operations
+
+##### Adding New Tests
+
+When adding tests:
+1. Use common mock implementations from `./mocks/` directory
+2. Maintain test isolation with proper cleanup
+3. Follow existing patterns for edge case coverage
+
 #### Test Framework and Setup
 
 - Vitest is used as the test framework for unit and integration tests
@@ -423,9 +445,9 @@ The extension includes comprehensive edge case tests to ensure reliability:
 
 #### Testing Best Practices
 
-- Guidelines for handling type errors related to VS Code API mocking
-- Use `vi.mock('vscode')` and implement only the necessary APIs to avoid type errors
-- Use the `MockUri` class to mock VS Code URI objects
+- Use the standard test environment setup with `setupStandardTestEnvironment()` from `helpers/testSetup.ts`
+- Reset mocks in `beforeEach` hooks to ensure clean test state
+- Use factory functions like `createFileExpanderMock()` for consistent mock implementations
 - Mock VSCodeEnvironment for configuration tests using mockImplementation to simulate different settings
 - When testing parameter processing, create helper functions to simulate the behavior without direct VSCode dependencies
 - Use vi.resetAllMocks() in beforeEach to ensure clean test state

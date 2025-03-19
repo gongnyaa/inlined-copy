@@ -13,18 +13,20 @@ interface FileSystemMockOptions {
 
 /**
  * Sets up file system mocks with configurable behavior
+ * @param options Configuration options for the mock
+ * @returns A configured FileSystem mock with restore method
  */
-export function setupFileSystemMock(options: FileSystemMockOptions = {}) {
+export function setupFileSystemMock(options: FileSystemMockOptions = {}): { restore: () => void } {
   const defaultOptions = {
     fileSize: 1024,
     fileContent: 'Mock file content',
-    ...options
+    ...options,
   };
-  
+
   // Mock fs.statSync
-  vi.spyOn(fs, 'statSync').mockImplementation((filePath) => {
+  vi.spyOn(fs, 'statSync').mockImplementation(filePath => {
     const pathStr = filePath.toString();
-    
+
     // Custom conditions take priority
     if (typeof options.getFileSize === 'function') {
       const size = options.getFileSize(pathStr);
@@ -32,17 +34,20 @@ export function setupFileSystemMock(options: FileSystemMockOptions = {}) {
         return { size } as fs.Stats;
       }
     }
-    
+
     // Return default size
     return { size: defaultOptions.fileSize } as fs.Stats;
   });
-  
+
   // Mock fs.readFile
   vi.spyOn(fs, 'readFile').mockImplementation((...args) => {
     // Get callback function (last argument)
-    const callback = args[args.length - 1] as (err: NodeJS.ErrnoException | null, data: Buffer | string) => void;
+    const callback = args[args.length - 1] as (
+      err: NodeJS.ErrnoException | null,
+      data: Buffer | string
+    ) => void;
     const filePath = args[0].toString();
-    
+
     // Custom content function takes priority
     if (typeof options.getFileContent === 'function') {
       const content = options.getFileContent(filePath);
@@ -51,24 +56,24 @@ export function setupFileSystemMock(options: FileSystemMockOptions = {}) {
         return undefined;
       }
     }
-    
+
     // Return default content
     callback(null, defaultOptions.fileContent);
     return undefined;
   });
-  
+
   // Mock fs.existsSync
   vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-  
+
   // Mock fs.mkdirSync
   vi.spyOn(fs, 'mkdirSync').mockImplementation(() => undefined);
-  
+
   // Mock fs.writeFileSync
   vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined);
-  
+
   return {
     restore: () => {
       vi.restoreAllMocks();
-    }
+    },
   };
 }
