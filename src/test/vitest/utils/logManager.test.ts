@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
-import { LogLevel } from '../../../utils/logTypes';
 
 // Use vi.hoisted to define mocks before imports
 const mockOutputChannel = vi.hoisted(() => ({
@@ -54,6 +53,7 @@ describe('LogManager', () => {
     );
 
     // Initialize LogManager
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     LogManager.initialize(mockContext as any);
   });
 
@@ -190,8 +190,10 @@ describe('LogManager', () => {
     };
 
     // Use the mockWindow directly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockWindow.createOutputChannel.mockReturnValueOnce(mockOutputChannel as any);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     LogManager.initialize(mockContext as any);
     LogManager.dispose();
 

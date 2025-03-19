@@ -6,7 +6,8 @@ import * as path from 'path';
 import { FileExpander } from '../../../fileExpander';
 import { FileResolver } from '../../../fileResolver/fileResolver';
 import { fileSuccess } from '../../../fileResolver/fileResult';
-import { RecursionDepthException } from '../../../errors/errorTypes';
+// RecursionDepthException is imported but not directly used in tests
+// It's indirectly used in the error handling tests
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock VSCodeEnvironment
@@ -62,13 +63,15 @@ describe('FileExpander Recursion Depth', () => {
   const mockBasePath = '/test/path';
 
   // Set up standard test environment
-  const testEnv = setupStandardTestEnvironment();
+  const _testEnv = setupStandardTestEnvironment();
 
   beforeEach(() => {
     // Reset the file content cache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (FileExpander as any).fileContentCache = new Map();
 
     // Mock readFile to return content based on the file path
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (fs.readFile as any).mockImplementation(
       (path: string, encoding: string, callback: (err: null, data: string) => void) => {
         if (path === '/test/path/level0.md') {

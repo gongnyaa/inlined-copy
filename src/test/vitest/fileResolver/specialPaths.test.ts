@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import * as path from 'path';
-import { MockUri } from './mockUri';
-import { mockVSCodeEnvironment, resetMockVSCodeEnvironment, createVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
 import { setupFileSystemMock } from '../mocks/fileSystem.mock';
 import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
 

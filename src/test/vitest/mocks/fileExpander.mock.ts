@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import { CircularReferenceException } from '../../../errors/errorTypes';
+import { FileExpanderMock } from './types';
 
 /**
  * Options for FileExpander mock configuration
@@ -14,7 +15,7 @@ interface FileExpanderMockOptions {
  * @param options Configuration options for the mock
  * @returns A configured FileExpander mock object
  */
-export function createFileExpanderMock(options: FileExpanderMockOptions = {}): Record<string, any> {
+export function createFileExpanderMock(options: FileExpanderMockOptions = {}): FileExpanderMock {
   const defaultOptions = {
     detectCircularReferences: true,
     performanceMode: false,
@@ -66,6 +67,6 @@ export function createFileExpanderMock(options: FileExpanderMockOptions = {}): R
  * Creates a FileExpander mock that can be used in tests
  * Note: This does not automatically install the mock
  */
-export function setupFileExpanderMock(options: FileExpanderMockOptions = {}) {
+export function setupFileExpanderMock(options: FileExpanderMockOptions = {}): FileExpanderMock {
   return createFileExpanderMock(options);
 }

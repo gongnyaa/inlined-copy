@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterAll, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLargeFile, cleanupTestFiles } from '../../../utils/createTestFiles';
@@ -62,7 +62,7 @@ describe('Performance Tests', () => {
   const testDir = path.join(__dirname, '../../../../test/temp-performance');
 
   // Set up standard test environment with custom file system mock options
-  const testEnv = setupStandardTestEnvironment({
+  const _testEnv = setupStandardTestEnvironment({
     fileSystem: {
       getFileSize: (filePath: string) => {
         if (filePath.includes('single.txt')) {
@@ -112,6 +112,7 @@ describe('Performance Tests', () => {
     }
 
     // Reset file content cache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (FileExpander as any).fileContentCache = new Map();
 
     // Mock configuration to allow larger files for testing
@@ -140,7 +141,7 @@ describe('Performance Tests', () => {
 
     // Mock the expandFileReferences method to return expanded content
     const originalMethod = FileExpander.expandFileReferences;
-    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, basePath) => {
+    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, _basePath) => {
       return text.replace(/!\[\[(.+?)\]\]/g, 'Expanded content');
     });
 
@@ -180,7 +181,7 @@ describe('Performance Tests', () => {
 
     // Mock the expandFileReferences method to return expanded content
     const originalMethod = FileExpander.expandFileReferences;
-    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, basePath) => {
+    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, _basePath) => {
       return text.replace(/!\[\[(.+?)\]\]/g, 'Expanded content');
     });
 
@@ -218,7 +219,7 @@ describe('Performance Tests', () => {
 
     // Mock the expandFileReferences method to return expanded content
     const originalMethod = FileExpander.expandFileReferences;
-    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, basePath) => {
+    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, _basePath) => {
       return text.replace(/!\[\[(.+?)\]\]/g, 'Expanded content');
     });
 
@@ -247,7 +248,7 @@ describe('Performance Tests', () => {
 
     // Mock the expandFileReferences method to return expanded content
     const originalMethod = FileExpander.expandFileReferences;
-    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, basePath) => {
+    FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, _basePath) => {
       return text.replace(/!\[\[(.+?)\]\]/g, 'Expanded content');
     });
 

@@ -14,12 +14,10 @@ vi.mock('../../../utils/logManager', () => ({
 }));
 
 import * as fs from 'fs';
-import * as path from 'path';
 import { FileExpander } from '../../../fileExpander';
 import {
   LargeDataException,
   CircularReferenceException,
-  DuplicateReferenceException,
   RecursionDepthException,
 } from '../../../errors/errorTypes';
 import { VSCodeEnvironment } from '../../../utils/vscodeEnvironment';
@@ -54,6 +52,7 @@ describe('FileExpander', () => {
     // Reset LogManager mock
     resetMockLogManager();
     // Reset the file content cache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (FileExpander as any).fileContentCache = new Map();
   });
 
@@ -64,6 +63,7 @@ describe('FileExpander', () => {
   describe('Large Data Detection', () => {
     it('should throw LargeDataException when file size exceeds limit', async () => {
       // Mock file stats to exceed size limit
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (fs.statSync as any).mockReturnValue({
         size: 2048, // 2KB > 1KB limit
         mtime: { getTime: () => 1000 },
@@ -71,10 +71,13 @@ describe('FileExpander', () => {
 
       // Mock FileResolver to return a successful path
       const mockResolveFilePath = vi.fn().mockResolvedValue('/path/to/large-file.txt');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (FileExpander as any).resolveFilePath = mockResolveFilePath;
 
       // Create a mock implementation that throws LargeDataException
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalReadFileContent = (FileExpander as any).readFileContent;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (FileExpander as any).readFileContent = async () => {
         throw new LargeDataException('File size (2.00MB) exceeds maximum allowed limit (1.00MB)');
       };
@@ -118,7 +121,7 @@ describe('FileExpander', () => {
 
       // Create a mock implementation of expandFileReferences
       const originalExpandFileReferences = FileExpander.expandFileReferences;
-      FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, basePath) => {
+      FileExpander.expandFileReferences = vi.fn().mockImplementation(async (text, _basePath) => {
         // Replace only the first occurrence of ![[file.txt]]
         const result = text.replace('![[file.txt]]', 'File content');
 

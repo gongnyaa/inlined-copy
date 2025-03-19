@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { VSCodeEnvironmentMock } from './types';
 
 /**
  * Options for VSCodeEnvironment mock configuration
@@ -16,7 +17,7 @@ interface VSCodeEnvironmentMockOptions {
  */
 export function createVSCodeEnvironmentMock(
   options: VSCodeEnvironmentMockOptions = {}
-): Record<string, any> {
+): VSCodeEnvironmentMock {
   const defaultOptions = {
     maxFileSize: 1024, // 1KB for testing
     maxRecursionDepth: 1, // Default for testing
