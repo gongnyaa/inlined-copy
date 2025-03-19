@@ -42,7 +42,7 @@ describe('LogManager', () => {
 
     // Mock getConfiguration to return different log levels
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'logLevel') {
           return 'info'; // Default to info for tests
         }
@@ -69,7 +69,7 @@ describe('LogManager', () => {
   it('should log debug messages when log level is DEBUG', () => {
     // Set log level to DEBUG
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'logLevel') {
           return 'debug';
         }
@@ -84,7 +84,7 @@ describe('LogManager', () => {
   it('should not log debug messages when log level is INFO', () => {
     // Set log level to INFO
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'logLevel') {
           return 'info';
         }
@@ -148,7 +148,7 @@ describe('LogManager', () => {
   it('should respect log level settings', () => {
     // Set log level to ERROR
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'logLevel') {
           return 'error';
         }
@@ -170,7 +170,7 @@ describe('LogManager', () => {
   it('should show messages to user in debug mode', () => {
     // Set debug mode to true
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'debugMode') {
           return true;
         }

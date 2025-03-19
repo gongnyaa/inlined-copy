@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
-import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
+import { mockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { mockLogManager } from '../mocks/logManager.mock';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileExpander } from '../../../fileExpander';
 import { FileResolver } from '../../../fileResolver/fileResolver';
 import { fileSuccess } from '../../../fileResolver/fileResult';
 import { RecursionDepthException } from '../../../errors/errorTypes';
+import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({
@@ -23,6 +24,8 @@ vi.mock('fs', () => ({
   statSync: vi.fn().mockReturnValue({ size: 100 }),
   readFile: vi.fn(),
   existsSync: vi.fn().mockReturnValue(true),
+  mkdirSync: vi.fn().mockImplementation(() => undefined),
+  writeFileSync: vi.fn().mockImplementation(() => undefined),
   createReadStream: vi.fn().mockImplementation(() => {
     const mockStream = {
       on: vi.fn(),
@@ -58,11 +61,10 @@ vi.mock('../../../fileResolver/fileResolver', () => ({
 describe('FileExpander Recursion Depth', () => {
   const mockBasePath = '/test/path';
 
-  beforeEach(() => {
-    vi.resetAllMocks();
-    resetMockVSCodeEnvironment();
-    resetMockLogManager();
+  // Set up standard test environment
+  const testEnv = setupStandardTestEnvironment();
 
+  beforeEach(() => {
     // Reset the file content cache
     (FileExpander as any).fileContentCache = new Map();
 
@@ -96,7 +98,7 @@ describe('FileExpander Recursion Depth', () => {
   it('should respect maxRecursionDepth=1 setting', async () => {
     // Set maxRecursionDepth to 1
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxRecursionDepth') {
           return 1;
         }
@@ -126,7 +128,7 @@ describe('FileExpander Recursion Depth', () => {
   it('should respect maxRecursionDepth=2 setting', async () => {
     // Set maxRecursionDepth to 2
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxRecursionDepth') {
           return 2;
         }
@@ -156,7 +158,7 @@ describe('FileExpander Recursion Depth', () => {
   it('should throw RecursionDepthException when depth exceeds limit', async () => {
     // Set maxRecursionDepth to 0 to force exception
     vi.mocked(mockVSCodeEnvironment.getConfiguration).mockImplementation(
-      (section, key, defaultValue) => {
+      (section: string, key: string, defaultValue: unknown) => {
         if (section === 'inlined-copy' && key === 'maxRecursionDepth') {
           return 0;
         }

@@ -1,21 +1,43 @@
 import { vi } from 'vitest';
 
 /**
- * Mock implementation of LogManager for testing
+ * Options for LogManager mock configuration
  */
-export const mockLogManager = {
-  initialize: vi.fn(),
-  debug: vi.fn(),
-  info: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  dispose: vi.fn(),
-  getLogLevel: vi.fn(),
-  isDebugMode: vi.fn(),
-};
+interface LogManagerMockOptions {
+  logLevel?: number;
+  debugMode?: boolean;
+}
 
 /**
- * Resets all mock functions in the mockLogManager
+ * Creates a configured LogManager mock
+ * @param options Configuration options for the mock
+ * @returns A configured LogManager mock object
+ */
+export function createLogManagerMock(options: LogManagerMockOptions = {}): Record<string, any> {
+  const defaultOptions = {
+    logLevel: 0, // LogLevel.NONE
+    debugMode: false,
+    ...options,
+  };
+
+  return {
+    initialize: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    dispose: vi.fn(),
+    getLogLevel: vi.fn().mockReturnValue(defaultOptions.logLevel),
+    isDebugMode: vi.fn().mockReturnValue(defaultOptions.debugMode),
+    setLogLevel: vi.fn(),
+  };
+}
+
+// Export default mock instance for backward compatibility
+export const mockLogManager = createLogManagerMock();
+
+/**
+ * Resets all mock functions in the LogManager mock
  */
 export const resetMockLogManager = (): void => {
   vi.clearAllMocks();
