@@ -16,7 +16,9 @@ interface FileSystemMockOptions {
  * @param options Configuration options for the mock
  * @returns A configured FileSystem mock with restore method
  */
-export function setupFileSystemMock(options: FileSystemMockOptions = {}): { restore: () => void } {
+import { FileSystemMock } from './types';
+
+export function setupFileSystemMock(options: FileSystemMockOptions = {}): FileSystemMock {
   const defaultOptions = {
     fileSize: 1024,
     fileContent: 'Mock file content',

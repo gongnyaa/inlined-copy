@@ -18,7 +18,7 @@ vi.mock('../../../utils/vscodeEnvironment', () => ({
 
 describe('ParameterProcessor Recursion Depth', () => {
   // Set up standard test environment
-  const testEnv = setupStandardTestEnvironment();
+  const _testEnv = setupStandardTestEnvironment();
 
   beforeEach(() => {
     // Additional test-specific setup can be added here if needed

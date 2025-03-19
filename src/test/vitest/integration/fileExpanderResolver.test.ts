@@ -39,7 +39,7 @@ import { FileResolver } from '../../../fileResolver/fileResolver';
 import { fileSuccess, fileFailure } from '../../../fileResolver/fileResult';
 
 // Create a mock stream factory
-const createMockStream = () => {
+const createMockStream = (): { on: ReturnType<typeof vi.fn> } => {
   const mockStream = {
     on: vi.fn(),
   };
@@ -90,7 +90,9 @@ describe('FileExpander with FileResolver Integration', () => {
 
   it('should use FileResolver to resolve file paths', async () => {
     // Mock the FileExpander.readFileContent method to return test content
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalReadFileContent = (FileExpander as any).readFileContent;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (FileExpander as any).readFileContent = vi.fn().mockResolvedValue('# Test Content');
 
     const text = 'Test with ![[file.md]]';
@@ -100,6 +102,7 @@ describe('FileExpander with FileResolver Integration', () => {
     expect(result).toContain(mockContent);
 
     // Restore original method
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (FileExpander as any).readFileContent = originalReadFileContent;
   });
 

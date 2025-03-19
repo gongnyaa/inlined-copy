@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterAll, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import { CircularReferenceException } from '../../../errors/errorTypes';
@@ -46,7 +46,7 @@ describe('Circular Reference Tests', () => {
   const testDir = path.join(__dirname, '../../../../test/temp-circular');
 
   // Set up standard test environment with mocks
-  const testEnv = setupStandardTestEnvironment();
+  const _testEnv = setupStandardTestEnvironment();
 
   beforeEach(() => {
     // Create test directory
@@ -55,6 +55,7 @@ describe('Circular Reference Tests', () => {
     }
 
     // Reset file content cache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (FileExpander as any).fileContentCache = new Map();
 
     // Mock configuration for circular reference tests

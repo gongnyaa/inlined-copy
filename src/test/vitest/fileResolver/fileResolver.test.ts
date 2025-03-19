@@ -4,7 +4,6 @@ import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolver } from '../../../fileResolver/fileResolver';
-import { fileSuccess, fileFailure } from '../../../fileResolver/fileResult';
 
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({

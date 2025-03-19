@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { LogManagerMock } from './types';
 
 /**
  * Options for LogManager mock configuration
@@ -13,7 +14,7 @@ interface LogManagerMockOptions {
  * @param options Configuration options for the mock
  * @returns A configured LogManager mock object
  */
-export function createLogManagerMock(options: LogManagerMockOptions = {}): Record<string, any> {
+export function createLogManagerMock(options: LogManagerMockOptions = {}): LogManagerMock {
   const defaultOptions = {
     logLevel: 0, // LogLevel.NONE
     debugMode: false,
