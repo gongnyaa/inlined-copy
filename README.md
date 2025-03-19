@@ -257,6 +257,34 @@ This section provides solutions for common issues you might encounter when using
 2. Restructure your documents to reduce nesting depth
 3. Consider using multiple expansion steps for deeply nested structures
 
+#### Issue: Parameter Substitution Problems
+
+**Symptoms:**
+- Parameters in referenced files are not being processed
+- Parameter values are not being applied consistently across nested files
+- Default values are not being used correctly
+
+**Solutions:**
+1. Check the `maxParameterRecursionDepth` setting (default: 1)
+2. Increase the value if you want parameters in referenced files to be processed
+3. Ensure parameter names match exactly (case-sensitive)
+4. Verify that default values are properly formatted with the `=` symbol
+5. For complex parameter substitution, consider using multiple expansion steps
+
+#### Issue: Extension Not Working After Update
+
+**Symptoms:**
+- Command not found in command palette
+- Extension doesn't respond when triggered
+- Error messages appear when trying to use the extension
+
+**Solutions:**
+1. Reload VS Code window (Ctrl+R or Cmd+R on Mac)
+2. Check for error messages in the Output panel (View > Output > inlined Copy)
+3. Verify the extension is properly installed and enabled in the Extensions panel
+4. Reinstall the extension if necessary
+5. Check VS Code's Developer Tools (Help > Toggle Developer Tools) for JavaScript errors
+
 ### Debugging
 
 If you encounter issues not covered above:
