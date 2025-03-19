@@ -206,6 +206,78 @@ vsce package
 - The extension currently only works with local files
 - File search cache is automatically updated when files change
 
+## Troubleshooting
+
+This section provides solutions for common issues you might encounter when using the inlined-copy extension.
+
+### Common Issues and Solutions
+
+#### Issue: File Not Found Errors
+
+**Symptoms:**
+- Error message: "File not found"
+- Referenced file is not expanded in the output
+
+**Solutions:**
+1. Check that the file path is correct and the file exists
+2. Try using different path formats (relative, absolute, or from project root)
+3. Ensure the file is within your workspace or a parent directory
+4. Check for special characters in the file path that might need escaping
+
+#### Issue: Circular References
+
+**Symptoms:**
+- Error message: "Circular reference detected"
+- Expansion process stops unexpectedly
+
+**Solutions:**
+1. Check your files for circular dependencies (A references B, B references A)
+2. Break the circular chain by removing one of the references
+3. Consider restructuring your documents to avoid circular dependencies
+
+#### Issue: Large File Warnings
+
+**Symptoms:**
+- Error message: "File size exceeds maximum allowed limit"
+- File content is not expanded
+
+**Solutions:**
+1. Increase the `maxFileSize` setting in VS Code preferences
+2. Split large files into smaller, more manageable files
+3. Consider using section references instead of entire file references
+
+#### Issue: Recursion Depth Exceeded
+
+**Symptoms:**
+- Error message: "Maximum recursion depth exceeded"
+- Nested references are not fully expanded
+
+**Solutions:**
+1. Increase the `maxRecursionDepth` setting (up to the maximum of 3)
+2. Restructure your documents to reduce nesting depth
+3. Consider using multiple expansion steps for deeply nested structures
+
+### Debugging
+
+If you encounter issues not covered above:
+
+1. Enable debug mode in settings:
+   - Set `inlined-copy.debugMode` to `true`
+   - Set `inlined-copy.logLevel` to `debug`
+
+2. Check the Output panel in VS Code:
+   - Open the Output panel (View > Output)
+   - Select "inlined Copy" from the dropdown menu
+   - Look for error messages or warnings
+
+3. Try with a minimal example:
+   - Create a simple test file with only the problematic reference
+   - Test expansion to isolate the issue
+
+4. Report issues:
+   - If the problem persists, open an issue on GitHub
+   - Include your debug logs, example files, and steps to reproduce
+
 ### Error Handling
 
 The extension includes robust error handling for various scenarios:
