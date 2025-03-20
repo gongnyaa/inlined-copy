@@ -34,3 +34,5 @@ pr_*.txt
 tmp-*
 *.vsix
 **/test/**
+DEVELOPMENT.md
+CONTRIBUTING.md
