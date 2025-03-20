@@ -35,4 +35,5 @@ tmp-*
 *.vsix
 **/test/**
 DEVELOPMENT.md
+DEVELOP.md
 CONTRIBUTING.md
