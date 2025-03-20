@@ -15,3 +15,21 @@ prompt/**
 vitest.config.ts
 coverage/**
 **/*.vsix
+
+test/**
+
+# Development files
+.eslintcache
+.lintstagedrc.json
+.prettierignore
+.husky/**
+.obsidian/**
+pnpm-lock.yaml
+
+# PR documentation
+PR_INFORMATION.md
+pr_*.txt
+
+# Other unnecessary files
+tmp-*
+*.vsix
