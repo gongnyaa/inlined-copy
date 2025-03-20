@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { _mockVSCodeEnvironment as mockVSCodeEnvironment, resetMockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import { mockVSCodeEnvironment, resetMockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
 
 // Use vi.hoisted to define mocks before imports
 const mockOutputChannel = vi.hoisted(() => ({

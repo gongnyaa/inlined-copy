@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { CircularReferenceException } from '../../../errors/errorTypes';
 import { cleanupTestFiles } from '../../../utils/createTestFiles';
-import { _mockVSCodeEnvironment as mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import { mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
 import { createFileExpanderMock } from '../mocks/fileExpander.mock';
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
