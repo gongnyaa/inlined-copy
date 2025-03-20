@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const config = VSCodeEnvironment.getConfiguration('inlined-copy', 'watchFileTypes', ['**/*.md']);
 
   // Create a file change handler that clears both caches
-  const fileChangeHandler = () => {
+  const fileChangeHandler = (): void => {
     // Clear the FileResolver cache when files change
     // Import FileResolver dynamically to avoid circular dependencies
     import('./fileResolver/fileResolver').then(module => {

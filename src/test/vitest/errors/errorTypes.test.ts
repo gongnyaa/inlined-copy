@@ -1,11 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   LargeDataException,
   DuplicateReferenceException,
   CircularReferenceException,
   errorToFileResult,
 } from '../../../errors/errorTypes';
-import { fileFailure } from '../../../fileResolver/fileResult';
 
 describe('Error Types', () => {
   it('should create LargeDataException with correct name and message', () => {
