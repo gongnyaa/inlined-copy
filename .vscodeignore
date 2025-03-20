@@ -33,3 +33,4 @@ pr_*.txt
 # Other unnecessary files
 tmp-*
 *.vsix
+**/test/**

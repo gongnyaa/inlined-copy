@@ -1,12 +1,26 @@
 {
   "name": "inlined-copy",
   "displayName": "inlined Copy",
-  "description": "Copy text inline without formatting from Markdown files",
-  "version": "0.1.0",
+  "description": "Copy text with inlined content",
+  "version": "0.1.1",
   "publisher": "frecre",
-  "engines": {
-    "vscode": "^1.98.0"
+  "icon": "assets/icon.png",
+  "license": "MIT",
+  "author": {
+    "name": "gong",
+    "email": "gong@frecre.com"
   },
+  "galleryBanner": {
+    "color": "#3B4252",
+    "theme": "dark"
+  },
+  "preview": true,
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
   "categories": [
     "Other",
     "Formatters"
@@ -102,7 +116,7 @@
   "devDependencies": {
     "@types/glob": "^7.2.0",
     "@types/node": "~14.18.63",
-    "@types/vscode": "^1.98.0",
+    "@types/vscode": "^1.94.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "@vitest/coverage-v8": "3.0.9",
