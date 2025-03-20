@@ -124,6 +124,11 @@ This project follows the `@typescript-eslint/naming-convention` rule to maintain
 | **Constants (immutable)** | `UPPER_CASE` | `const MAX_RETRY_COUNT = 3;` |
 | **Unused variables** | `_prefixed` | `const _unusedVariable = "not used";` (Avoids ESLint unused variable errors) |
 
+**Unused variables (_unusedVariable)**
+- As a general rule, unused variables should be removed from the code.
+- However, the `_` prefix is allowed for temporarily unused variables during development or to avoid specific ESLint rules (@typescript-eslint/no-unused-vars).
+- The `_` prefix explicitly indicates to other developers that "this is a temporarily unused variable" and should ideally be removed when the code is finalized.
+
 ##### Functions
 | Rule | Example | Notes |
 |------|---------|-------|
@@ -194,6 +199,21 @@ ESLint configuration allows `_` prefixed variables to avoid unused variable erro
 - ✅ `_unusedVariable` avoids ESLint warnings
 - ❌ `unusedVariable` will trigger warnings if unused
 - ✅ `function (_param: string) {}` won't trigger warnings for unused parameters
+
+##### Cases where _ prefix is recommended:
+
+✅ **Function parameters that are intentionally unused:**
+- `_filePath` is potentially used in the future but currently unused, so it's prefixed with `_`
+- Adding the `_` prefix avoids the ESLint @typescript-eslint/no-unused-vars rule while indicating that it's "intentionally unused"
+
+✅ **Temporary variables during debugging:**
+- Using `_debugData` as a temporary variable for debugging information, which will be removed eventually
+
+❌ **Do not use _ prefix in the following cases:**
+- **Variables that should be removed instead of being prefixed with _**
+  - `_unusedValue` that is completely unnecessary should be removed rather than prefixed
+- **Class properties that should be private instead**
+  - Properties like `_id` should use the `private` modifier instead of relying on the underscore convention
 
 #### Automatic Formatting
 
