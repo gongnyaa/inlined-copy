@@ -4,12 +4,25 @@ Thank you for your interest in contributing to the inlined-copy VS Code extensio
 
 ## Table of Contents
 
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
-- [Coding Guidelines](#coding-guidelines)
-- [Testing](#testing)
-- [Pull Request Process](#pull-request-process)
-- [Commit Message Guidelines](#commit-message-guidelines)
+- [Contributing to inlined-copy](#contributing-to-inlined-copy)
+  - [Table of Contents](#table-of-contents)
+  - [Development Setup](#development-setup)
+    - [Prerequisites](#prerequisites)
+    - [Getting Started](#getting-started)
+  - [Project Structure](#project-structure)
+  - [Coding Guidelines](#coding-guidelines)
+    - [TypeScript Style](#typescript-style)
+    - [Code Quality](#code-quality)
+  - [Testing](#testing)
+    - [Running Tests](#running-tests)
+    - [Writing Tests](#writing-tests)
+  - [Pull Request Process](#pull-request-process)
+  - [Commit Message Guidelines](#commit-message-guidelines)
+    - [Types](#types)
+    - [Scope](#scope)
+    - [Subject](#subject)
+    - [Examples](#examples)
+  - [License](#license)
 
 ## Development Setup
 
@@ -43,6 +56,8 @@ Thank you for your interest in contributing to the inlined-copy VS Code extensio
    # Or run this command:
    code --extensionDevelopmentPath=${PWD}
    ```
+
+For more detailed technical information about the development environment, please refer to [DEVELOP.md](DEVELOP.md).
 
 ## Project Structure
 
@@ -84,6 +99,8 @@ inlined-copy/
   pnpm run lint --fix
   ```
 
+For detailed information about the coding style, naming conventions, and other technical guidelines, please refer to the [Code Quality and Style Guidelines](DEVELOP.md#code-quality-and-style-guidelines) section in DEVELOP.md.
+
 ## Testing
 
 The project uses Vitest for unit testing. Tests are located in the `src/test` directory.
@@ -104,6 +121,8 @@ pnpm run test:coverage
 - Place tests in the appropriate directory under `src/test/vitest/`
 - Mock VS Code API dependencies using the provided mock implementations
 - Test both success and error cases
+
+For more detailed testing information and best practices, please refer to the [Testing](DEVELOP.md#testing) section in DEVELOP.md.
 
 ## Pull Request Process
 
@@ -175,4 +194,4 @@ docs(readme): update installation instructions
 
 ## License
 
-By contributing to this project, you agree that your contributions will be licensed under the project's [MIT License](LICENSE).
+By contributing to this project, you agree that your contributions will be licensed under the project's MIT License.
