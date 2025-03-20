@@ -11,7 +11,8 @@ vi.mock('../../../utils/logManager', () => ({
 
 // Mock modules before importing FileResolver
 vi.mock('../../../utils/vscodeEnvironment', () => ({
-  VSCodeEnvironment: mockVSCodeEnvironment
+  VSCodeEnvironment: mockVSCodeEnvironment,
+  vSCodeEnvironment: mockVSCodeEnvironment
 }));
 
 // Mock vscode module
@@ -62,6 +63,10 @@ vi.mock('../../../fileResolver/fileResolver', () => {
   
   return {
     FileResolver: {
+      resolveFilePath: mockResolveFilePath,
+      getSuggestions: vi.fn().mockResolvedValue([])
+    },
+    fileResolver: {
       resolveFilePath: mockResolveFilePath,
       getSuggestions: vi.fn().mockResolvedValue([])
     }

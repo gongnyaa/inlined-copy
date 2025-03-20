@@ -7,7 +7,7 @@ import { setupFileSystemMock } from '../mocks/fileSystem.mock';
  * Options for standard test environment setup
  */
 interface TestEnvironmentOptions {
-  fileSystem?: Record<string, any>;
+  fileSystem?: Record<string, unknown>;
 }
 
 /**
