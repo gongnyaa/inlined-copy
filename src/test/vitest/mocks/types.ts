@@ -44,11 +44,21 @@ export interface FileResolverResult {
 }
 
 /**
+ * FileExpander private interface for testing
+ * Provides access to private members of the FileExpander class
+ */
+export interface FileExpanderPrivate {
+  fileContentCache: Map<string, { content: string; timestamp: number }>;
+  resolveFilePath: (filePath: string, basePath: string) => Promise<string>;
+  readFileContent: (filePath: string) => Promise<string>;
+}
+
+/**
  * FileExpander mock interface
  */
 export interface FileExpanderMock {
   expandFileReferences: Mock;
-  fileContentCache: Map<string, string>;
+  fileContentCache: Map<string, { content: string; timestamp: number }>;
   expandFile: Mock;
   expandFileContent: Mock;
   expandParameters: Mock;

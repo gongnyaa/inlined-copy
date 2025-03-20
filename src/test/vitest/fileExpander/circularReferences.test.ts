@@ -3,15 +3,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { CircularReferenceException } from '../../../errors/errorTypes';
 import { cleanupTestFiles } from '../../../utils/createTestFiles';
-import { mockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { _mockVSCodeEnvironment as mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
 import { createFileExpanderMock } from '../mocks/fileExpander.mock';
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock modules before importing FileExpander
-vi.mock('../../../utils/vscodeEnvironment', () => ({
-  VSCodeEnvironment: mockVSCodeEnvironment,
-  vSCodeEnvironment: mockVSCodeEnvironment,
-}));
+vi.mock('../../../utils/vscodeEnvironment', () => createStandardVSCodeEnvironmentMock());
 
 // Mock FileResolver before importing FileExpander
 vi.mock('../../../fileResolver/fileResolver', () => {
