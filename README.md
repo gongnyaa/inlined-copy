@@ -113,6 +113,88 @@ Note: Additional features and settings may be added in future versions.
 
 ESLint and Prettier are used to check code quality and style. All code must be free of ESLint errors and conform to Prettier formatting rules before committing. ESLint primarily detects code that could lead to bugs or uses deprecated syntax, while Prettier enforces code formatting (whitespace, line breaks, etc.). Developers should regularly check for warnings and errors from these tools.
 
+#### TypeScript Naming Conventions
+
+This project follows the `@typescript-eslint/naming-convention` rule to maintain consistent naming across the codebase:
+
+##### Variables & Constants
+| Rule | Example | Notes |
+|------|---------|-------|
+| **Regular variables** | `camelCase` | `const filePath = "/path/to/file";` |
+| **Constants (immutable)** | `UPPER_CASE` | `const MAX_RETRY_COUNT = 3;` |
+| **Unused variables** | `_prefixed` | `const _unusedVariable = "not used";` (Avoids ESLint unused variable errors) |
+
+##### Functions
+| Rule | Example | Notes |
+|------|---------|-------|
+| **Regular functions** | `camelCase` | `function getFilePath() {}` |
+| **Private methods** | `_prefixed` | `private _processFile() {}` (Allowed for JS compatibility) |
+
+##### Types & Classes
+| Rule | Example | Notes |
+|------|---------|-------|
+| **Classes & Interfaces** | `PascalCase` | `class FileProcessor {}` / `interface FileOptions {}` |
+| **Type aliases** | `PascalCase` | `type FileMap = Map<string, string>;` |
+
+#### ESLint Configuration and Usage
+
+This project applies the following ESLint rules to maintain code quality:
+
+##### 1. `@typescript-eslint/naming-convention` Application
+The ESLint configuration (`.eslintrc.json`) clearly defines naming conventions:
+
+```json
+{
+  "rules": {
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "variable",
+        "format": ["camelCase", "UPPER_CASE"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "parameter",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "property",
+        "format": ["camelCase", "UPPER_CASE"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
+      }
+    ]
+  }
+}
+```
+
+- Allows unused variables with `_` prefix
+- Enforces strict rules for constants (`UPPER_CASE`)
+- Unifies type naming (`PascalCase`)
+
+##### 2. `@typescript-eslint/no-unused-vars` Adjustment
+ESLint configuration allows `_` prefixed variables to avoid unused variable errors:
+
+```json
+{
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ]
+  }
+}
+```
+
+##### Usage Rules
+- ✅ `_unusedVariable` avoids ESLint warnings
+- ❌ `unusedVariable` will trigger warnings if unused
+- ✅ `function (_param: string) {}` won't trigger warnings for unused parameters
+
 #### Automatic Formatting
 
 The project adopts Prettier's default style guide (with team-specific configurations as needed). **As a rule, do not format code manually**; use the editor's formatter feature or the provided scripts (see below) for automatic formatting.
