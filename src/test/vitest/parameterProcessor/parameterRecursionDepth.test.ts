@@ -13,6 +13,7 @@ vi.mock('vscode', () => {
 
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({
+  vSCodeEnvironment: mockVSCodeEnvironment,
   VSCodeEnvironment: mockVSCodeEnvironment,
 }));
 

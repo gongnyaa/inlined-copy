@@ -5,6 +5,7 @@ import { LogManager } from '../../../utils/logManager';
 
 // Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
 vi.mock('../../../utils/vscodeEnvironment', () => ({
+  vSCodeEnvironment: mockVSCodeEnvironment,
   VSCodeEnvironment: mockVSCodeEnvironment,
 }));
 
@@ -31,7 +32,7 @@ vi.mock('fs', () => ({
 
 // Mock FileResolver
 vi.mock('../../../fileResolver/fileResolver', () => ({
-  FileResolver: {
+  fileResolver: {
     resolveFilePath: vi.fn(),
     getSuggestions: vi.fn().mockResolvedValue([]),
   },
@@ -39,7 +40,7 @@ vi.mock('../../../fileResolver/fileResolver', () => ({
 
 // Mock SectionExtractor
 vi.mock('../../../sectionExtractor', () => ({
-  SectionExtractor: {
+  sectionExtractor: {
     extractSection: vi.fn().mockReturnValue(null),
   },
 }));
@@ -52,8 +53,7 @@ describe('FileExpander', () => {
     // Reset LogManager mock
     resetMockLogManager();
     // Reset the file content cache
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (FileExpander as any).fileContentCache = new Map();
+    (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache = new Map();
   });
 
   afterEach(() => {
@@ -63,22 +63,18 @@ describe('FileExpander', () => {
   describe('Large Data Detection', () => {
     it('should throw LargeDataException when file size exceeds limit', async () => {
       // Mock file stats to exceed size limit
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (fs.statSync as any).mockReturnValue({
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         size: 2048, // 2KB > 1KB limit
         mtime: { getTime: () => 1000 },
       });
 
       // Mock FileResolver to return a successful path
       const mockResolveFilePath = vi.fn().mockResolvedValue('/path/to/large-file.txt');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (FileExpander as any).resolveFilePath = mockResolveFilePath;
+      (FileExpander as unknown as {resolveFilePath: (filePath: string, basePath: string) => Promise<string>}).resolveFilePath = mockResolveFilePath;
 
       // Create a mock implementation that throws LargeDataException
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const originalReadFileContent = (FileExpander as any).readFileContent;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (FileExpander as any).readFileContent = async () => {
+      const originalReadFileContent = (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = async () => {
         throw new LargeDataException('File size (2.00MB) exceeds maximum allowed limit (1.00MB)');
       };
 
@@ -96,7 +92,7 @@ describe('FileExpander', () => {
         );
       } finally {
         // Restore original method
-        (FileExpander as any).readFileContent = originalReadFileContent;
+        (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = originalReadFileContent;
       }
     });
   });
@@ -105,17 +101,17 @@ describe('FileExpander', () => {
     it('should detect and handle duplicate file references', async () => {
       // Mock successful file resolution
       const mockResolveFilePath = vi.fn().mockResolvedValue('/path/to/file.txt');
-      (FileExpander as any).resolveFilePath = mockResolveFilePath;
+      (FileExpander as unknown as {resolveFilePath: (filePath: string, basePath: string) => Promise<string>}).resolveFilePath = mockResolveFilePath;
 
       // Mock file stats and content
-      (fs.statSync as any).mockReturnValue({
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         size: 100,
         mtime: { getTime: () => 1000 },
       });
 
       // Create a mock implementation of readFileContent
-      const originalReadFileContent = (FileExpander as any).readFileContent;
-      (FileExpander as any).readFileContent = async () => {
+      const originalReadFileContent = (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = async () => {
         return 'File content';
       };
 
@@ -145,7 +141,7 @@ describe('FileExpander', () => {
         );
       } finally {
         // Restore original methods
-        (FileExpander as any).readFileContent = originalReadFileContent;
+        (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = originalReadFileContent;
         FileExpander.expandFileReferences = originalExpandFileReferences;
       }
     });
@@ -163,10 +159,10 @@ describe('FileExpander', () => {
         }
         return '/path/to/' + filePath;
       });
-      (FileExpander as any).resolveFilePath = mockResolveFilePath;
+      (FileExpander as unknown as {resolveFilePath: (filePath: string, basePath?: string) => Promise<string>}).resolveFilePath = mockResolveFilePath;
 
       // Mock file stats
-      (fs.statSync as any).mockReturnValue({ size: 100 });
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ size: 100 });
 
       // Mock file content with circular references
       const mockReadFileContent = vi.fn().mockImplementation(async filePath => {
@@ -178,7 +174,7 @@ describe('FileExpander', () => {
         }
         return 'Generic content';
       });
-      (FileExpander as any).readFileContent = mockReadFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = mockReadFileContent;
 
       // Mock expandFileReferences to throw CircularReferenceException
       const originalExpandFileReferences = FileExpander.expandFileReferences;
@@ -237,10 +233,10 @@ describe('FileExpander', () => {
         }
         return '/path/to/' + filePath;
       });
-      (FileExpander as any).resolveFilePath = mockResolveFilePath;
+      (FileExpander as unknown as {resolveFilePath: (filePath: string, basePath?: string) => Promise<string>}).resolveFilePath = mockResolveFilePath;
 
       // Mock file stats
-      (fs.statSync as any).mockReturnValue({ size: 100 });
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ size: 100 });
 
       // Mock file content with nested references
       const mockReadFileContent = vi.fn().mockImplementation(async filePath => {
@@ -252,7 +248,7 @@ describe('FileExpander', () => {
         }
         return 'Generic content';
       });
-      (FileExpander as any).readFileContent = mockReadFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = mockReadFileContent;
 
       // Mock expandFileReferences to throw RecursionDepthException
       const originalExpandFileReferences = FileExpander.expandFileReferences;
@@ -306,14 +302,14 @@ describe('FileExpander', () => {
   describe('Performance Optimization', () => {
     it('should use file content cache for repeated reads', async () => {
       // Clear the cache first
-      (FileExpander as any).fileContentCache = new Map();
+      (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache = new Map();
 
       // Mock successful file resolution
       const mockResolveFilePath = vi.fn().mockResolvedValue('/path/to/file.txt');
-      (FileExpander as any).resolveFilePath = mockResolveFilePath;
+      (FileExpander as unknown as {resolveFilePath: (filePath: string, basePath?: string) => Promise<string>}).resolveFilePath = mockResolveFilePath;
 
       // Mock file stats
-      (fs.statSync as any).mockReturnValue({ size: 100 });
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ size: 100 });
 
       // Create a mock implementation for readFile that actually calls the callback
       const readFileSpy = vi
@@ -325,14 +321,17 @@ describe('FileExpander', () => {
         );
 
       // Replace the fs.readFile implementation
-      (fs.readFile as any).mockImplementation(readFileSpy);
+      (fs.readFile as unknown as ReturnType<typeof vi.fn>).mockImplementation(readFileSpy);
 
       // Create a mock implementation of readFileContent that uses our mocks
-      const originalReadFileContent = (FileExpander as any).readFileContent;
-      (FileExpander as any).readFileContent = async (filePath: string) => {
+      const originalReadFileContent = (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = async (filePath: string) => {
         // Check cache first
-        if ((FileExpander as any).fileContentCache.has(filePath)) {
-          return (FileExpander as any).fileContentCache.get(filePath);
+        if ((FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache.has(filePath)) {
+          const entry = (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache.get(filePath);
+          if (entry) {
+            return entry.content;
+          }
         }
 
         // Read file and cache it
@@ -343,24 +342,24 @@ describe('FileExpander', () => {
         });
 
         // Cache the content
-        (FileExpander as any).fileContentCache.set(filePath, content);
+        (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache.set(filePath, { content, timestamp: Date.now() });
 
         return content;
       };
 
       // First call should read from file
-      const content1 = await (FileExpander as any).readFileContent('/path/to/file.txt');
+      const content1 = await (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent('/path/to/file.txt');
       expect(content1).toBe('Cached content');
 
       // Second call should use cache
-      const content2 = await (FileExpander as any).readFileContent('/path/to/file.txt');
+      const content2 = await (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent('/path/to/file.txt');
       expect(content2).toBe('Cached content');
 
       // Expect readFile to be called only once
       expect(readFileSpy).toHaveBeenCalledTimes(1);
 
       // Restore original method
-      (FileExpander as any).readFileContent = originalReadFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = originalReadFileContent;
     });
 
     it('should refresh cache when file is modified', async () => {
@@ -370,7 +369,7 @@ describe('FileExpander', () => {
       const updatedContent = 'Updated content';
 
       // Clear the cache first
-      (FileExpander as any).fileContentCache = new Map();
+      (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache = new Map();
 
       // Mock file reading with different content on subsequent calls
       const readFileMock = vi
@@ -394,7 +393,7 @@ describe('FileExpander', () => {
           }
         );
 
-      (fs.readFile as any).mockImplementation(readFileMock);
+      (fs.readFile as unknown as ReturnType<typeof vi.fn>).mockImplementation(readFileMock);
 
       // Mock file stats with different timestamps to simulate file modification
       const statSyncMock = vi
@@ -408,17 +407,17 @@ describe('FileExpander', () => {
           mtime: { getTime: () => 2000 },
         } as unknown as fs.Stats);
 
-      (fs.statSync as any).mockImplementation(statSyncMock);
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockImplementation(statSyncMock);
 
       // Create a mock implementation of readFileContent that uses our mocks
-      const originalReadFileContent = (FileExpander as any).readFileContent;
-      (FileExpander as any).readFileContent = async (filePath: string) => {
+      const originalReadFileContent = (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = async (filePath: string) => {
         // Get file stats to check timestamp
         const stats = fs.statSync(filePath);
         const lastModified = stats.mtime.getTime();
 
         // Check cache first for better performance
-        const cacheEntry = (FileExpander as any).fileContentCache.get(filePath);
+        const cacheEntry = (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache.get(filePath);
 
         // Use cache only if entry exists and timestamp matches
         if (cacheEntry && cacheEntry.timestamp === lastModified) {
@@ -437,7 +436,7 @@ describe('FileExpander', () => {
         });
 
         // Cache the content with timestamp
-        (FileExpander as any).fileContentCache.set(filePath, {
+        (FileExpander as unknown as {fileContentCache: Map<string, { content: string; timestamp: number }>}).fileContentCache.set(filePath, {
           content,
           timestamp: lastModified,
         });
@@ -447,11 +446,11 @@ describe('FileExpander', () => {
 
       try {
         // First read should get initial content
-        const content1 = await (FileExpander as any).readFileContent(mockFilePath);
+        const content1 = await (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent(mockFilePath);
         expect(content1).toBe(initialContent);
 
         // Second read should detect the timestamp change and get updated content
-        const content2 = await (FileExpander as any).readFileContent(mockFilePath);
+        const content2 = await (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent(mockFilePath);
         expect(content2).toBe(updatedContent);
 
         // Verify our mocks were called the expected number of times
@@ -459,13 +458,13 @@ describe('FileExpander', () => {
         expect(statSyncMock).toHaveBeenCalledTimes(2);
       } finally {
         // Restore original method
-        (FileExpander as any).readFileContent = originalReadFileContent;
+        (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = originalReadFileContent;
       }
     });
 
     it('should use streaming for large files', async () => {
       // Mock file stats to be large but under limit
-      (fs.statSync as any).mockReturnValue({
+      (fs.statSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
         size: 600, // 600B > 512B (half of 1KB limit)
         mtime: { getTime: () => 1000 },
       });
@@ -486,11 +485,11 @@ describe('FileExpander', () => {
           return mockStream;
         }),
       };
-      createReadStreamSpy.mockReturnValue(mockStream as any);
+      createReadStreamSpy.mockReturnValue(mockStream as unknown as fs.ReadStream);
 
       // Create a mock implementation of readFileContent that uses streaming
-      const originalReadFileContent = (FileExpander as any).readFileContent;
-      (FileExpander as any).readFileContent = async (filePath: string) => {
+      const originalReadFileContent = (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent;
+      (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = async (filePath: string) => {
         // Get file stats to check size
         const stats = fs.statSync(filePath);
 
@@ -512,7 +511,7 @@ describe('FileExpander', () => {
 
       try {
         // Call readFileContent with a large file
-        const content = await (FileExpander as any).readFileContent('/path/to/large-file.txt');
+        const content = await (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent('/path/to/large-file.txt');
 
         // Expect createReadStream to be called
         expect(createReadStreamSpy).toHaveBeenCalledWith('/path/to/large-file.txt');
@@ -521,7 +520,7 @@ describe('FileExpander', () => {
         expect(content).toBe('Large file content');
       } finally {
         // Restore original method
-        (FileExpander as any).readFileContent = originalReadFileContent;
+        (FileExpander as unknown as {readFileContent: (filePath: string) => Promise<string>}).readFileContent = originalReadFileContent;
         createReadStreamSpy.mockRestore();
       }
     });

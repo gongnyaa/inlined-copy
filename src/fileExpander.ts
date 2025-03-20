@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SectionExtractor } from './sectionExtractor';
@@ -8,7 +7,6 @@ import {
   DuplicateReferenceException,
   CircularReferenceException,
   RecursionDepthException,
-  errorToFileResult,
 } from './errors/errorTypes';
 import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 import { LogManager } from './utils/logManager';

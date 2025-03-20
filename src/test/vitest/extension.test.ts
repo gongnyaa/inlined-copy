@@ -5,6 +5,7 @@ import { mockLogManager, resetMockLogManager } from './mocks/logManager.mock';
 // Mock VSCodeEnvironment
 vi.mock('../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment,
+  vSCodeEnvironment: mockVSCodeEnvironment,
 }));
 
 // Mock LogManager

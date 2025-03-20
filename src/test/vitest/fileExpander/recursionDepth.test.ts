@@ -12,6 +12,7 @@ import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({
+  vSCodeEnvironment: mockVSCodeEnvironment,
   VSCodeEnvironment: mockVSCodeEnvironment,
 }));
 
@@ -49,6 +50,10 @@ vi.mock('fs', () => ({
 
 // Mock FileResolver
 vi.mock('../../../fileResolver/fileResolver', () => ({
+  fileResolver: {
+    resolveFilePath: vi.fn(),
+    getSuggestions: vi.fn().mockResolvedValue([]),
+  },
   FileResolver: {
     resolveFilePath: vi.fn(),
     getSuggestions: vi.fn().mockResolvedValue([]),

@@ -8,6 +8,7 @@ import { FileResolver } from '../../../fileResolver/fileResolver';
 // Mock VSCodeEnvironment
 vi.mock('../../../utils/vscodeEnvironment', () => ({
   VSCodeEnvironment: mockVSCodeEnvironment,
+  vSCodeEnvironment: mockVSCodeEnvironment,
 }));
 
 // Mock LogManager
