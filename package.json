@@ -2,8 +2,8 @@
   "name": "inlined-copy",
   "displayName": "inlined Copy",
   "description": "Copy text inline without formatting from Markdown files",
-  "version": "0.0.1",
-  "publisher": "gongnyaa",
+  "version": "0.1.0",
+  "publisher": "frecre",
   "engines": {
     "vscode": "^1.98.0"
   },
