@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { _mockVSCodeEnvironment as mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock vscode module
@@ -12,10 +12,7 @@ vi.mock('vscode', () => {
 });
 
 // Mock VSCodeEnvironment
-vi.mock('../../../utils/vscodeEnvironment', () => ({
-  vSCodeEnvironment: mockVSCodeEnvironment,
-  VSCodeEnvironment: mockVSCodeEnvironment,
-}));
+vi.mock('../../../utils/vscodeEnvironment', () => createStandardVSCodeEnvironmentMock());
 
 describe('ParameterProcessor Recursion Depth', () => {
   // Set up standard test environment

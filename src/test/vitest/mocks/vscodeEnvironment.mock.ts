@@ -50,6 +50,20 @@ export function createVSCodeEnvironmentMock(
 export const mockVSCodeEnvironment = createVSCodeEnvironmentMock();
 
 /**
+ * Creates a standardized mock for VSCodeEnvironment
+ * @returns Standard VSCodeEnvironment mock object for tests
+ */
+export function createStandardVSCodeEnvironmentMock(): { 
+  VSCodeEnvironment: VSCodeEnvironmentMock; 
+  vSCodeEnvironment: VSCodeEnvironmentMock;
+} {
+  return {
+    VSCodeEnvironment: mockVSCodeEnvironment,
+    vSCodeEnvironment: mockVSCodeEnvironment
+  };
+}
+
+/**
  * Resets all mock functions in the VSCodeEnvironment mock
  */
 export const resetMockVSCodeEnvironment = (): void => {

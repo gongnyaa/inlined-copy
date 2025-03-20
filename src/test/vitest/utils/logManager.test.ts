@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mockVSCodeEnvironment, resetMockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { _mockVSCodeEnvironment as mockVSCodeEnvironment, resetMockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
 
 // Use vi.hoisted to define mocks before imports
 const mockOutputChannel = vi.hoisted(() => ({
@@ -19,9 +19,7 @@ vi.mock('vscode', () => ({
   window: mockWindow,
 }));
 
-vi.mock('../../../utils/vscodeEnvironment', () => ({
-  VSCodeEnvironment: mockVSCodeEnvironment,
-}));
+vi.mock('../../../utils/vscodeEnvironment', () => createStandardVSCodeEnvironmentMock());
 
 import { LogManager } from '../../../utils/logManager';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockVSCodeEnvironment } from '../mocks/vscodeEnvironment.mock';
+import { _mockVSCodeEnvironment as mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
 import { mockLogManager } from '../mocks/logManager.mock';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -11,10 +11,7 @@ import { fileSuccess } from '../../../fileResolver/fileResult';
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
 // Mock VSCodeEnvironment
-vi.mock('../../../utils/vscodeEnvironment', () => ({
-  vSCodeEnvironment: mockVSCodeEnvironment,
-  VSCodeEnvironment: mockVSCodeEnvironment,
-}));
+vi.mock('../../../utils/vscodeEnvironment', () => createStandardVSCodeEnvironmentMock());
 
 // Mock LogManager
 vi.mock('../../../utils/logManager', () => ({
