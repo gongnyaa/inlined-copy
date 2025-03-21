@@ -129,10 +129,13 @@ export class FileExpander {
           LogManager.warn(error.message);
         } else if (error instanceof Error && error.message.startsWith('File not found:')) {
           LogManager.info(`File not found, keeping original reference: ${filePath}`);
+          // Do not re-throw file not found errors
         } else {
           // For other errors, show error message
           const errorMessage = error instanceof Error ? error.message : String(error);
           LogManager.error(`Error expanding file reference: ${errorMessage}`);
+          // Re-throw other errors
+          throw error;
         }
 
         // Keep the original reference in the text
