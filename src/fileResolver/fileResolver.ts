@@ -151,10 +151,11 @@ export class FileResolver {
 
     // Extract filename for search
     const filename = path.basename(filePath);
+    // Get filename without extension
+    const filenameWithoutExt = path.basename(filename, path.extname(filename));
 
-    // Create glob pattern for search
-    // Using ** to search in all directories
-    const searchPattern = `**/${filename}`;
+    // Create glob pattern for search, matching both exact filename and any extension
+    const searchPattern = `**/${filenameWithoutExt}*`;
 
     try {
       // Use VS Code API to find files
@@ -247,11 +248,11 @@ export class FileResolver {
    */
   public static async getSuggestions(filePath: string): Promise<string[]> {
     const filename = path.basename(filePath);
+    // Get filename without extension
+    const filenameWithoutExt = path.basename(filename, path.extname(filename));
 
-    // Search for files with similar names
-    // This is a simple implementation that just looks for files with the same extension
-    const extension = path.extname(filename);
-    const searchPattern = `**/*${extension}`;
+    // Search for files with similar names, ignoring extension
+    const searchPattern = `**/${filenameWithoutExt}*`;
 
     try {
       const uris = await vscode.workspace.findFiles(

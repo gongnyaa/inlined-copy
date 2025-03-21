@@ -116,26 +116,27 @@ export class FileExpander {
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         // If file not found or other error, leave the reference as is and log error
-        LogManager.error(`Error expanding file reference ${fullMatch}: ${error}`);
-
-        // Show appropriate message based on error type
-        if (error instanceof LargeDataException) {
-          LogManager.warn(`Large file detected: ${error.message}`);
-        } else if (error instanceof DuplicateReferenceException) {
-          LogManager.warn(error.message);
-        } else if (error instanceof CircularReferenceException) {
-          LogManager.error(error.message);
-        } else if (error instanceof RecursionDepthException) {
-          LogManager.warn(error.message);
-        } else if (error instanceof Error && error.message.startsWith('File not found:')) {
-          LogManager.info(`File not found, keeping original reference: ${filePath}`);
+        if (error instanceof Error && error.message.startsWith('File not found:')) {
+          // Display as Info instead of Error and use more concise format
+          LogManager.info(`![[${filePath}]] was not found`, true);
           // Do not re-throw file not found errors
         } else {
-          // For other errors, show error message
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          LogManager.error(`Error expanding file reference: ${errorMessage}`);
-          // Re-throw other errors
-          throw error;
+          // Show appropriate message based on error type
+          if (error instanceof LargeDataException) {
+            LogManager.warn(`Large file detected: ${error.message}`);
+          } else if (error instanceof DuplicateReferenceException) {
+            LogManager.warn(error.message);
+          } else if (error instanceof CircularReferenceException) {
+            LogManager.error(error.message);
+          } else if (error instanceof RecursionDepthException) {
+            LogManager.warn(error.message);
+          } else {
+            // For other errors, show error message
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            LogManager.error(`Error expanding file reference: ${errorMessage}`);
+            // Re-throw other errors
+            throw error;
+          }
         }
 
         // Keep the original reference in the text
@@ -156,12 +157,10 @@ export class FileExpander {
     const result = await FileResolver.resolveFilePath(filePath, basePath);
 
     if (!result.success) {
-      // Get suggestions for similar files
-      const suggestions = await FileResolver.getSuggestions(filePath);
-      const suggestionText =
-        suggestions.length > 0 ? `\nSimilar files found:\n${suggestions.join('\n')}` : '';
-
-      throw new Error(`File not found: ${filePath}${suggestionText}`);
+      // Get suggestions for similar files but don't include in the error message
+      await FileResolver.getSuggestions(filePath);
+      
+      throw new Error(`File not found: ${filePath}`);
     }
 
     return result.path;
