@@ -2,6 +2,13 @@
 
 All notable changes to the "inlined-copy" extension will be documented in this file.
 
+## [0.3.0] - 2025-03-22
+
+### Added
+
+- Support for `![[filename#parent-heading#child-heading]]` syntax to extract nested heading sections
+- Enhanced section extraction to respect heading hierarchy and parent-child relationships
+
 ## [0.2.0] - 2025-03-21
 
 ### Added

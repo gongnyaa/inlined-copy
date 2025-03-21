@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SectionExtractor } from './sectionExtractor';
 import { FileResolver } from './fileResolver/fileResolver';
+import { parseReference } from './referenceParser';
 import {
   LargeDataException,
   DuplicateReferenceException,
@@ -47,8 +48,8 @@ export class FileExpander {
       );
     }
 
-    // Regular expression to match ![[filename]] or ![[filename#heading]] patterns
-    const fileReferenceRegex = /!\[\[(.*?)(?:#(.*?))?\]\]/g;
+    // Regular expression to match ![[filename]] or ![[filename#heading]] or ![[filename#parent#child]] patterns
+    const fileReferenceRegex = /!\[\[(.*?)\]\]/g;
 
     let result = text;
     let match;
@@ -58,11 +59,14 @@ export class FileExpander {
 
     // Find all file references in the text
     while ((match = fileReferenceRegex.exec(text)) !== null) {
-      const fullMatch = match[0]; // The entire ![[filename]] or ![[filename#heading]] match
-      const filePath = match[1].trim(); // The filename part
-      const heading = match[2] ? match[2].trim() : null; // The heading part if present
-
+      const fullMatch = match[0]; // The entire ![[...]] match
+      
       try {
+        // Parse the reference to get file path and heading path
+        const reference = parseReference(fullMatch);
+        const filePath = reference.filePath;
+        const headingPath = reference.headingPath;
+        
         // Resolve the file path (handle both absolute and relative paths)
         const resolvedPath = await this.resolveFilePath(filePath, basePath);
 
@@ -89,14 +93,31 @@ export class FileExpander {
         // Read the file content
         const fileContent = await this.readFileContent(resolvedPath);
 
-        // Extract section if heading is specified
+        // Extract section if heading path is specified
         let contentToInsert = fileContent;
-        if (heading) {
-          const sectionContent = SectionExtractor.extractSection(fileContent, heading);
-          if (sectionContent) {
-            contentToInsert = sectionContent;
+        if (headingPath && headingPath.length > 0) {
+          if (headingPath.length > 1) {
+            // For nested headings, use extractNestedSection
+            const sectionContent = SectionExtractor.extractNestedSection(fileContent, headingPath);
+            if (sectionContent) {
+              contentToInsert = sectionContent;
+            } else {
+              // If nested extraction fails, return the original reference
+              const headingPathStr = headingPath.join('#');
+              LogManager.warn(`Nested heading path "${headingPathStr}" not found in file "${filePath}"`);
+              result = result.replace(fullMatch, fullMatch);
+              continue;
+            }
           } else {
-            LogManager.warn(`Heading "${heading}" not found in file "${filePath}"`);
+            // For single heading, use the existing functionality
+            const sectionContent = SectionExtractor.extractSection(fileContent, headingPath[0]);
+            if (sectionContent) {
+              contentToInsert = sectionContent;
+            } else {
+              LogManager.warn(`Heading "${headingPath[0]}" not found in file "${filePath}"`);
+              result = result.replace(fullMatch, fullMatch);
+              continue;
+            }
           }
         }
 
@@ -118,7 +139,7 @@ export class FileExpander {
         // If file not found or other error, leave the reference as is and log error
         if (error instanceof Error && error.message.startsWith('File not found:')) {
           // Display as Info instead of Error and use more concise format
-          LogManager.info(`![[${filePath}]] was not found`, true);
+          LogManager.info(`![[${fullMatch}]] was not found`, true);
           // Do not re-throw file not found errors
         } else {
           // Show appropriate message based on error type

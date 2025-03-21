@@ -57,4 +57,33 @@ export class SectionExtractor {
     // Extract the section content
     return content.substring(startIndex, endIndex).trim();
   }
+
+  /**
+   * Extract a section based on a path of nested headings
+   * @param content Markdown content to extract from
+   * @param headingPath Array of headings forming a path (parent, child, etc.)
+   * @returns The extracted section or null if any heading in the path is not found
+   */
+  public static extractNestedSection(content: string, headingPath: string[]): string | null {
+    if (!headingPath || headingPath.length === 0) {
+      return null;
+    }
+    
+    // For a single heading, use the existing extractSection function
+    if (headingPath.length === 1) {
+      return this.extractSection(content, headingPath[0]);
+    }
+    
+    // For nested headings, process them recursively
+    const currentContent = content;
+    
+    // Extract the parent section first
+    const parentSection = this.extractSection(currentContent, headingPath[0]);
+    if (!parentSection) {
+      return null; // Parent heading not found
+    }
+    
+    // Continue with the child headings
+    return this.extractNestedSection(parentSection, headingPath.slice(1));
+  }
 }
