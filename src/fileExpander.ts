@@ -1,8 +1,8 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import { SectionExtractor } from './sectionExtractor';
 import { FileResolver } from './fileResolver/fileResolver';
-import { parseReference } from './referenceParser';
+import { FileReader } from './fileReader';
+import { parseReference, ReferenceType } from './referenceParser';
 import {
   LargeDataException,
   DuplicateReferenceException,
@@ -32,23 +32,21 @@ export class FileExpander {
   ): Promise<string> {
     LogManager.debug(`Expanding file references at depth ${currentDepth}`);
     // Get maximum recursion depth from configuration
-    const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration(
+    const maxRecursionDepth = VSCodeEnvironment.getConfiguration(
       'inlined-copy',
       'maxRecursionDepth',
       1
     );
 
     // Check if recursion depth exceeds limit
-    if (currentDepth > MAX_RECURSION_DEPTH) {
+    if (currentDepth > maxRecursionDepth) {
       LogManager.debug(
-        `Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}, throwing exception.`
+        `Recursion depth ${currentDepth} exceeds maximum ${maxRecursionDepth}, throwing exception.`
       );
-      throw new RecursionDepthException(
-        `Maximum recursion depth (${MAX_RECURSION_DEPTH}) exceeded`
-      );
+      throw new RecursionDepthException(`Maximum recursion depth (${maxRecursionDepth}) exceeded`);
     }
 
-    // Regular expression to match ![[filename]] or ![[filename#heading]] or ![[filename#parent#child]] patterns
+    // Regular expression to match all reference patterns
     const fileReferenceRegex = /!\[\[(.*?)\]\]/g;
 
     let result = text;
@@ -60,13 +58,15 @@ export class FileExpander {
     // Find all file references in the text
     while ((match = fileReferenceRegex.exec(text)) !== null) {
       const fullMatch = match[0]; // The entire ![[...]] match
-      
       try {
-        // Parse the reference to get file path and heading path
+        // Parse the reference
         const reference = parseReference(fullMatch);
         const filePath = reference.filePath;
-        const headingPath = reference.headingPath;
-        
+
+        if (!filePath) {
+          LogManager.warn(`Invalid reference: ${fullMatch}`);
+          continue;
+        }
         // Resolve the file path (handle both absolute and relative paths)
         const resolvedPath = await this.resolveFilePath(filePath, basePath);
 
@@ -79,50 +79,63 @@ export class FileExpander {
         // Check for duplicate references
         if (processedFiles.has(resolvedPath)) {
           const relativePath = path.relative(basePath, resolvedPath);
-          const warning = new DuplicateReferenceException(
-            `Duplicate reference detected: ${relativePath}`
-          );
-          LogManager.warn(warning.message);
-          // Keep the original reference for duplicates
-          continue;
+          throw new DuplicateReferenceException(`Duplicate reference detected: ${relativePath}`);
         }
 
         // Add to processed files
         processedFiles.add(resolvedPath);
 
         // Read the file content
-        const fileContent = await this.readFileContent(resolvedPath);
+        const fileContent = await FileReader.readFile(resolvedPath);
 
-        // Extract section if heading path is specified
+        // Process the content based on reference type
         let contentToInsert = fileContent;
-        if (headingPath && headingPath.length > 0) {
-          if (headingPath.length > 1) {
-            // For nested headings, use extractNestedSection
-            const sectionContent = SectionExtractor.extractNestedSection(fileContent, headingPath);
-            if (sectionContent) {
-              contentToInsert = sectionContent;
-            } else {
-              // If nested extraction fails, return the original reference
-              const headingPathStr = headingPath.join('#');
-              LogManager.warn(`Nested heading path "${headingPathStr}" not found in file "${filePath}"`);
-              result = result.replace(fullMatch, fullMatch);
-              continue;
+
+        switch (reference.type) {
+          case ReferenceType.singleHeading:
+            // For single heading references
+            if (reference.headingPath && reference.headingPath.length > 0) {
+              const sectionContent = SectionExtractor.extractSection(
+                fileContent,
+                reference.headingPath[0]
+              );
+              if (sectionContent) {
+                contentToInsert = sectionContent;
+              } else {
+                LogManager.warn(
+                  `Heading "${reference.headingPath[0]}" not found in file "${filePath}"`
+                );
+                continue;
+              }
             }
-          } else {
-            // For single heading, use the existing functionality
-            const sectionContent = SectionExtractor.extractSection(fileContent, headingPath[0]);
-            if (sectionContent) {
-              contentToInsert = sectionContent;
-            } else {
-              LogManager.warn(`Heading "${headingPath[0]}" not found in file "${filePath}"`);
-              result = result.replace(fullMatch, fullMatch);
-              continue;
+            break;
+
+          case ReferenceType.nestedHeading:
+            // For nested heading references
+            if (reference.headingPath && reference.headingPath.length > 0) {
+              const sectionContent = SectionExtractor.extractNestedSection(
+                fileContent,
+                reference.headingPath
+              );
+              if (sectionContent) {
+                contentToInsert = sectionContent;
+              } else {
+                const headingPathStr = reference.headingPath.join('#');
+                LogManager.warn(
+                  `Nested heading path "${headingPathStr}" not found in file "${filePath}"`
+                );
+                continue;
+              }
             }
-          }
+            break;
+
+          case ReferenceType.fileOnly:
+          default:
+            // Use the whole file content (default)
+            break;
         }
 
-        // Recursively expand references in the inserted content
-        // Create a new array of visited paths to avoid modifying the original
+        // Recursively expand nested references in the inserted content
         const newVisitedPaths = [...visitedPaths, resolvedPath];
         contentToInsert = await this.expandFileReferences(
           contentToInsert,
@@ -136,32 +149,29 @@ export class FileExpander {
         // Replace the file reference with the file content
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
-        // If file not found or other error, leave the reference as is and log error
-        if (error instanceof Error && error.message.startsWith('File not found:')) {
+        // Error handling
+        if (
+          error instanceof LargeDataException ||
+          error instanceof DuplicateReferenceException ||
+          error instanceof CircularReferenceException ||
+          error instanceof RecursionDepthException
+        ) {
+          LogManager.warn(error.message, true);
+          result = result.replace(fullMatch, `<!-- ${error.message} -->`);
+        } else if (error instanceof Error && error.message.startsWith('File not found:')) {
           // Display as Info instead of Error and use more concise format
-          LogManager.info(`![[${fullMatch}]] was not found`, true);
-          // Do not re-throw file not found errors
+          LogManager.info(`Reference was not found: ${fullMatch}`, true);
+          // Keep the original reference
+          result = result.replace(fullMatch, fullMatch);
         } else {
           // Show appropriate message based on error type
-          if (error instanceof LargeDataException) {
-            LogManager.warn(`Large file detected: ${error.message}`);
-          } else if (error instanceof DuplicateReferenceException) {
-            LogManager.warn(error.message);
-          } else if (error instanceof CircularReferenceException) {
-            LogManager.error(error.message);
-          } else if (error instanceof RecursionDepthException) {
-            LogManager.warn(error.message);
+          if (error instanceof Error) {
+            LogManager.error(`Error expanding reference ${fullMatch}: ${error.message}`);
           } else {
-            // For other errors, show error message
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            LogManager.error(`Error expanding file reference: ${errorMessage}`);
-            // Re-throw other errors
-            throw error;
+            LogManager.error(`Unknown error expanding reference ${fullMatch}`);
           }
+          result = result.replace(fullMatch, fullMatch); // Keep the original reference
         }
-
-        // Keep the original reference in the text
-        result = result.replace(fullMatch, fullMatch);
       }
     }
 
@@ -180,134 +190,18 @@ export class FileExpander {
     if (!result.success) {
       // Get suggestions for similar files but don't include in the error message
       await FileResolver.getSuggestions(filePath);
-      
+
       throw new Error(`File not found: ${filePath}`);
     }
 
     return result.path;
   }
 
-  // Cache for file content to improve performance with timestamp tracking
-  private static fileContentCache: Map<string, { content: string; timestamp: number }> = new Map();
-
   /**
-   * Reads the content of a file
-   * @param filePath The path to the file
-   * @returns The content of the file
-   * @throws LargeDataException if the file size exceeds the configured limit
-   */
-  private static async readFileContent(filePath: string): Promise<string> {
-    try {
-      // Get file stats to check timestamp
-      const stats = fs.statSync(filePath);
-      const lastModified = stats.mtime.getTime();
-
-      // Check cache first for better performance
-      const cacheEntry = this.fileContentCache.get(filePath);
-
-      // Use cache only if entry exists and timestamp matches
-      if (cacheEntry && cacheEntry.timestamp === lastModified) {
-        return cacheEntry.content;
-      }
-
-      // Get maximum file size from configuration
-      const MAX_FILE_SIZE = VSCodeEnvironment.getConfiguration(
-        'inlined-copy',
-        'maxFileSize',
-        1024 * 1024 * 5 // 5MB default
-      );
-
-      // Check file size before reading
-      if (stats.size > MAX_FILE_SIZE) {
-        throw new LargeDataException(
-          `File size (${(stats.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed limit (${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)`
-        );
-      }
-
-      // For files approaching the size limit, use streaming to reduce memory usage
-      if (stats.size > MAX_FILE_SIZE / 2) {
-        return this.readFileContentStreaming(filePath);
-      }
-
-      // For smaller files, use regular file reading
-      const content = await new Promise<string>((resolve, reject) => {
-        fs.readFile(filePath, 'utf8', (err, data) => {
-          if (err) {
-            reject(new Error(`Failed to read file: ${err.message}`));
-            return;
-          }
-
-          resolve(data);
-        });
-      });
-
-      // Cache the content with timestamp
-      this.fileContentCache.set(filePath, {
-        content,
-        timestamp: lastModified,
-      });
-
-      return content;
-    } catch (error) {
-      if (error instanceof LargeDataException) {
-        throw error;
-      }
-      throw new Error(
-        `Failed to access file: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
-  /**
-   * Reads the content of a file using streaming for better memory efficiency
-   * @param filePath The path to the file
-   * @returns The content of the file
-   */
-  private static readFileContentStreaming(filePath: string): Promise<string> {
-    // Create a promise to read the file using streaming
-    return new Promise<string>((resolve, reject) => {
-      // Get file stats to check timestamp
-      let lastModified: number;
-      try {
-        const stats = fs.statSync(filePath);
-        lastModified = stats.mtime.getTime();
-      } catch (error) {
-        reject(
-          new Error(
-            `Failed to get file stats: ${error instanceof Error ? error.message : String(error)}`
-          )
-        );
-        return;
-      }
-
-      const chunks: Buffer[] = [];
-      const stream = fs.createReadStream(filePath);
-
-      stream.on('data', (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
-
-      stream.on('error', err => {
-        reject(new Error(`Failed to read file stream: ${err.message}`));
-      });
-
-      stream.on('end', () => {
-        const content = Buffer.concat(chunks).toString('utf8');
-        // Cache the content with timestamp
-        this.fileContentCache.set(filePath, {
-          content,
-          timestamp: lastModified,
-        });
-        resolve(content);
-      });
-    });
-  }
-
-  /**
-   * Clears the file content cache
+   * Clears the file content cache in FileReader
    * Should be called when files are modified
    */
   public static clearCache(): void {
-    this.fileContentCache.clear();
+    FileReader.clearCache();
   }
 }

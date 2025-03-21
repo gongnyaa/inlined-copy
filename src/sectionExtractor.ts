@@ -1,55 +1,48 @@
-// No need for vscode import as it's not used in this file
+import { detectHeadings, findHeading } from './headingDetector';
 
 /**
  * Extracts sections from Markdown content based on headings
  */
 export class SectionExtractor {
   /**
-   * Extracts a section from Markdown content based on heading
+   * Extracts a section from Markdown content based on heading text or custom ID
    * @param content The Markdown content
-   * @param heading The heading to extract content from
+   * @param textOrId The heading text or custom ID to extract content from
    * @returns The extracted section content or null if heading not found
    */
-  public static extractSection(content: string, heading: string): string | null {
-    if (!heading) {
+  public static extractSection(content: string, textOrId: string): string | null {
+    if (!textOrId) {
       return content;
     }
 
     // Normalize the heading (remove leading # if present)
-    const normalizedHeading = heading.replace(/^#+\s*/, '').trim();
+    const normalizedTextOrId = textOrId.replace(/^#+\s*/, '').trim();
 
-    // Find all headings in the content (supporting h1-h7 and custom IDs)
-    const headingRegex = /^(#{1,7})\s+(.+?)(?:\s+\{#[\w-]+\})?$/gm;
-    const headings: { level: number; title: string; index: number }[] = [];
+    // Find all headings in the content
+    const headings = detectHeadings(content);
 
-    let match;
-    while ((match = headingRegex.exec(content)) !== null) {
-      const level = match[1].length;
-      const title = match[2].trim();
-      headings.push({
-        level,
-        title,
-        index: match.index,
-      });
-    }
+    // Find the target heading by ID or text
+    const targetHeading = findHeading(headings, normalizedTextOrId);
 
-    // Find the target heading
-    const targetHeadingIndex = headings.findIndex(
-      h => h.title.toLowerCase() === normalizedHeading.toLowerCase()
-    );
-
-    if (targetHeadingIndex === -1) {
+    if (!targetHeading) {
       return null; // Heading not found
     }
 
-    const targetHeading = headings[targetHeadingIndex];
-    const startIndex = targetHeading.index;
+    const startIndex =
+      content.split('\n').slice(0, targetHeading.lineIndex).join('\n').length +
+      (targetHeading.lineIndex > 0 ? 1 : 0); // Add 1 for newline if not first line
 
     // Find the end of the section (next heading of same or higher level)
     let endIndex = content.length;
-    for (let i = targetHeadingIndex + 1; i < headings.length; i++) {
-      if (headings[i].level <= targetHeading.level) {
-        endIndex = headings[i].index;
+    const targetLevel = targetHeading.level;
+
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].lineIndex > targetHeading.lineIndex && headings[i].level <= targetLevel) {
+        const endLineIndex = headings[i].lineIndex;
+        endIndex = content.split('\n').slice(0, endLineIndex).join('\n').length;
+        if (endLineIndex > 0) {
+          endIndex += 1; // Add 1 for newline if not first line
+        }
         break;
       }
     }
@@ -59,31 +52,34 @@ export class SectionExtractor {
   }
 
   /**
-   * Extract a section based on a path of nested headings
-   * @param content Markdown content to extract from
-   * @param headingPath Array of headings forming a path (parent, child, etc.)
-   * @returns The extracted section or null if any heading in the path is not found
+   * Extracts a nested section from Markdown content based on a heading path
+   * @param content The Markdown content
+   * @param headingPath Array of heading texts or IDs, from parent to child
+   * @returns The extracted nested section content or null if any heading in the path is not found
    */
   public static extractNestedSection(content: string, headingPath: string[]): string | null {
     if (!headingPath || headingPath.length === 0) {
+      return content;
+    }
+
+    // Start with the first heading
+    let currentContent = this.extractSection(content, headingPath[0]);
+
+    // If first heading not found, return null
+    if (!currentContent) {
       return null;
     }
-    
-    // For a single heading, use the existing extractSection function
-    if (headingPath.length === 1) {
-      return this.extractSection(content, headingPath[0]);
+
+    // Process remaining headings in the path
+    for (let i = 1; i < headingPath.length; i++) {
+      currentContent = this.extractSection(currentContent, headingPath[i]);
+
+      // If any heading in the path is not found, return null
+      if (!currentContent) {
+        return null;
+      }
     }
-    
-    // For nested headings, process them recursively
-    const currentContent = content;
-    
-    // Extract the parent section first
-    const parentSection = this.extractSection(currentContent, headingPath[0]);
-    if (!parentSection) {
-      return null; // Parent heading not found
-    }
-    
-    // Continue with the child headings
-    return this.extractNestedSection(parentSection, headingPath.slice(1));
+
+    return currentContent;
   }
 }
