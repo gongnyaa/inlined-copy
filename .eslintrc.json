@@ -16,7 +16,8 @@
       },
       {
         "selector": "variable",
-        "format": ["camelCase", "UPPER_CASE"]
+        "format": ["camelCase", "UPPER_CASE", "snake_case"],
+        "leadingUnderscore": "allow"
       },
       {
         "selector": "parameter",
@@ -32,6 +33,23 @@
       {
         "selector": "typeLike",
         "format": ["PascalCase"]
+      },
+      {
+        "selector": "enumMember",
+        "format": ["camelCase", "UPPER_CASE"]
+      },
+      {
+        "selector": "objectLiteralProperty",
+        "format": ["camelCase", "PascalCase", "UPPER_CASE"]
+      },
+      {
+        "selector": "typeProperty",
+        "format": ["camelCase", "PascalCase"]
+      },
+      {
+        "selector": "function",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow"
       }
     ],
     "@typescript-eslint/semi": "warn",
