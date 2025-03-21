@@ -28,27 +28,23 @@ export class SectionExtractor {
       return null; // Heading not found
     }
 
-    const startIndex =
-      content.split('\n').slice(0, targetHeading.lineIndex).join('\n').length +
-      (targetHeading.lineIndex > 0 ? 1 : 0); // Add 1 for newline if not first line
-
+    // Get content as lines
+    const lines = content.split('\n');
+    const startLine = targetHeading.lineIndex;
+    
     // Find the end of the section (next heading of same or higher level)
-    let endIndex = content.length;
+    let endLine = lines.length;
     const targetLevel = targetHeading.level;
 
     for (let i = 0; i < headings.length; i++) {
       if (headings[i].lineIndex > targetHeading.lineIndex && headings[i].level <= targetLevel) {
-        const endLineIndex = headings[i].lineIndex;
-        endIndex = content.split('\n').slice(0, endLineIndex).join('\n').length;
-        if (endLineIndex > 0) {
-          endIndex += 1; // Add 1 for newline if not first line
-        }
+        endLine = headings[i].lineIndex;
         break;
       }
     }
-
-    // Extract the section content
-    return content.substring(startIndex, endIndex).trim();
+    
+    // Extract the section content using line-based extraction
+    return lines.slice(startLine, endLine).join('\n').trimEnd();
   }
 
   /**
