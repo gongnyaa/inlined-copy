@@ -1,59 +1,51 @@
-// No need for vscode import as it's not used in this file
+import { detectHeadings, findHeading, HeadingInfo } from './headingDetector';
 
 /**
  * Extracts sections from Markdown content based on headings
  */
 export class SectionExtractor {
   /**
-   * Extracts a section from Markdown content based on heading
+   * Extracts a section from Markdown content based on heading text or custom ID
    * @param content The Markdown content
-   * @param heading The heading to extract content from
+   * @param textOrId The heading text or custom ID to extract content from
    * @returns The extracted section content or null if heading not found
    */
-  public static extractSection(content: string, heading: string): string | null {
-    if (!heading) {
+  public static extractSection(content: string, textOrId: string): string | null {
+    if (!textOrId) {
       return content;
     }
 
     // Normalize the heading (remove leading # if present)
-    const normalizedHeading = heading.replace(/^#+\s*/, '').trim();
-
-    // Find all headings in the content (supporting h1-h7 and custom IDs)
-    const headingRegex = /^(#{1,7})\s+(.+?)(?:\s+\{#[\w-]+\})?$/gm;
-    const headings: { level: number; title: string; index: number }[] = [];
-
-    let match;
-    while ((match = headingRegex.exec(content)) !== null) {
-      const level = match[1].length;
-      const title = match[2].trim();
-      headings.push({
-        level,
-        title,
-        index: match.index,
-      });
-    }
-
-    // Find the target heading
-    const targetHeadingIndex = headings.findIndex(
-      h => h.title.toLowerCase() === normalizedHeading.toLowerCase()
-    );
-
-    if (targetHeadingIndex === -1) {
+    const normalizedTextOrId = textOrId.replace(/^#+\s*/, '').trim();
+    
+    // Find all headings in the content
+    const headings = detectHeadings(content);
+    
+    // Find the target heading by ID or text
+    const targetHeading = findHeading(headings, normalizedTextOrId);
+    
+    if (!targetHeading) {
       return null; // Heading not found
     }
-
-    const targetHeading = headings[targetHeadingIndex];
-    const startIndex = targetHeading.index;
-
+    
+    const startIndex = content.split('\n').slice(0, targetHeading.lineIndex).join('\n').length + 
+                      (targetHeading.lineIndex > 0 ? 1 : 0); // Add 1 for newline if not first line
+    
     // Find the end of the section (next heading of same or higher level)
     let endIndex = content.length;
-    for (let i = targetHeadingIndex + 1; i < headings.length; i++) {
-      if (headings[i].level <= targetHeading.level) {
-        endIndex = headings[i].index;
+    const targetLevel = targetHeading.level;
+    
+    for (let i = 0; i < headings.length; i++) {
+      if (headings[i].lineIndex > targetHeading.lineIndex && headings[i].level <= targetLevel) {
+        const endLineIndex = headings[i].lineIndex;
+        endIndex = content.split('\n').slice(0, endLineIndex).join('\n').length;
+        if (endLineIndex > 0) {
+          endIndex += 1; // Add 1 for newline if not first line
+        }
         break;
       }
     }
-
+    
     // Extract the section content
     return content.substring(startIndex, endIndex).trim();
   }
