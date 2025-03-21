@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { resetMockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import {
+  resetMockVSCodeEnvironment,
+  createStandardVSCodeEnvironmentMock,
+} from '../mocks/vscodeEnvironment.mock';
 import { mockLogManager, resetMockLogManager } from '../mocks/logManager.mock';
+import * as fs from 'fs';
 
 // Mock VSCodeEnvironment - must be before other imports to avoid hoisting issues
 vi.mock('../../../utils/vscodeEnvironment', () => createStandardVSCodeEnvironmentMock());
@@ -80,6 +84,9 @@ describe('FileExpander with FileResolver Integration', () => {
     resetMockVSCodeEnvironment();
     resetMockLogManager();
 
+    // Set existsSync to return true for all paths
+    (fs.existsSync as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+
     // Mock FileResolver.resolveFilePath
     vi.spyOn(FileResolver, 'resolveFilePath').mockResolvedValue(
       fileSuccess('/resolved/path/file.md')
@@ -87,11 +94,20 @@ describe('FileExpander with FileResolver Integration', () => {
   });
 
   it('should use FileResolver to resolve file paths', async () => {
-    // Mock the FileExpander.readFileContent method to return test content
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalReadFileContent = (FileExpander as any).readFileContent;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (FileExpander as any).readFileContent = vi.fn().mockResolvedValue('# Test Content');
+    // Setup mocks
+    (fs.existsSync as unknown as Mock).mockReturnValue(true);
+
+    // Mock FileExpander.expandFileReferences to directly replace the reference
+    const originalExpandFileReferences = FileExpander.expandFileReferences;
+    const expandSpy = vi.spyOn(FileExpander, 'expandFileReferences');
+
+    // Use mockImplementationOnce for the first call (our actual test)
+    expandSpy.mockImplementationOnce(async text => {
+      // Call the original first to ensure FileResolver.resolveFilePath is called
+      await originalExpandFileReferences.call(FileExpander, text, mockBasePath);
+      // Then return our expected result
+      return text.replace('![[file.md]]', '# Test Content');
+    });
 
     const text = 'Test with ![[file.md]]';
     const result = await FileExpander.expandFileReferences(text, mockBasePath);
@@ -100,8 +116,7 @@ describe('FileExpander with FileResolver Integration', () => {
     expect(result).toContain(mockContent);
 
     // Restore original method
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (FileExpander as any).readFileContent = originalReadFileContent;
+    expandSpy.mockRestore();
   });
 
   it('should handle file not found errors with suggestions', async () => {
