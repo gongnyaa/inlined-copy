@@ -18,8 +18,8 @@ export class SectionExtractor {
     // Normalize the heading (remove leading # if present)
     const normalizedHeading = heading.replace(/^#+\s*/, '').trim();
 
-    // Find all headings in the content
-    const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+    // Find all headings in the content (supporting h1-h7 and custom IDs)
+    const headingRegex = /^(#{1,7})\s+(.+?)(?:\s+\{#[\w-]+\})?$/gm;
     const headings: { level: number; title: string; index: number }[] = [];
 
     let match;

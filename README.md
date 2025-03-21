@@ -74,6 +74,9 @@ You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + 
   - Supports various path formats: relative, absolute, project root, proximity-based paths
   - Displays selection UI when multiple file candidates exist
 - `![[filename#heading]]` - Expands to the section under the specified heading in the referenced file
+  - Extracts content from the heading to the next heading of equal or higher level
+  - Supports heading levels 1-7 and headings with custom IDs (e.g., `## Heading {#custom-id}`)
+  - Returns the original reference if the heading is not found
 - `{{parameter}}` - Prompts for a value to replace the parameter
 - `{{parameter=defaultValue}}` - Prompts for a value with a default
 
@@ -93,10 +96,12 @@ This section provides solutions for common issues you might encounter when using
 #### Issue: File Not Found Errors
 
 **Symptoms:**
+
 - Error message: "File not found"
 - Referenced file is not expanded in the output
 
 **Solutions:**
+
 1. Check that the file path is correct and the file exists
 2. Try using different path formats (relative, absolute, or from project root)
 3. Ensure the file is within your workspace or a parent directory
@@ -105,10 +110,12 @@ This section provides solutions for common issues you might encounter when using
 #### Issue: Circular References
 
 **Symptoms:**
+
 - Error message: "Circular reference detected"
 - Expansion process stops unexpectedly
 
 **Solutions:**
+
 1. Check your files for circular dependencies (A references B, B references A)
 2. Break the circular chain by removing one of the references
 3. Consider restructuring your documents to avoid circular dependencies
@@ -116,10 +123,12 @@ This section provides solutions for common issues you might encounter when using
 #### Issue: Large File Warnings
 
 **Symptoms:**
+
 - Error message: "File size exceeds maximum allowed limit"
 - File content is not expanded
 
 **Solutions:**
+
 1. Increase the `maxFileSize` setting in VS Code preferences
 2. Split large files into smaller, more manageable files
 3. Consider using section references instead of entire file references
@@ -127,10 +136,12 @@ This section provides solutions for common issues you might encounter when using
 #### Issue: Recursion Depth Exceeded
 
 **Symptoms:**
+
 - Error message: "Maximum recursion depth exceeded"
 - Nested references are not fully expanded
 
 **Solutions:**
+
 1. Increase the `maxRecursionDepth` setting (up to the maximum of 3)
 2. Restructure your documents to reduce nesting depth
 3. Consider using multiple expansion steps for deeply nested structures
@@ -138,11 +149,13 @@ This section provides solutions for common issues you might encounter when using
 #### Issue: Parameter Substitution Problems
 
 **Symptoms:**
+
 - Parameters in referenced files are not being processed
 - Parameter values are not being applied consistently across nested files
 - Default values are not being used correctly
 
 **Solutions:**
+
 1. Check the `maxParameterRecursionDepth` setting (default: 1)
 2. Increase the value if you want parameters in referenced files to be processed
 3. Ensure parameter names match exactly (case-sensitive)
@@ -152,11 +165,13 @@ This section provides solutions for common issues you might encounter when using
 #### Issue: Extension Not Working After Update
 
 **Symptoms:**
+
 - Command not found in command palette
 - Extension doesn't respond when triggered
 - Error messages appear when trying to use the extension
 
 **Solutions:**
+
 1. Reload VS Code window (Ctrl+R or Cmd+R on Mac)
 2. Check for error messages in the Output panel (View > Output > inlined Copy)
 3. Verify the extension is properly installed and enabled in the Extensions panel
@@ -168,21 +183,25 @@ This section provides solutions for common issues you might encounter when using
 The extension provides the following configuration options:
 
 - **inlined-copy.maxFileSize**: Maximum file size in bytes (default: 5MB)
+
   - Prevents processing files larger than this size to avoid performance issues
   - Example: Set to 10485760 for a 10MB limit
 
 - **inlined-copy.maxRecursionDepth**: Maximum depth for recursive file expansion (default: 1, max: 3)
+
   - Controls how many levels of nested file references will be expanded
   - Higher values allow more complex document structures but may impact performance
   - Example: Set to 2 to expand references within referenced files (but not further)
 
 - **inlined-copy.maxParameterRecursionDepth**: Maximum depth for parameter expansion (default: 1, max: 3)
+
   - Controls how deeply nested parameters are expanded inside referenced files
   - Value 1: Parameters in the main document are processed, but not in referenced files
   - Value 2: Parameters in the main document and one level of referenced files are processed
   - Value 3: Parameters in the main document and two levels of referenced files are processed
 
 - **inlined-copy.logLevel**: Log level for the extension (default: "info")
+
   - Controls the verbosity of logs in the output channel and console
   - Available levels: "none", "error", "warn", "info", "debug"
   - Higher levels include all lower level logs (e.g., "info" includes "error" and "warn")
