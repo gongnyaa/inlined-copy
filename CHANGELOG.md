@@ -2,6 +2,19 @@
 
 All notable changes to the "inlined-copy" extension will be documented in this file.
 
+## [0.5.0] - 2025-03-23
+
+### Added
+- Integrated file reference system with optimized performance
+- Support for nested heading references with ![[filename#parent#child]] syntax
+- Intelligent file caching for better responsiveness
+- Consistent handling of all reference types
+
+### Improved
+- Robust error handling with clear user feedback
+- Better performance with large files
+- Enhanced section extraction for nested headings
+
 ## [0.2.0] - 2025-03-21
 
 ### Added
