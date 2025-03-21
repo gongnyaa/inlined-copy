@@ -2,6 +2,19 @@
 
 All notable changes to the "inlined-copy" extension will be documented in this file.
 
+
+## [0.1.2] - 2025-03-21
+
+### Fixed
+- Improved file not found error handling to display as Info level messages instead of Error level
+- Made error messages more concise with format "![[filename]] was not found"
+- Implemented extension-less file matching to find files regardless of their extension
+- Fixed issue where copy operation would not execute when a referenced file is not found
+## [0.1.1] - 2025-03-20
+
+### Fixed
+ - Delete useless files from vsix.
+
 ## [0.1.0] - 2025-03-20
 
 ### Added
@@ -16,3 +29,4 @@ All notable changes to the "inlined-copy" extension will be documented in this f
 - Suggestions for similar files when a file is not found
 - Error handling for large files, duplicate references, and circular references
 - Configuration options for maximum file size and recursion depth
+
