@@ -68,6 +68,15 @@ This project releases features incrementally. The implementation items for each 
 
 You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + C`)
 
+## Implementation Details
+
+The extension uses an integrated file reference system that provides:
+
+- Unified handling of all reference types (`![[filename]]`, `![[filename#heading]]`, etc.)
+- Performance-optimized file reading with intelligent caching
+- Robust error handling and user feedback
+- Support for large files and complex reference patterns
+
 ### Supported Notations
 
 - `![[filename]]` - Expands to the entire content of the referenced file
