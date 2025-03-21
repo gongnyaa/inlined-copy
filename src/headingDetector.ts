@@ -2,11 +2,11 @@
  * Heading information interface
  */
 export interface HeadingInfo {
-  level: number;     // Heading level (1-7)
-  text: string;      // Heading text (without formatting)
-  rawText: string;   // Raw text of the heading line
+  level: number; // Heading level (1-7)
+  text: string; // Heading text (without formatting)
+  rawText: string; // Raw text of the heading line
   lineIndex: number; // Line index in the file
-  id?: string;       // Custom ID if present
+  id?: string; // Custom ID if present
 }
 
 /**
@@ -17,25 +17,25 @@ export interface HeadingInfo {
 export function detectHeadings(markdownContent: string): HeadingInfo[] {
   const lines = markdownContent.split('\n');
   const headings: HeadingInfo[] = [];
-  
+
   // Updated regex to capture custom IDs: {#custom-id}
   const headingRegex = /^(#{1,7})\s+([^{]+)(?:\s+\{#([a-zA-Z0-9_-]+)\})?$/;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const match = line.match(headingRegex);
-    
+
     if (match) {
       headings.push({
         level: match[1].length,
         text: match[2].trim(),
         rawText: line,
         lineIndex: i,
-        id: match[3] // Will be undefined if no ID is present
+        id: match[3], // Will be undefined if no ID is present
       });
     }
   }
-  
+
   return headings;
 }
 
@@ -71,7 +71,7 @@ export function findHeading(headings: HeadingInfo[], textOrId: string): HeadingI
   if (headingById) {
     return headingById;
   }
-  
+
   // If not found by ID, try to find by text
   return findHeadingByText(headings, textOrId);
 }

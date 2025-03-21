@@ -11,48 +11,48 @@ describe('Custom ID Section Extraction', () => {
       '## Section Two {#sec2}',
       'Content in section two',
       '### Subsection {#sub2}',
-      'Subsection content'
+      'Subsection content',
     ].join('\n');
-    
+
     const extracted = SectionExtractor.extractSection(content, 'sec2');
     const expected = [
       '## Section Two {#sec2}',
       'Content in section two',
       '### Subsection {#sub2}',
-      'Subsection content'
+      'Subsection content',
     ].join('\n');
-    
+
     expect(extracted).toBe(expected);
   });
-  
+
   it('should prioritize ID over text when both exist', () => {
     const content = [
       '# Document',
       '## Introduction {#intro}',
       'First introduction',
       '## intro',
-      'Second introduction'
+      'Second introduction',
     ].join('\n');
-    
+
     // Should extract the section with ID "intro", not the heading with text "intro"
     const extracted = SectionExtractor.extractSection(content, 'intro');
     expect(extracted).toContain('First introduction');
     expect(extracted).not.toContain('Second introduction');
   });
-  
+
   it('should fall back to text matching when ID is not found', () => {
     const content = [
       '# Main Title',
       '## Section with Text',
       'Content here',
       '## Another Section {#with-id}',
-      'More content'
+      'More content',
     ].join('\n');
-    
+
     const extracted = SectionExtractor.extractSection(content, 'Section with Text');
     expect(extracted).toContain('Content here');
   });
-  
+
   it('should handle complex nested sections with IDs', () => {
     const content = [
       '# Document Title {#doc-title}',
@@ -68,14 +68,14 @@ describe('Custom ID Section Extraction', () => {
       '## Section with same text {#duplicate-text}',
       'First section with this text.',
       '## Section with same text',
-      'Second section with this text (no ID).'
+      'Second section with this text (no ID).',
     ].join('\n');
-    
+
     // Test ID-based extraction
     const sectionById = SectionExtractor.extractSection(content, 'important-section');
     expect(sectionById).toContain('Important content here');
     expect(sectionById).not.toContain('Nested content here');
-    
+
     // Test extraction of section with duplicate text but different IDs
     const duplicateSection = SectionExtractor.extractSection(content, 'duplicate-text');
     expect(duplicateSection).toContain('First section with this text');

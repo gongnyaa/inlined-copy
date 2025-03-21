@@ -58,7 +58,6 @@ export class FileExpander {
     // Find all file references in the text
     while ((match = fileReferenceRegex.exec(text)) !== null) {
       const fullMatch = match[0]; // The entire ![[...]] match
-
       try {
         // Parse the reference
         const reference = parseReference(fullMatch);
@@ -68,7 +67,6 @@ export class FileExpander {
           LogManager.warn(`Invalid reference: ${fullMatch}`);
           continue;
         }
-
         // Resolve the file path (handle both absolute and relative paths)
         const resolvedPath = await this.resolveFilePath(filePath, basePath);
 

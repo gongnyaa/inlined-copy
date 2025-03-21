@@ -86,6 +86,10 @@ The extension uses an integrated file reference system that provides:
   - Extracts content from the heading to the next heading of equal or higher level
   - Supports heading levels 1-7 and headings with custom IDs (e.g., `## Heading {#custom-id}`)
   - Returns the original reference if the heading is not found
+- `![[filename#parent-heading#child-heading]]` - Expands to the section under a nested heading path
+  - Extracts the child heading section that is within the parent heading section
+  - Supports multiple levels of nesting (e.g., `#grandparent#parent#child`)
+  - Returns the original reference if any heading in the path is not found
 - `{{parameter}}` - Prompts for a value to replace the parameter
 - `{{parameter=defaultValue}}` - Prompts for a value with a default
 
