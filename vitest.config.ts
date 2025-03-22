@@ -6,8 +6,10 @@ export default defineConfig({
     environment: 'node',
     include: ['src/test/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/out/**'],
-    deps: {
-      external: ['vscode'],
+    server: {
+      deps: {
+        external: ['vscode'],
+      },
     },
     setupFiles: ['./vitest.setup.ts'],
   },

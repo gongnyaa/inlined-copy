@@ -6,6 +6,7 @@
   "publisher": "frecre",
   "icon": "assets/icon.png",
   "license": "MIT",
+  "type": "module",
   "author": {
     "name": "gong",
     "email": "gong@frecre.com"
@@ -116,7 +117,7 @@
   "devDependencies": {
     "@types/glob": "^7.2.0",
     "@types/node": "~14.18.63",
-    "@types/vscode": "^1.94.0",
+    "@types/vscode": "^1.98.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "@vitest/coverage-v8": "3.0.9",
