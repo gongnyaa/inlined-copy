@@ -1,0 +1,8 @@
+{
+    "files.exclude": {
+        ".obsidian/**": true,
+        "node_modules/**": true,
+        "out/**": true,
+        ".eslintcache":true
+      }
+}

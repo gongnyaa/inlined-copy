@@ -20,7 +20,7 @@ inlined-copy/
 ├── out/                     # コンパイル後のJavaScriptファイル出力先
 ├── package.json             # プロジェクト設定・依存関係定義
 ├── pnpm-lock.yaml           # pnpm依存関係ロックファイル
-├── prompt/                  # 開発計画ドキュメント
+├── prompt/                  # 指示書ドキュメント
 ├── src/                     # ソースコードディレクトリ
 │   ├── errors/              # エラー処理関連
 │   │   └── errorTypes.ts    # カスタムエラータイプ定義

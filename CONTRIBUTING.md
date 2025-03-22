@@ -1,155 +1,141 @@
-# Contributing to inlined-copy
+# inlined-copyへの貢献について
 
-Thank you for your interest in contributing to the inlined-copy VS Code extension! This document provides guidelines and instructions for contributing to the project.
+inlined-copy VS Code拡張機能への貢献に興味をお持ちいただき、ありがとうございます！このドキュメントでは、プロジェクトへの貢献に関するガイドラインと手順を提供します。
 
-## Table of Contents
+## 目次
 
-- [Contributing to inlined-copy](#contributing-to-inlined-copy)
-  - [Table of Contents](#table-of-contents)
-  - [Development Setup](#development-setup)
-    - [Prerequisites](#prerequisites)
-    - [Getting Started](#getting-started)
-  - [Project Structure](#project-structure)
-  - [Coding Guidelines](#coding-guidelines)
-    - [TypeScript Style](#typescript-style)
-    - [Code Quality](#code-quality)
-  - [Testing](#testing)
-    - [Running Tests](#running-tests)
-    - [Writing Tests](#writing-tests)
-  - [Pull Request Process](#pull-request-process)
-  - [Commit Message Guidelines](#commit-message-guidelines)
-    - [Types](#types)
-    - [Scope](#scope)
-    - [Subject](#subject)
-    - [Examples](#examples)
-  - [License](#license)
+- [inlined-copyへの貢献について](#inlined-copyへの貢献について)
+  - [目次](#目次)
+  - [開発環境のセットアップ](#開発環境のセットアップ)
+    - [前提条件](#前提条件)
+    - [はじめ方](#はじめ方)
+  - [プロジェクト構造](#プロジェクト構造)
+  - [コーディングガイドライン](#コーディングガイドライン)
+    - [TypeScriptスタイル](#typescriptスタイル)
+    - [コード品質](#コード品質)
+  - [テスト](#テスト)
+    - [テストの実行](#テストの実行)
+    - [テストの作成](#テストの作成)
+  - [プルリクエストのプロセス](#プルリクエストのプロセス)
+  - [コミットメッセージのガイドライン](#コミットメッセージのガイドライン)
+    - [タイプ](#タイプ)
+    - [スコープ](#スコープ)
+    - [件名](#件名)
+    - [例](#例)
+  - [ライセンス](#ライセンス)
 
-## Development Setup
+## 開発環境のセットアップ
 
-### Prerequisites
+### 前提条件
 
-- Node.js (v18+)
-- pnpm (recommended package manager)
+- Node.js (v18以上)
+- pnpm (推奨パッケージマネージャ)
 - Visual Studio Code
 
-### Getting Started
+### はじめ方
 
-1. Clone the repository:
+1. リポジトリのクローン：
    ```bash
    git clone https://github.com/gongnyaa/inlined-copy.git
    cd inlined-copy
    ```
 
-2. Install dependencies:
+2. 依存関係のインストール：
    ```bash
    pnpm install
    ```
 
-3. Compile the extension:
+3. 拡張機能のコンパイル：
    ```bash
    pnpm run compile
    ```
 
-4. Launch the extension in development mode:
+4. 開発モードで拡張機能を起動：
    ```bash
-   # Press F5 in VS Code
-   # Or run this command:
+   # VS CodeでF5を押す
+   # または以下のコマンドを実行：
    code --extensionDevelopmentPath=${PWD}
    ```
 
-For more detailed technical information about the development environment, please refer to [DEVELOP.md](DEVELOP.md).
+開発環境についての詳細な技術情報は、[DEVELOP.md](DEVELOP.md)を参照してください。
 
-## Project Structure
-
+## プロジェクト構造
 ```
-inlined-copy/
-├── src/                    # Source code directory
-│   ├── extension.ts        # Main extension entry point
-│   ├── fileExpander.ts     # File expansion logic
-│   ├── fileResolver/       # File path resolution
-│   ├── parameterProcessor.ts # Parameter processing logic
-│   ├── sectionExtractor.ts # Markdown section extraction
-│   ├── errors/             # Error handling
-│   ├── utils/              # Utility functions
-│   └── test/               # Test files
-├── .vscode/                # VS Code configuration
-├── test/                   # Additional test resources
-├── package.json            # Extension manifest
-└── tsconfig.json           # TypeScript configuration
+![[PROJECT_STRUCTURE]]
 ```
 
-## Coding Guidelines
+## コーディングガイドライン
 
-### TypeScript Style
+### TypeScriptスタイル
 
-- Follow the ESLint and Prettier configurations provided in the project
-- Use meaningful variable and function names
-- Add JSDoc comments for public functions and classes
-- Use strong typing and avoid `any` where possible
+- プロジェクトで提供されているESLintとPrettierの設定に従う
+- 意味のある変数名と関数名を使用する
+- 公開関数とクラスにはJSDocコメントを追加する
+- 強力な型付けを使用し、可能な限り`any`を避ける
 
-### Code Quality
+### コード品質
 
-- Run linting before submitting changes:
+- 変更を送信する前にリンティングを実行する：
   ```bash
   pnpm run lint
   ```
 
-- Fix linting issues:
+- リンティングの問題を修正する：
   ```bash
   pnpm run lint --fix
   ```
 
-For detailed information about the coding style, naming conventions, and other technical guidelines, please refer to the [Code Quality and Style Guidelines](DEVELOP.md#code-quality-and-style-guidelines) section in DEVELOP.md.
+コーディングスタイル、命名規則、その他の技術的なガイドラインについての詳細は、DEVELOP.mdの[コード品質とスタイルガイドライン](DEVELOP.md#code-quality-and-style-guidelines)セクションを参照してください。
 
-## Testing
+## テスト
 
-The project uses Vitest for unit testing. Tests are located in the `src/test` directory.
+プロジェクトはユニットテストにVitestを使用しています。テストは`src/test`ディレクトリにあります。
 
-### Running Tests
+### テストの実行
 
 ```bash
-# Run all tests
+# すべてのテストを実行
 pnpm test
 
-# Run tests with coverage
+# カバレッジ付きでテストを実行
 pnpm run test:coverage
 ```
 
-### Writing Tests
+### テストの作成
 
-- Create test files with the `.test.ts` extension
-- Place tests in the appropriate directory under `src/test/vitest/`
-- Mock VS Code API dependencies using the provided mock implementations
-- Test both success and error cases
+- `.test.ts`拡張子でテストファイルを作成する
+- `src/test/vitest/`以下の適切なディレクトリにテストを配置する
+- 提供されたモック実装を使用してVS Code API依存関係をモックする
+- 成功ケースとエラーケースの両方をテストする
 
-For more detailed testing information and best practices, please refer to the [Testing](DEVELOP.md#testing) section in DEVELOP.md.
+より詳細なテスト情報とベストプラクティスについては、DEVELOP.mdの[テスト](DEVELOP.md#testing)セクションを参照してください。
 
-## Pull Request Process
+## プルリクエストのプロセス
 
-1. Create a new branch from `master` with a descriptive name:
+1. 説明的な名前で`master`から新しいブランチを作成する：
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feature/あなたの機能名
    ```
 
-2. Make your changes and ensure all tests pass:
+2. 変更を加え、すべてのテストがパスすることを確認する：
    ```bash
    pnpm test
    ```
 
-3. Commit your changes following the [commit message guidelines](#commit-message-guidelines)
+3. [コミットメッセージのガイドライン](#コミットメッセージのガイドライン)に従ってコミットする
 
-4. Push your branch and create a pull request on GitHub
+4. ブランチをプッシュしてGitHubでプルリクエストを作成する
 
-5. Update the PR description with:
-   - A summary of the changes
-   - Any relevant issue numbers
-   - Testing instructions if applicable
+5. PRの説明を以下で更新する：
+   - 変更の概要
+   - 関連する課題番号（ある場合）
+   - 該当する場合はテスト手順
 
-6. Address any feedback from code reviews
+6. コードレビューからのフィードバックに対応する
 
-## Commit Message Guidelines
+## コミットメッセージのガイドライン
 
-Follow the conventional commits specification:
+conventional commitsの仕様に従います：
 
 ```
 <type>(<scope>): <subject>
@@ -159,39 +145,39 @@ Follow the conventional commits specification:
 <footer>
 ```
 
-### Types
+### タイプ
 
-- **feat**: A new feature
-- **fix**: A bug fix
-- **docs**: Documentation only changes
-- **style**: Changes that do not affect the meaning of the code (formatting, etc.)
-- **refactor**: Code changes that neither fix a bug nor add a feature
-- **perf**: Code changes that improve performance
-- **test**: Adding or modifying tests
-- **build**: Changes to the build system or dependencies
-- **ci**: Changes to CI configuration files and scripts
-- **chore**: Other changes that don't modify src or test files
+- **feat**: 新機能
+- **fix**: バグ修正
+- **docs**: ドキュメントのみの変更
+- **style**: コードの意味に影響を与えない変更（フォーマットなど）
+- **refactor**: バグ修正でも機能追加でもないコード変更
+- **perf**: パフォーマンスを改善するコード変更
+- **test**: テストの追加または修正
+- **build**: ビルドシステムまたは依存関係の変更
+- **ci**: CI設定ファイルとスクリプトの変更
+- **chore**: srcまたはtestファイルを変更しないその他の変更
 
-### Scope
+### スコープ
 
-The scope should be the name of the module affected (e.g., fileResolver, parameterProcessor).
+スコープは影響を受けるモジュールの名前にする必要があります（例：fileResolver、parameterProcessor）。
 
-### Subject
+### 件名
 
-- Use the imperative, present tense: "change" not "changed" nor "changes"
-- Don't capitalize the first letter
-- No period (.) at the end
+- 命令形、現在形を使用する：「変更する」ではなく「変更」
+- 最初の文字を大文字にしない
+- 末尾にピリオド（.）を付けない
 
-### Examples
+### 例
 
 ```
-feat(fileResolver): add support for project root paths
+feat(fileResolver): プロジェクトルートパスのサポートを追加
 
-fix(parameterProcessor): resolve issue with nested parameters
+fix(parameterProcessor): ネストされたパラメータの問題を解決
 
-docs(readme): update installation instructions
+docs(readme): インストール手順を更新
 ```
 
-## License
+## ライセンス
 
-By contributing to this project, you agree that your contributions will be licensed under the project's MIT License.
+このプロジェクトに貢献することにより、あなたの貢献がプロジェクトのMITライセンスの下でライセンスされることに同意するものとします。

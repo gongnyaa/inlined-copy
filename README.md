@@ -1,207 +1,207 @@
 # inlined-copy
 
-## Overview
+## 概要
 
-inlined Copy is a VS Code extension that parses special notations in Markdown files and expands them by inlining content from referenced files or sections, then copies the result to the clipboard.
+inlined Copyは、Markdownファイル内の特殊な記法を解析し、参照されたファイルやセクションからの内容をインライン展開し、結果をクリップボードにコピーするVS Code拡張機能です。
 
-Developed as an open-source project, it's designed for the following workflows:
+オープンソースプロジェクトとして開発され、以下のようなワークフローに最適です：
 
-- Streamlining document template creation and content reuse
-- Referencing multiple files using the ![[filename]] notation for batch copying
-- Supporting section-level copying and parameter substitution ({{parameter}})
+- ドキュメントテンプレート作成とコンテンツ再利用の効率化
+- ![[filename]]記法を使用した複数ファイルの参照とバッチコピー
+- セクションレベルのコピーとパラメータ置換({{parameter}})のサポート
 
-## Key Features (Roadmap)
+## 主要機能（ロードマップ）
 
-This project releases features incrementally. The implementation items for each version are as follows:
+このプロジェクトは段階的に機能をリリースします。各バージョンの実装項目は以下の通りです：
 
-### 1. Ver 1 – ![[filename]] Expansion and Copy
+### 1. Ver 1 – ![[filename]] 展開コピー
 
-- Detect ![[filename]] and copy the entire content of the target file
-- Support for file paths (relative/absolute)
-- Intelligent path resolution including project root search, proximity-based search, and workspace-wide search
-- Display selection UI when multiple file candidates exist
-- Suggest similar files when a file is not found
+- ![[filename]]を検出し、対象ファイルの内容全体をコピー
+- ファイルパス（相対/絶対）のサポート
+- プロジェクトルート検索、近接ベース検索、ワークスペース全体検索を含むインテリジェントなパス解決
+- 複数のファイル候補が存在する場合の選択UIの表示
+- ファイルが見つからない場合の類似ファイルの提案
 
-### 2. Ver 2 – ![[filename#heading]] Section Expansion
+### 2. Ver 2 – ![[filename#heading]] セクション展開
 
-- Extract and copy heading sections with ![[filename#heading]]
-- Support for various markdown heading levels and multiple sections
+- ![[filename#heading]]で見出しセクションを抽出してコピー
+- 様々なマークダウン見出しレベルと複数セクションのサポート
 
-### 3. Ver 3 – Reference Tag Completion
+### 3. Ver 3 – 参照タグの補完
 
-- Display file list suggestions when typing ![[
-- Show heading list suggestions when typing #
+- ![[と入力時にファイルリストの候補を表示
+- #入力時に見出しリストの候補を表示
 
-### 4. Ver 4 – {{parameter}} Input Function – Key-Value
+### 4. Ver 4 – {{parameter}} 入力機能 – Key-Value
 
-- Replace {{parameter}} with user-specified key-value input
-- Display popup during copy to get values from user and substitute
+- {{parameter}}をユーザー指定のキー値入力で置換
+- コピー時にポップアップを表示し、ユーザーから値を取得して代入
 
-### 5. Ver 5 – {{parameter}} Input Function – Default Values
+### 5. Ver 5 – {{parameter}} 入力機能 – 初期値設定
 
-- Support {{parameter=defaultValue}} syntax with default values in popup
-- Use default value if input field is empty
+- {{parameter=defaultValue}}構文でポップアップに初期値をサポート
+- 入力フィールドが空の場合は初期値を使用
 
-### 6. Ver 6 – {{parameter}} Input Function – JSON Format Support
+### 6. Ver 6 – {{parameter}} 入力機能 – JSON形式対応
 
-- Enable **batch input** mechanism for multiple parameters (JSON format)
-- Example: Input {"name": "Devin", "project": "inlined Copy"} all at once
+- 複数パラメータに対する**一括入力**メカニズム（JSON形式）
+- 例：{"name": "Devin", "project": "inlined Copy"}を一度に入力
 
-### 7. Ver 7 – Markdown Preview Integration
+### 7. Ver 7 – Markdownプレビュー統合
 
-- Real-time expansion of ![[...]] and {{...}} in VS Code Markdown preview
-- Easier confirmation before copying
+- VS CodeのMarkdownプレビューで![[...]]と{{...}}をリアルタイム展開
+- コピー前の確認が容易に
 
-## Installation
+## インストール方法
 
-- **Development version**: Clone the GitHub repository, run `pnpm install && pnpm run compile`, then install using VS Code's "Extensions: Install from VSIX..." command.
-- **After marketplace publication**: Search for "inlined Copy" in the VS Code extensions tab and install.
+- **開発版**：GitHubリポジトリをクローンし、`pnpm install && pnpm run compile`を実行し、VS Codeの「拡張機能：VSIXからインストール...」コマンドを使用してインストールします。
+- **マーケットプレイス公開後**：VS Code拡張機能タブで「inlined Copy」を検索してインストールします。
 
-## Usage
+## 使用方法
 
-### Basic Usage
+### 基本的な使い方
 
-1. **Open the command palette**: `Ctrl + Shift + P` (Mac: `Cmd + Shift + P`)
-2. Select the **Inlined Copy: Copy Inline** command
-3. The extension will analyze the current editor content, expand all ![[...]] references and {{...}} parameters
-4. The processed text will be copied to the clipboard, ready to be pasted anywhere
+1. **コマンドパレットを開く**：`Ctrl + Shift + P`（Mac：`Cmd + Shift + P`）
+2. **Inlined Copy: Copy Inline**コマンドを選択
+3. 拡張機能は現在のエディタの内容を分析し、すべての![[...]]参照と{{...}}パラメータを展開します
+4. 処理されたテキストがクリップボードにコピーされ、どこにでも貼り付けできる状態になります
 
-You can also use the keyboard shortcut: `Ctrl + Shift + C` (Mac: `Cmd + Shift + C`)
+キーボードショートカット：`Ctrl + Shift + C`（Mac：`Cmd + Shift + C`）も使用できます
 
-### Supported Notations
+### サポートされる記法
 
-- `![[filename]]` - Expands to the entire content of the referenced file
-  - Supports various path formats: relative, absolute, project root, proximity-based paths
-  - Displays selection UI when multiple file candidates exist
-- `![[filename#heading]]` - Expands to the section under the specified heading in the referenced file
-- `{{parameter}}` - Prompts for a value to replace the parameter
-- `{{parameter=defaultValue}}` - Prompts for a value with a default
+- `![[filename]]` - 参照されたファイルの内容全体に展開
+  - 様々なパス形式をサポート：相対、絶対、プロジェクトルート、近接ベースのパス
+  - 複数のファイル候補がある場合に選択UIを表示
+- `![[filename#heading]]` - 参照されたファイル内の指定された見出し以下のセクションに展開
+- `{{parameter}}` - パラメータを置き換える値の入力を求める
+- `{{parameter=defaultValue}}` - 初期値付きで値の入力を求める
 
-Note: Additional features and settings may be added in future versions.
+注：将来のバージョンでは、追加機能や設定が追加される可能性があります。
 
-## Known Limitations
+## 既知の制限事項
 
-- The extension currently only works with local files
-- File search cache is automatically updated when files change
+- 拡張機能は現在ローカルファイルでのみ動作します
+- ファイル検索キャッシュはファイルが変更されると自動的に更新されます
 
-## Troubleshooting
+## トラブルシューティング
 
-This section provides solutions for common issues you might encounter when using the inlined-copy extension.
+このセクションでは、inlined-copy拡張機能使用時に発生する可能性のある一般的な問題と解決策を提供します。
 
-### Common Issues and Solutions
+### 一般的な問題と解決策
 
-#### Issue: File Not Found Errors
+#### 問題：ファイルが見つからないエラー
 
-**Symptoms:**
-- Error message: "File not found"
-- Referenced file is not expanded in the output
+**症状：**
+- エラーメッセージ：「ファイルが見つかりません」
+- 参照されたファイルが出力で展開されない
 
-**Solutions:**
-1. Check that the file path is correct and the file exists
-2. Try using different path formats (relative, absolute, or from project root)
-3. Ensure the file is within your workspace or a parent directory
-4. Check for special characters in the file path that might need escaping
+**解決策：**
+1. ファイルパスが正しく、ファイルが存在することを確認する
+2. 異なるパス形式（相対、絶対、またはプロジェクトルートから）を試す
+3. ファイルがワークスペースまたは親ディレクトリ内にあることを確認する
+4. エスケープが必要な特殊文字がファイルパスにないか確認する
 
-#### Issue: Circular References
+#### 問題：循環参照
 
-**Symptoms:**
-- Error message: "Circular reference detected"
-- Expansion process stops unexpectedly
+**症状：**
+- エラーメッセージ：「循環参照が検出されました」
+- 展開プロセスが予期せず停止する
 
-**Solutions:**
-1. Check your files for circular dependencies (A references B, B references A)
-2. Break the circular chain by removing one of the references
-3. Consider restructuring your documents to avoid circular dependencies
+**解決策：**
+1. ファイル間の循環依存関係（AがBを参照し、BがAを参照する）がないか確認する
+2. 参照の一方を削除して循環チェーンを断ち切る
+3. 循環依存を避けるためにドキュメントの構造を見直す
 
-#### Issue: Large File Warnings
+#### 問題：大きなファイルの警告
 
-**Symptoms:**
-- Error message: "File size exceeds maximum allowed limit"
-- File content is not expanded
+**症状：**
+- エラーメッセージ：「ファイルサイズが許容上限を超えています」
+- ファイル内容が展開されない
 
-**Solutions:**
-1. Increase the `maxFileSize` setting in VS Code preferences
-2. Split large files into smaller, more manageable files
-3. Consider using section references instead of entire file references
+**解決策：**
+1. VS Codeの設定で`maxFileSize`を増やす
+2. 大きなファイルを小さく管理しやすいファイルに分割する
+3. ファイル全体の参照ではなく、セクション参照の使用を検討する
 
-#### Issue: Recursion Depth Exceeded
+#### 問題：再帰深度の超過
 
-**Symptoms:**
-- Error message: "Maximum recursion depth exceeded"
-- Nested references are not fully expanded
+**症状：**
+- エラーメッセージ：「最大再帰深度を超えました」
+- ネストされた参照が完全に展開されない
 
-**Solutions:**
-1. Increase the `maxRecursionDepth` setting (up to the maximum of 3)
-2. Restructure your documents to reduce nesting depth
-3. Consider using multiple expansion steps for deeply nested structures
+**解決策：**
+1. `maxRecursionDepth`設定を増やす（最大3まで）
+2. ネスト深度を減らすためにドキュメントを再構成する
+3. 深くネストされた構造には複数回の展開ステップの使用を検討する
 
-#### Issue: Parameter Substitution Problems
+#### 問題：パラメータ置換の問題
 
-**Symptoms:**
-- Parameters in referenced files are not being processed
-- Parameter values are not being applied consistently across nested files
-- Default values are not being used correctly
+**症状：**
+- 参照されたファイル内のパラメータが処理されない
+- パラメータ値がネストされたファイル間で一貫して適用されない
+- 初期値が正しく使用されない
 
-**Solutions:**
-1. Check the `maxParameterRecursionDepth` setting (default: 1)
-2. Increase the value if you want parameters in referenced files to be processed
-3. Ensure parameter names match exactly (case-sensitive)
-4. Verify that default values are properly formatted with the `=` symbol
-5. For complex parameter substitution, consider using multiple expansion steps
+**解決策：**
+1. `maxParameterRecursionDepth`設定を確認する（デフォルト：1）
+2. 参照されたファイル内のパラメータを処理したい場合は値を増やす
+3. パラメータ名が完全に一致することを確認する（大文字小文字を区別）
+4. 初期値が`=`記号で適切にフォーマットされていることを確認する
+5. 複雑なパラメータ置換には、複数回の展開ステップの使用を検討する
 
-#### Issue: Extension Not Working After Update
+#### 問題：更新後に拡張機能が動作しない
 
-**Symptoms:**
-- Command not found in command palette
-- Extension doesn't respond when triggered
-- Error messages appear when trying to use the extension
+**症状：**
+- コマンドパレットにコマンドが見つからない
+- トリガーしても拡張機能が応答しない
+- 拡張機能を使用しようとするとエラーメッセージが表示される
 
-**Solutions:**
-1. Reload VS Code window (Ctrl+R or Cmd+R on Mac)
-2. Check for error messages in the Output panel (View > Output > inlined Copy)
-3. Verify the extension is properly installed and enabled in the Extensions panel
-4. Reinstall the extension if necessary
-5. Check VS Code's Developer Tools (Help > Toggle Developer Tools) for JavaScript errors
+**解決策：**
+1. VS Codeウィンドウを再読み込みする（Ctrl+RまたはMacではCmd+R）
+2. 出力パネルでエラーメッセージを確認する（表示 > 出力 > inlined Copy）
+3. 拡張機能が適切にインストールされ、拡張機能パネルで有効になっていることを確認する
+4. 必要に応じて拡張機能を再インストールする
+5. VS Codeの開発者ツール（ヘルプ > 開発者ツールの切り替え）でJavaScriptエラーを確認する
 
-### Configuration Options
+### 設定オプション
 
-The extension provides the following configuration options:
+拡張機能は以下の設定オプションを提供します：
 
-- **inlined-copy.maxFileSize**: Maximum file size in bytes (default: 5MB)
-  - Prevents processing files larger than this size to avoid performance issues
-  - Example: Set to 10485760 for a 10MB limit
+- **inlined-copy.maxFileSize**：バイト単位の最大ファイルサイズ（デフォルト：5MB）
+  - パフォーマンスの問題を避けるため、このサイズより大きいファイルの処理を防ぎます
+  - 例：10MBの制限には10485760に設定
 
-- **inlined-copy.maxRecursionDepth**: Maximum depth for recursive file expansion (default: 1, max: 3)
-  - Controls how many levels of nested file references will be expanded
-  - Higher values allow more complex document structures but may impact performance
-  - Example: Set to 2 to expand references within referenced files (but not further)
+- **inlined-copy.maxRecursionDepth**：ファイル展開の最大再帰深度（デフォルト：1、最大：3）
+  - ネストされたファイル参照が展開されるレベル数を制御します
+  - 高い値はより複雑なドキュメント構造を可能にしますが、パフォーマンスに影響する可能性があります
+  - 例：2に設定すると参照されたファイル内の参照が展開されます（それ以上は展開されません）
 
-- **inlined-copy.maxParameterRecursionDepth**: Maximum depth for parameter expansion (default: 1, max: 3)
-  - Controls how deeply nested parameters are expanded inside referenced files
-  - Value 1: Parameters in the main document are processed, but not in referenced files
-  - Value 2: Parameters in the main document and one level of referenced files are processed
-  - Value 3: Parameters in the main document and two levels of referenced files are processed
+- **inlined-copy.maxParameterRecursionDepth**：パラメータ展開の最大深度（デフォルト：1、最大：3）
+  - 参照されたファイル内でのパラメータの展開深度を制御します
+  - 値1：メインドキュメント内のパラメータは処理されますが、参照されたファイル内のパラメータは処理されません
+  - 値2：メインドキュメントと1レベルの参照されたファイル内のパラメータが処理されます
+  - 値3：メインドキュメントと2レベルの参照されたファイル内のパラメータが処理されます
 
-- **inlined-copy.logLevel**: Log level for the extension (default: "info")
-  - Controls the verbosity of logs in the output channel and console
-  - Available levels: "none", "error", "warn", "info", "debug"
-  - Higher levels include all lower level logs (e.g., "info" includes "error" and "warn")
-  - Set to "debug" for detailed troubleshooting information
+- **inlined-copy.logLevel**：拡張機能のログレベル（デフォルト：「info」）
+  - 出力チャンネルとコンソールでのログの詳細レベルを制御します
+  - 利用可能なレベル：「none」、「error」、「warn」、「info」、「debug」
+  - 高いレベルには低いレベルのログもすべて含まれます（例：「info」には「error」と「warn」が含まれます）
+  - 詳細なトラブルシューティング情報には「debug」に設定します
 
-- **inlined-copy.debugMode**: Enable debug mode (default: false)
-  - When enabled, shows more detailed logs and messages to the user
-  - Useful for extension development and troubleshooting
+- **inlined-copy.debugMode**：デバッグモードの有効化（デフォルト：false）
+  - 有効にすると、より詳細なログとメッセージがユーザーに表示されます
+  - 拡張機能の開発とトラブルシューティングに役立ちます
 
-## Contributing
+## 貢献
 
-Contributions via Fork & PR are welcome! Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project. For development setup and technical details, refer to [DEVELOP.md](DEVELOP.md).
+Fork & PRによる貢献を歓迎します！このプロジェクトへの貢献方法については[CONTRIBUTING.md](CONTRIBUTING.md)ファイルをご確認ください。開発セットアップと技術的な詳細については、[DEVELOP.md](DEVELOP.md)を参照してください。
 
-## License
+## ライセンス
 
-MIT License - See the [LICENSE](LICENSE) file for details.
+MITライセンス - 詳細については[LICENSE](LICENSE)ファイルをご覧ください。
 
-## Changelog
+## 変更履歴
 
-See the [CHANGELOG.md](CHANGELOG.md) file for details on version history and updates.
+バージョン履歴と更新の詳細については、[CHANGELOG.md](CHANGELOG.md)ファイルをご覧ください。
 
 Copyright (c) 2025 frecre

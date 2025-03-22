@@ -1,67 +1,67 @@
-# inlined-copy Development Guide
+# inlined-copy 開発ガイド
 
-This document provides comprehensive technical information for developers working on the inlined-copy VS Code extension.
+このドキュメントは、inlined-copy VS Code拡張機能の開発者向けに包括的な技術情報を提供します。
 
-## Technology Stack
+## 技術スタック
 
-1. Node.js (v18+)
-   - VS Code extension runtime environment
+1. Node.js (v18以上)
+   - VS Code拡張機能の実行環境
 2. pnpm
-   - Dependency management tool
-   - Main commands: `pnpm install`, `pnpm update`
+   - 依存関係管理ツール
+   - 主要コマンド: `pnpm install`, `pnpm update`
 3. TypeScript
-   - Implementation language for the extension
-   - Compile: `pnpm tsc -p ./`
+   - 拡張機能の実装言語
+   - コンパイル: `pnpm tsc -p ./`
 4. ESLint + Prettier
-   - Code quality and style unification tools
-   - Commands: `pnpm run lint`, `pnpm run lint:fix`
+   - コード品質とスタイル統一ツール
+   - コマンド: `pnpm run lint`, `pnpm run lint:fix`
 5. Vitest
-   - Test framework
-   - Commands: `pnpm test`, `pnpm run test:coverage`
+   - テストフレームワーク
+   - コマンド: `pnpm test`, `pnpm run test:coverage`
 6. VS Code Extension API
-   - Extension development framework
-   - Debug launch: F5 key
+   - 拡張機能開発フレームワーク
+   - デバッグ起動: F5キー
 
-## Code Quality and Style Guidelines
+## コード品質とスタイルガイドライン
 
-### Code Style and Lint Rules
+### コードスタイルとリントルール
 
-ESLint and Prettier are used to check code quality and style. All code must be free of ESLint errors and conform to Prettier formatting rules before committing. ESLint primarily detects code that could lead to bugs or uses deprecated syntax, while Prettier enforces code formatting (whitespace, line breaks, etc.). Developers should regularly check for warnings and errors from these tools.
+ESLintとPrettierを使用してコード品質とスタイルをチェックします。すべてのコードは、コミットする前にESLintエラーがなく、Prettierフォーマットルールに準拠している必要があります。ESLintは主にバグにつながる可能性のあるコードや非推奨の構文を検出し、Prettierはコードフォーマット（空白、改行など）を強制します。開発者は、これらのツールからの警告とエラーを定期的にチェックする必要があります。
 
-### TypeScript Naming Conventions
+### TypeScript命名規則
 
-This project follows the `@typescript-eslint/naming-convention` rule to maintain consistent naming across the codebase:
+このプロジェクトでは、コードベース全体で一貫した命名を維持するために `@typescript-eslint/naming-convention` ルールに従います：
 
-#### Variables & Constants
-| Rule | Example | Notes |
+#### 変数と定数
+| ルール | 例 | 備考 |
 |------|---------|-------|
-| **Regular variables** | `camelCase` | `const filePath = "/path/to/file";` |
-| **Constants (immutable)** | `UPPER_CASE` | `const MAX_RETRY_COUNT = 3;` |
-| **Unused variables** | `_prefixed` | `const _unusedVariable = "not used";` (Avoids ESLint unused variable errors) |
+| **通常の変数** | `camelCase` | `const filePath = "/path/to/file";` |
+| **定数（不変）** | `UPPER_CASE` | `const MAX_RETRY_COUNT = 3;` |
+| **未使用変数** | `_prefixed` | `const _unusedVariable = "not used";` (ESLintの未使用変数エラーを回避) |
 
-**Unused variables (_unusedVariable)**
-- As a general rule, unused variables should be removed from the code.
-- However, the `_` prefix is allowed for temporarily unused variables during development or to avoid specific ESLint rules (@typescript-eslint/no-unused-vars).
-- The `_` prefix explicitly indicates to other developers that "this is a temporarily unused variable" and should ideally be removed when the code is finalized.
+**未使用変数 (_unusedVariable)**
+- 一般的に、未使用の変数はコードから削除すべきです。
+- ただし、開発中の一時的に未使用の変数や、特定のESLintルール(@typescript-eslint/no-unused-vars)を回避するために `_` プレフィックスが許可されています。
+- `_` プレフィックスは、「これは一時的に未使用の変数です」と他の開発者に明示的に示し、コードが最終化されたときに理想的には削除されるべきです。
 
-#### Functions
-| Rule | Example | Notes |
+#### 関数
+| ルール | 例 | 備考 |
 |------|---------|-------|
-| **Regular functions** | `camelCase` | `function getFilePath() {}` |
-| **Private methods** | `_prefixed` | `private _processFile() {}` (Allowed for JS compatibility) |
+| **通常の関数** | `camelCase` | `function getFilePath() {}` |
+| **プライベートメソッド** | `_prefixed` | `private _processFile() {}` (JS互換性のために許可) |
 
-#### Types & Classes
-| Rule | Example | Notes |
+#### 型とクラス
+| ルール | 例 | 備考 |
 |------|---------|-------|
-| **Classes & Interfaces** | `PascalCase` | `class FileProcessor {}` / `interface FileOptions {}` |
-| **Type aliases** | `PascalCase` | `type FileMap = Map<string, string>;` |
+| **クラスとインターフェース** | `PascalCase` | `class FileProcessor {}` / `interface FileOptions {}` |
+| **型エイリアス** | `PascalCase` | `type FileMap = Map<string, string>;` |
 
-### ESLint Configuration and Usage
+### ESLint設定と使用法
 
-This project applies the following ESLint rules to maintain code quality:
+このプロジェクトでは、コード品質を維持するために以下のESLintルールを適用しています：
 
-#### 1. `@typescript-eslint/naming-convention` Application
-The ESLint configuration (`.eslintrc.json`) clearly defines naming conventions:
+#### 1. `@typescript-eslint/naming-convention` の適用
+ESLint設定（`.eslintrc.json`）で命名規則を明確に定義しています：
 
 ```json
 {
@@ -92,12 +92,12 @@ The ESLint configuration (`.eslintrc.json`) clearly defines naming conventions:
 }
 ```
 
-- Allows unused variables with `_` prefix
-- Enforces strict rules for constants (`UPPER_CASE`)
-- Unifies type naming (`PascalCase`)
+- `_` プレフィックス付きの未使用変数を許可
+- 定数（`UPPER_CASE`）に厳格なルールを適用
+- 型の命名を統一（`PascalCase`）
 
-#### 2. `@typescript-eslint/no-unused-vars` Adjustment
-ESLint configuration allows `_` prefixed variables to avoid unused variable errors:
+#### 2. `@typescript-eslint/no-unused-vars` の調整
+ESLint設定では、未使用変数エラーを回避するために `_` プレフィックス付きの変数を許可しています：
 
 ```json
 {
@@ -110,249 +110,249 @@ ESLint configuration allows `_` prefixed variables to avoid unused variable erro
 }
 ```
 
-##### Usage Rules
-- ✅ `_unusedVariable` avoids ESLint warnings
-- ❌ `unusedVariable` will trigger warnings if unused
-- ✅ `function (_param: string) {}` won't trigger warnings for unused parameters
+##### 使用ルール
+- ✅ `_unusedVariable` はESLint警告を回避します
+- ❌ `unusedVariable` は未使用の場合に警告をトリガーします
+- ✅ `function (_param: string) {}` は未使用パラメータの警告をトリガーしません
 
-##### Cases where _ prefix is recommended:
+##### _ プレフィックスが推奨されるケース：
 
-✅ **Function parameters that are intentionally unused:**
-- `_filePath` is potentially used in the future but currently unused, so it's prefixed with `_`
-- Adding the `_` prefix avoids the ESLint @typescript-eslint/no-unused-vars rule while indicating that it's "intentionally unused"
+✅ **意図的に未使用の関数パラメータ：**
+- `_filePath` は将来的に使用される可能性がありますが、現在は未使用のため、`_` プレフィックスが付けられています
+- `_` プレフィックスを追加することで、ESLint @typescript-eslint/no-unused-vars ルールを回避しながら、「意図的に未使用」であることを示します
 
-✅ **Temporary variables during debugging:**
-- Using `_debugData` as a temporary variable for debugging information, which will be removed eventually
+✅ **デバッグ中の一時変数：**
+- `_debugData` をデバッグ情報の一時変数として使用し、最終的に削除される予定のもの
 
-❌ **Do not use _ prefix in the following cases:**
-- **Variables that should be removed instead of being prefixed with _**
-  - `_unusedValue` that is completely unnecessary should be removed rather than prefixed
-- **Class properties that should be private instead**
-  - Properties like `_id` should use the `private` modifier instead of relying on the underscore convention
+❌ **以下のケースでは _ プレフィックスを使用しないでください：**
+- **プレフィックスを付ける代わりに削除すべき変数**
+  - 完全に不要な `_unusedValue` はプレフィックスを付けるのではなく削除すべきです
+- **プライベートにすべきクラスプロパティ**
+  - `_id` のようなプロパティは、アンダースコア規則に依存するのではなく `private` 修飾子を使用するべきです
 
-### Automatic Formatting
+### 自動フォーマット
 
-The project adopts Prettier's default style guide (with team-specific configurations as needed). **As a rule, do not format code manually**; use the editor's formatter feature or the provided scripts (see below) for automatic formatting.
+プロジェクトはPrettierのデフォルトスタイルガイド（必要に応じてチーム固有の設定を含む）を採用しています。**ルールとして、手動でコードをフォーマットしないでください**；エディタのフォーマッタ機能または提供されたスクリプト（以下参照）を使用して自動フォーマットを行ってください。
 
-- If auto-formatting on save is enabled, styles will be applied during development. If not, you can use `pnpm run prettier:fix` to format all files.
-- If you need to exclude files from Prettier formatting, specify them in `.prettierignore`.
+- 保存時の自動フォーマットが有効になっていれば、開発中にスタイルが適用されます。そうでない場合は、`pnpm run prettier:fix` を使用してすべてのファイルをフォーマットできます。
+- Prettierフォーマットから除外するファイルがある場合は、`.prettierignore` で指定してください。
 
-### ESLint Rules
+### ESLintルール
 
-The ESLint configuration is based on `eslint:recommended` and `@typescript-eslint/recommended`, following basic best practices. Some important rules include:
+ESLint設定は `eslint:recommended` と `@typescript-eslint/recommended` に基づいており、基本的なベストプラクティスに従っています。重要なルールには以下が含まれます：
 
-- Prohibition of unused variables (no-unused-vars)
-- Prohibition of implicit any (@typescript-eslint/no-explicit-any, etc., enforced by strict mode)
-- Removal of console output and debug code (rules added as needed)
+- 未使用変数の禁止（no-unused-vars）
+- 暗黙的な any の禁止（@typescript-eslint/no-explicit-any など、strict モードで強制）
+- コンソール出力とデバッグコードの削除（必要に応じてルールを追加）
 
-Rules that conflict with Prettier have been disabled. For detailed rule sets, see `.eslintrc.json` in the project root.
+Prettierと競合するルールは無効化されています。詳細なルールセットについては、プロジェクトルートの `.eslintrc.json` を参照してください。
 
-### TypeScript Type Checking
+### TypeScript型チェック
 
-Type errors are detected before building using TypeScript compilation (`tsc --noEmit`). Developers should pay attention to type errors displayed in the editor and not leave type inconsistencies unresolved. When developing VS Code extensions, be sure to correctly import VS Code API type definitions (vscode.d.ts) and ensure there are no type errors.
+型エラーはTypeScriptコンパイル（`tsc --noEmit`）を使用してビルド前に検出されます。開発者はエディタに表示される型エラーに注意し、型の不整合を未解決のままにしないようにしてください。VS Code拡張機能を開発する際は、VS Code API型定義（vscode.d.ts）を正しくインポートし、型エラーがないことを確認してください。
 
-### Pre-commit Hooks
+### プリコミットフック
 
-Git hooks are set up to automatically run lint-staged, type checks, and tests when committing. **Code validation runs automatically during commits, and commits will be blocked if there are issues.**
+Gitフックはコミット時に自動的にlint-staged、型チェック、テストを実行するように設定されています。**コード検証はコミット時に自動的に実行され、問題がある場合はコミットがブロックされます。**
 
-- **lint-staged**: Only checks and formats files that are staged for commit, improving performance by not processing the entire codebase. It automatically re-stages formatted files before the commit is completed.
-- **Type checking**: Ensures all TypeScript code is type-safe, regardless of whether it's staged or not.
-- **Tests**: Verifies that all tests pass before allowing the commit.
+- **lint-staged**: コミット用にステージングされているファイルのみをチェックおよびフォーマットし、コードベース全体を処理しないことでパフォーマンスを向上させます。コミットが完了する前に、フォーマットされたファイルを自動的に再ステージングします。
+- **型チェック**: ステージングされているかどうかに関わらず、すべてのTypeScriptコードが型安全であることを確認します。
+- **テスト**: コミットを許可する前にすべてのテストがパスすることを確認します。
 
-Important notes about the pre-commit workflow:
-- If a hook fails, error details will be displayed in the terminal. Follow the instructions to fix the issues, then run `git add` and `git commit` again (you'll need to make a new commit after fixing).
-- If you need to temporarily skip hook processing (for emergency commits, etc.), you can disable it by setting the environment variable: `HUSKY=0 git commit ...`. However, as a rule, maintain the practice of passing quality checks before committing.
-- Be aware that lint-staged will automatically re-stage files after formatting, so the committed content may differ slightly from what you initially staged (but will be properly formatted).
-- The `pretest` script no longer runs linting before tests to avoid duplicate linting operations, as lint-staged already handles this during commit.
+プリコミットワークフローに関する重要な注意事項：
+- フックが失敗した場合、エラーの詳細がターミナルに表示されます。指示に従って問題を修正し、`git add` と `git commit` を再度実行してください（修正後に新しいコミットを作成する必要があります）。
+- フック処理を一時的にスキップする必要がある場合（緊急コミットなど）、環境変数を設定してオフにできます：`HUSKY=0 git commit ...`。ただし、ルールとして、コミットする前に品質チェックに合格するという習慣を維持してください。
+- lint-stagedはフォーマット後にファイルを自動的に再ステージングするため、コミットされる内容は最初にステージングしたものと若干異なる場合があります（ただし、適切にフォーマットされています）。
+- `pretest` スクリプトは二重のリント操作を避けるためにテスト前のリントを実行しなくなりました。lint-stagedがコミット中にこれを処理するためです。
 
-### Recommended Editor Settings
+### 推奨エディタ設定
 
-If you're using VS Code, we recommend installing the ESLint and Prettier extensions and configuring them to automatically format and fix on save. Check the project's `.vscode/extensions.json` and `.vscode/settings.json` for recommended settings. This enables seamless static analysis and code formatting during development.
+VS Codeを使用している場合、ESLintとPrettier拡張機能をインストールし、保存時に自動的にフォーマットおよび修正するように設定することをお勧めします。推奨設定については、プロジェクトの `.vscode/extensions.json` と `.vscode/settings.json` を確認してください。これにより、開発中のシームレスな静的解析とコードフォーマットが可能になります。
 
-### Command List
+### コマンドリスト
 
-Here's a list of useful scripts for developers and their purposes:
+開発者向けの便利なスクリプトとその目的のリストは以下の通りです：
 
-- `pnpm run lint`: Run ESLint static analysis check
-- `pnpm run lint:fix`: Run ESLint automatic fixes
-- `pnpm run prettier:check`: Run Prettier format verification
-- `pnpm run prettier:fix`: Run Prettier automatic formatting
-- `pnpm run typecheck`: Run TypeScript type checking only
-- `pnpm run test`: Run tests (currently using Vitest)
+- `pnpm run lint`: ESLint静的解析チェックを実行
+- `pnpm run lint:fix`: ESLint自動修正を実行
+- `pnpm run prettier:check`: Prettierフォーマット検証を実行
+- `pnpm run prettier:fix`: Prettier自動フォーマットを実行
+- `pnpm run typecheck`: TypeScript型チェックのみを実行
+- `pnpm run test`: テストを実行（現在Vitestを使用）
 
-Note that these may also be used in CI, so be sure to verify they work locally before pushing.
+これらはCIでも使用される可能性があるため、プッシュする前にローカルで動作するか確認してください。
 
-## Setup
+## セットアップ
 
-1. Install pnpm
-2. Run `pnpm install`
-3. Press F5 to launch debugging
+1. pnpmをインストール
+2. `pnpm install` を実行
+3. F5キーを押してデバッグを起動
 
-## Local Test
+## ローカルテスト
 
 ```
-pnpm install    # first time only
+pnpm install    # 初回のみ
 pnpm run compile
 code --extensionDevelopmentPath=${PWD}
 code . --extensionDevelopmentPath=$PWD
 ```
 
-Open the command palette with Ctrl+Shift+P (Mac: Cmd+Shift+P) and select "Inlined Copy: Copy Inline"
+Ctrl+Shift+P（Mac: Cmd+Shift+P）でコマンドパレットを開き、「Inlined Copy: Copy Inline」を選択します
 
-## Building and Packaging
+## ビルドとパッケージング
 
-To build the extension:
+拡張機能をビルドするには：
 
 ```
 pnpm run compile
 ```
 
-To package the extension as a VSIX file:
+拡張機能をVSIXファイルとしてパッケージ化するには：
 
 ```
 pnpm install -g @vscode/vsce
 vsce package
 ```
 
-## Logging
+## ロギング
 
-### LogManager Overview
+### LogManagerの概要
 
-The extension includes a centralized `LogManager` class that provides consistent logging capabilities throughout the codebase. Key benefits include:
+拡張機能には、コードベース全体で一貫したログ機能を提供する集中化された `LogManager` クラスが含まれています。主な利点は以下の通りです：
 
-- **Unified logging interface** for all extension components
-- **Configurable log levels** to control verbosity
-- **Debug mode** for development and troubleshooting
-- **Output channel integration** for persistent logs in VS Code
+- 拡張機能のすべてのコンポーネントに対する**統一されたログインターフェース**
+- 詳細度を制御する**設定可能なログレベル**
+- 開発とトラブルシューティングのための**デバッグモード**
+- VS Codeの**出力チャンネル統合**による永続的なログ
 
-### Using LogManager
+### LogManagerの使用
 
-The `LogManager` provides four main logging methods with different severity levels:
+`LogManager` は、異なる重要度レベルを持つ4つの主要なロギングメソッドを提供します：
 
 ```typescript
-// Debug messages (only shown at debug log level)
-LogManager.debug('Processing file reference: ' + filePath);
+// デバッグメッセージ（デバッグログレベルでのみ表示）
+LogManager.debug('ファイル参照を処理中: ' + filePath);
 
-// Informational messages
-LogManager.info('File successfully expanded', true); // Second parameter shows message to user
+// 情報メッセージ
+LogManager.info('ファイルが正常に展開されました', true); // 2番目のパラメータはユーザーにメッセージを表示
 
-// Warning messages (shown to user by default)
-LogManager.warn('Duplicate reference detected: ' + fileName);
+// 警告メッセージ（デフォルトでユーザーに表示）
+LogManager.warn('重複参照が検出されました: ' + fileName);
 
-// Error messages (shown to user by default)
-LogManager.error('Failed to resolve file path: ' + filePath);
+// エラーメッセージ（デフォルトでユーザーに表示）
+LogManager.error('ファイルパスの解決に失敗しました: ' + filePath);
 ```
 
-Each method accepts:
+各メソッドは以下を受け入れます：
 
-1. A message string
-2. An optional boolean parameter to control whether the message is shown to the user
+1. メッセージ文字列
+2. メッセージをユーザーに表示するかどうかを制御するオプションのブール値パラメータ
 
-### Configuring Logging
+### ロギングの設定
 
-Users can configure logging behavior through VS Code settings:
+ユーザーはVS Code設定を通じてロギング動作を設定できます：
 
-1. Open VS Code settings (File > Preferences > Settings)
-2. Search for "inlined-copy"
-3. Adjust the following settings:
-   - **inlined-copy.logLevel**: Set the log verbosity ("none", "error", "warn", "info", "debug")
-   - **inlined-copy.debugMode**: Enable to show more detailed messages to the user
+1. VS Code設定を開く（ファイル > 設定 > 設定）
+2. 「inlined-copy」を検索
+3. 以下の設定を調整する：
+   - **inlined-copy.logLevel**: ログの詳細度を設定（「none」、「error」、「warn」、「info」、「debug」）
+   - **inlined-copy.debugMode**: 有効にするとより詳細なメッセージがユーザーに表示される
 
-### Best Practices
+### ベストプラクティス
 
-- Use appropriate log levels:
-  - `debug`: Detailed information for development and troubleshooting
-  - `info`: General operational information
-  - `warn`: Potential issues that don't prevent operation
-  - `error`: Errors that prevent successful operation
-- Avoid excessive logging in performance-critical code paths
-- Set log level to "error" or "warn" in production for better performance
-- Enable debug mode only when troubleshooting issues
+- 適切なログレベルを使用する：
+  - `debug`: 開発とトラブルシューティングのための詳細情報
+  - `info`: 一般的な運用情報
+  - `warn`: 操作を妨げない潜在的な問題
+  - `error`: 正常な操作を妨げるエラー
+- パフォーマンスが重要なコードパスでの過度なログ記録を避ける
+- 本番環境ではパフォーマンス向上のためにログレベルを「error」または「warn」に設定する
+- デバッグモードは問題のトラブルシューティング時のみ有効にする
 
-## Project-Specific Knowledge
+## プロジェクト固有の知識
 
 ### VS Code API
 
-- When coding VS Code extensions, refer to the VS Code API documentation
-- The official documentation is the most reliable source for VS Code extension development
-- APIs from `vscode.workspace` and `vscode.window` are frequently used
+- VS Code拡張機能をコーディングする際は、VS Code APIドキュメントを参照してください
+- 公式ドキュメントはVS Code拡張機能開発の最も信頼できるソースです
+- `vscode.workspace`と`vscode.window`からのAPIが頻繁に使用されます
 
-### Testing
+### テスト
 
-#### Overview and Best Practices
+#### 概要とベストプラクティス
 
-The inlined-copy extension uses a comprehensive testing approach:
+inlined-copy拡張機能は包括的なテストアプローチを使用しています：
 
-- **Mock Strategy**: Layered mocking with base and specialized implementations
-- **Test Isolation**: Each test runs in its own environment with proper cleanup
-- **Common Utilities**: Reusable mock modules located in `src/test/vitest/mocks/`
+- **モック戦略**: 基本と特化した実装を持つ階層化されたモッキング
+- **テスト分離**: 各テストは適切なクリーンアップを伴う独自の環境で実行
+- **共通ユーティリティ**: `src/test/vitest/mocks/`にある再利用可能なモックモジュール
 
-##### Performance Testing
+##### パフォーマンステスト
 
-Performance tests use progressive scaling (1, 10, 50 files) with thresholds based on UX research:
-- < 1 second: Perceived as immediate
-- < 2 seconds: Maintains flow of thought
-- < 5 seconds: Maximum acceptable delay for batch operations
+パフォーマンステストはUX研究に基づく閾値を持つ段階的なスケーリング（1、10、50ファイル）を使用します：
+- 1秒未満：即時と認識される
+- 2秒未満：思考の流れを維持
+- 5秒未満：バッチ操作の最大許容遅延
 
-##### Adding New Tests
+##### 新しいテストの追加
 
-When adding tests:
-1. Use common mock implementations from `./mocks/` directory
-2. Maintain test isolation with proper cleanup
-3. Follow existing patterns for edge case coverage
+テストを追加する際：
+1. `./mocks/` ディレクトリから共通のモック実装を使用する
+2. 適切なクリーンアップでテスト分離を維持する
+3. エッジケースカバレッジに既存のパターンに従う
 
-#### Test Framework and Setup
+#### テストフレームワークとセットアップ
 
-- Vitest is used as the test framework for unit and integration tests
-- Tests are located in `src/test/vitest/` directory, organized by component
-- Use `pnpm test` to run all tests, or `pnpm run test:coverage` for coverage reports
-- Mock implementations are provided for VS Code API and filesystem operations
+- Vitestはユニットテストと統合テストのためのテストフレームワークとして使用されます
+- テストは `src/test/vitest/` ディレクトリにあり、コンポーネント別に整理されています
+- すべてのテストを実行するには `pnpm test` を、カバレッジレポートには `pnpm run test:coverage` を使用します
+- VS Code APIとファイルシステム操作用のモック実装が提供されています
 
-#### Edge Case Testing
+#### エッジケーステスト
 
-The extension includes comprehensive edge case tests to ensure reliability:
+拡張機能には信頼性を確保するための包括的なエッジケーステストが含まれています：
 
-1. **Special Character Path Resolution Tests**
-   - Tests handling of paths with spaces, special characters (#, $, %, !, etc.)
-   - Verifies correct resolution of nested paths with special characters
-   - Ensures consistent behavior across different operating systems
+1. **特殊文字パス解決テスト**
+   - スペースや特殊文字（#、$、%、!など）を含むパスの処理をテスト
+   - 特殊文字を含むネストされたパスの正しい解決を検証
+   - 異なるオペレーティングシステム間での一貫した動作を確保
 
-2. **Performance Tests**
-   - Measures processing time for various file sizes (from small to 5MB+)
-   - Tests scaling with multiple files (10, 50, 100+ files)
-   - Ensures efficient handling of large documents with many references
+2. **パフォーマンステスト**
+   - 様々なファイルサイズ（小さいものから5MB以上）の処理時間を測定
+   - 複数のファイル（10、50、100以上のファイル）でのスケーリングをテスト
+   - 多くの参照を含む大きなドキュメントの効率的な処理を確保
 
-3. **Circular Reference Tests**
-   - Detects direct self-references (file referencing itself)
-   - Identifies circular references between two files (A → B → A)
-   - Handles longer circular reference chains (A → B → C → A)
-   - Verifies appropriate error messages are displayed to users
+3. **循環参照テスト**
+   - 直接的な自己参照（自分自身を参照するファイル）を検出
+   - 2つのファイル間の循環参照（A → B → A）を識別
+   - より長い循環参照チェーン（A → B → C → A）を処理
+   - 適切なエラーメッセージがユーザーに表示されることを確認
 
-#### Testing Best Practices
+#### テストのベストプラクティス
 
-- Use the standard test environment setup with `setupStandardTestEnvironment()` from `helpers/testSetup.ts`
-- Reset mocks in `beforeEach` hooks to ensure clean test state
-- Use factory functions like `createFileExpanderMock()` for consistent mock implementations
-- Mock VSCodeEnvironment for configuration tests using mockImplementation to simulate different settings
-- When testing parameter processing, create helper functions to simulate the behavior without direct VSCode dependencies
-- Use vi.resetAllMocks() in beforeEach to ensure clean test state
-- For edge case tests, create isolated test environments with controlled file structures
+- `helpers/testSetup.ts` から `setupStandardTestEnvironment()` を使用して標準テスト環境をセットアップする
+- クリーンなテスト状態を確保するために `beforeEach` フックでモックをリセットする
+- 一貫したモック実装のために `createFileExpanderMock()` などのファクトリ関数を使用する
+- 異なる設定をシミュレートするために mockImplementation を使用してVSCodeEnvironmentを設定テスト用にモックする
+- パラメータ処理をテストする場合、直接のVSCode依存関係なしに動作をシミュレートするヘルパー関数を作成する
+- クリーンなテスト状態を確保するために beforeEach で vi.resetAllMocks() を使用する
+- エッジケーステストでは、制御されたファイル構造を持つ分離されたテスト環境を作成する
 
-### Asynchronous Processing
+### 非同期処理
 
-- Asynchronous handling is implemented using Promise-based patterns
-- Many VS Code APIs are asynchronous and implemented using the `async/await` pattern
-- Asynchronous operations like file operations and UI display always use Promise chains with proper error handling
+- 非同期処理はPromiseベースのパターンを使用して実装されています
+- 多くのVS Code APIは非同期であり、`async/await`パターンを使用して実装されています
+- ファイル操作やUI表示などの非同期操作は常に適切なエラー処理を伴うPromiseチェーンを使用します
 
-### Error Handling
+### エラー処理
 
-- Error handling is implemented using custom error classes
-- Main error types: `LargeDataException`, `DuplicateReferenceException`, `CircularReferenceException`, `RecursionDepthException`
-- Errors are communicated using the `FileResult` type, which includes success or failure status and additional information
-- Appropriate messages are displayed based on the type of error to improve user experience
-- Error handling behavior can be customized through settings (e.g., `maxFileSize`, `maxRecursionDepth`)
-- For performance optimization, large files are processed using streaming, and file contents are cached
+- エラー処理はカスタムエラークラスを使用して実装されています
+- 主なエラータイプ：`LargeDataException`、`DuplicateReferenceException`、`CircularReferenceException`、`RecursionDepthException`
+- エラーは成功または失敗のステータスと追加情報を含む `FileResult` 型を使用して伝達されます
+- ユーザーエクスペリエンスを向上させるために、エラーのタイプに基づいて適切なメッセージが表示されます
+- エラー処理の動作は設定（例：`maxFileSize`、`maxRecursionDepth`）を通じてカスタマイズできます
+- パフォーマンス最適化のために、大きなファイルはストリーミングを使用して処理され、ファイル内容はキャッシュされます
 
-## License
+## ライセンス
 
-MIT License - See the [LICENSE](LICENSE) file for details.
+MITライセンス - 詳細については[LICENSE](LICENSE)ファイルを参照してください。

@@ -1,32 +1,31 @@
-# Change Log
+# 変更履歴
 
-All notable changes to the "inlined-copy" extension will be documented in this file.
-
+"inlined-copy"拡張機能のすべての重要な変更はこのファイルに記録されます。
 
 ## [0.1.2] - 2025-03-21
 
-### Fixed
-- Improved file not found error handling to display as Info level messages instead of Error level
-- Made error messages more concise with format "![[filename]] was not found"
-- Implemented extension-less file matching to find files regardless of their extension
-- Fixed issue where copy operation would not execute when a referenced file is not found
+### 修正
+- ファイルが見つからないエラーの処理を改善し、エラーレベルではなく情報レベルのメッセージとして表示するように変更
+- エラーメッセージをより簡潔に「![[filename]] が見つかりませんでした」という形式に変更
+- 拡張子に関係なくファイルを見つけるための拡張子なしファイルマッチングを実装
+- 参照されたファイルが見つからない場合にコピー操作が実行されない問題を修正
+
 ## [0.1.1] - 2025-03-20
 
-### Fixed
- - Delete useless files from vsix.
+### 修正
+- vsixから不要なファイルを削除
 
 ## [0.1.0] - 2025-03-20
 
-### Added
-- Initial release of inlined-copy extension
-- Support for ![[filename]] notation to expand and copy file content
-- Intelligent file path resolution:
-  - Direct path resolution (absolute or relative)
-  - Project root-based resolution
-  - Proximity-based resolution (searching up parent directories)
-  - Workspace-wide search for matching files
-- Selection UI when multiple file candidates exist
-- Suggestions for similar files when a file is not found
-- Error handling for large files, duplicate references, and circular references
-- Configuration options for maximum file size and recursion depth
-
+### 追加
+- inlined-copy拡張機能の初回リリース
+- ![[filename]]記法を使用したファイル内容の展開とコピーのサポート
+- インテリジェントなファイルパス解決:
+  - 直接パス解決（絶対パスまたは相対パス）
+  - プロジェクトルートベースの解決
+  - 近接性ベースの解決（親ディレクトリを検索）
+  - 一致するファイルのワークスペース全体での検索
+- 複数のファイル候補が存在する場合の選択UI
+- ファイルが見つからない場合の類似ファイルの提案
+- 大きなファイル、重複参照、循環参照のエラー処理
+- ファイルサイズと再帰深度の最大値に関する設定オプション
