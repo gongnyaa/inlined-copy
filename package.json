@@ -2,7 +2,7 @@
   "name": "inlined-copy",
   "displayName": "inlined Copy",
   "description": "Copy text with inlined content",
-  "version": "0.1.2",
+  "version": "0.1.1",
   "publisher": "frecre",
   "icon": "assets/icon.png",
   "license": "MIT",
