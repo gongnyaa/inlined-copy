@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { SectionExtractor } from './sectionExtractor';
 import { FileResolver } from './fileResolver/fileResolver';
 import {
   LargeDataException,
@@ -47,8 +46,8 @@ export class FileExpander {
       );
     }
 
-    // Regular expression to match ![[filename]] or ![[filename#heading]] patterns
-    const fileReferenceRegex = /!\[\[(.*?)(?:#(.*?))?\]\]/g;
+    // Regular expression to match ![[filename]] patterns
+    const fileReferenceRegex = /!\[\[(.*?)\]\]/g;
 
     let result = text;
     let match;
@@ -58,9 +57,8 @@ export class FileExpander {
 
     // Find all file references in the text
     while ((match = fileReferenceRegex.exec(text)) !== null) {
-      const fullMatch = match[0]; // The entire ![[filename]] or ![[filename#heading]] match
+      const fullMatch = match[0]; // The entire ![[filename]] match
       const filePath = match[1].trim(); // The filename part
-      const heading = match[2] ? match[2].trim() : null; // The heading part if present
 
       try {
         // Resolve the file path (handle both absolute and relative paths)
@@ -89,16 +87,8 @@ export class FileExpander {
         // Read the file content
         const fileContent = await this.readFileContent(resolvedPath);
 
-        // Extract section if heading is specified
+        // Use file content directly
         let contentToInsert = fileContent;
-        if (heading) {
-          const sectionContent = SectionExtractor.extractSection(fileContent, heading);
-          if (sectionContent) {
-            contentToInsert = sectionContent;
-          } else {
-            LogManager.warn(`Heading "${heading}" not found in file "${filePath}"`);
-          }
-        }
 
         // Recursively expand references in the inserted content
         // Create a new array of visited paths to avoid modifying the original
@@ -159,7 +149,7 @@ export class FileExpander {
     if (!result.success) {
       // Get suggestions for similar files but don't include in the error message
       await FileResolver.getSuggestions(filePath);
-      
+
       throw new Error(`File not found: ${filePath}`);
     }
 

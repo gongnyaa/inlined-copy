@@ -7,7 +7,6 @@ import { VSCodeEnvironmentMock } from './types';
 interface VSCodeEnvironmentMockOptions {
   maxFileSize?: number;
   maxRecursionDepth?: number;
-  maxParameterRecursionDepth?: number;
 }
 
 /**
@@ -21,7 +20,6 @@ export function createVSCodeEnvironmentMock(
   const defaultOptions = {
     maxFileSize: 1024, // 1KB for testing
     maxRecursionDepth: 1, // Default for testing
-    maxParameterRecursionDepth: 1, // Default for testing
     ...options,
   };
 
@@ -35,9 +33,6 @@ export function createVSCodeEnvironmentMock(
       }
       if (section === 'inlined-copy' && key === 'maxRecursionDepth') {
         return defaultOptions.maxRecursionDepth;
-      }
-      if (section === 'inlined-copy' && key === 'maxParameterRecursionDepth') {
-        return defaultOptions.maxParameterRecursionDepth;
       }
       return defaultValue;
     }),
@@ -53,13 +48,13 @@ export const mockVSCodeEnvironment = createVSCodeEnvironmentMock();
  * Creates a standardized mock for VSCodeEnvironment
  * @returns Standard VSCodeEnvironment mock object for tests
  */
-export function createStandardVSCodeEnvironmentMock(): { 
-  VSCodeEnvironment: VSCodeEnvironmentMock; 
+export function createStandardVSCodeEnvironmentMock(): {
+  VSCodeEnvironment: VSCodeEnvironmentMock;
   vSCodeEnvironment: VSCodeEnvironmentMock;
 } {
   return {
     VSCodeEnvironment: mockVSCodeEnvironment,
-    vSCodeEnvironment: mockVSCodeEnvironment
+    vSCodeEnvironment: mockVSCodeEnvironment,
   };
 }
 
