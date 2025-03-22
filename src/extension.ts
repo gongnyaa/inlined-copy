@@ -13,6 +13,9 @@ export function activate(context: vscode.ExtensionContext): void {
   LogManager.initialize(context);
   LogManager.info('inlined Copy extension is now active');
 
+  // アクティベーション時にトースト通知を表示
+  VSCodeEnvironment.showInformationMessage('inlined Copy 拡張機能がアクティブになりました');
+
   // Register the copyInline command
   const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', async () => {
     try {

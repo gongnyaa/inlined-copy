@@ -6,7 +6,7 @@ echo "1. Running lint-staged (ESLint + Prettier on staged files)..."
 pnpm exec lint-staged || { echo "❌ lint-staged failed. Please fix the issues and try again."; exit 1; }
 
 echo "2. TypeScript type checking..."
-pnpm run typecheck || { echo "❌ Type checking failed. Please fix the type errors and try again."; exit 1; }
+pnpm run compile || { echo "❌ Type checking failed. Please fix the type errors and try again."; exit 1; }
 
 echo "3. Running tests..."
 pnpm run test || { echo "❌ Tests failed. Please fix the failing tests and try again."; exit 1; }
