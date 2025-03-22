@@ -3,7 +3,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createLargeFile, cleanupTestFiles } from '../../../utils/createTestFiles';
 import { performance } from 'perf_hooks';
-import { mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import {
+  mockVSCodeEnvironment,
+  createStandardVSCodeEnvironmentMock,
+} from '../mocks/vscodeEnvironment.mock';
 import { createFileExpanderMock } from '../mocks/fileExpander.mock';
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
@@ -49,12 +52,7 @@ vi.mock('../../../fileExpander', () => {
 // Import FileExpander after mocks are set up
 import { FileExpander } from '../../../fileExpander';
 
-// Mock SectionExtractor
-vi.mock('../../../sectionExtractor', () => ({
-  SectionExtractor: {
-    extractSection: vi.fn().mockReturnValue(null),
-  },
-}));
+// SectionExtractor has been removed in Ver1
 
 describe('Performance Tests', () => {
   const testDir = path.join(__dirname, '../../../../test/temp-performance');

@@ -3,7 +3,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { CircularReferenceException } from '../../../errors/errorTypes';
 import { cleanupTestFiles } from '../../../utils/createTestFiles';
-import { mockVSCodeEnvironment, createStandardVSCodeEnvironmentMock } from '../mocks/vscodeEnvironment.mock';
+import {
+  mockVSCodeEnvironment,
+  createStandardVSCodeEnvironmentMock,
+} from '../mocks/vscodeEnvironment.mock';
 import { createFileExpanderMock } from '../mocks/fileExpander.mock';
 import { setupStandardTestEnvironment } from '../helpers/testSetup';
 
@@ -33,12 +36,7 @@ vi.mock('../../../fileExpander', () => {
 import { FileExpander } from '../../../fileExpander';
 import { FileResolver } from '../../../fileResolver/fileResolver';
 
-// Mock SectionExtractor
-vi.mock('../../../sectionExtractor', () => ({
-  SectionExtractor: {
-    extractSection: vi.fn().mockReturnValue(null),
-  },
-}));
+// SectionExtractor has been removed in Ver1
 
 describe('Circular Reference Tests', () => {
   const testDir = path.join(__dirname, '../../../../test/temp-circular');

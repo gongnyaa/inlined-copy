@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileExpander } from './fileExpander';
-import { ParameterProcessor } from './parameterProcessor';
 import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 import { LogManager } from './utils/logManager';
 
@@ -39,14 +38,11 @@ export function activate(context: vscode.ExtensionContext): void {
       const currentDir = path.dirname(currentFilePath);
 
       // Process the text - expand file references
-      let processedText = await FileExpander.expandFileReferences(text, currentDir);
-
-      // Process parameters with initial depth 0
-      processedText = await ParameterProcessor.processParameters(processedText, 0);
+      const processedText = await FileExpander.expandFileReferences(text, currentDir);
 
       // Copy the processed text to clipboard
       await VSCodeEnvironment.writeClipboard(processedText);
-      LogManager.info('Text copied to clipboard with expanded references and parameters', true);
+      LogManager.info('Text copied to clipboard with expanded references', true);
     } catch (error) {
       LogManager.error(`Error: ${error instanceof Error ? error.message : String(error)}`, true);
     }
