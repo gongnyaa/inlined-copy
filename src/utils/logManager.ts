@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
 
 /**
- * Simplified logging manager for the extension
+ * 拡張機能用の簡略化されたログマネージャー
  */
 export class LogManager {
   private static outputChannel: vscode.OutputChannel | undefined;
   
   /**
-   * Initializes the LogManager
-   * @param context The extension context
+   * LogManagerを初期化する
+   * @param context 拡張機能のコンテキスト
    */
   public static initialize(context: vscode.ExtensionContext): void {
-    // Create output channel if it doesn't exist
+    // 出力チャンネルが存在しない場合は作成
     if (!this.outputChannel) {
       this.outputChannel = vscode.window.createOutputChannel('Inlined Copy');
       context.subscriptions.push(this.outputChannel);
@@ -19,23 +19,23 @@ export class LogManager {
   }
   
   /**
-   * Simple log method
-   * @param message The message to log
+   * シンプルなログメソッド
+   * @param message ログに記録するメッセージ
    */
   public static log(message: string): void {
     console.log(`[Inlined Copy] ${message}`);
   }
   
   /**
-   * Error log method
-   * @param message The error message to log
+   * エラーログメソッド
+   * @param message ログに記録するエラーメッセージ
    */
   public static error(message: string): void {
     console.error(`[Inlined Copy] ERROR: ${message}`);
   }
   
   /**
-   * Disposes of the LogManager resources
+   * LogManagerのリソースを破棄する
    */
   public static dispose(): void {
     this.outputChannel?.dispose();

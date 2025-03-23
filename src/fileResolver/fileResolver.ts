@@ -54,7 +54,7 @@ export class FileResolver {
       if (hasExtension) {
         // 拡張子指定あり - 完全一致させる
         searchPattern = `${dirPattern}${fileNameWithoutExt}${fileExtension}`;
-        LogManager.log(`Searching with exact pattern: ${searchPattern}`);
+        LogManager.log(`完全一致パターンで検索: ${searchPattern}`);
 
         // 完全一致で検索
         files = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 10);
@@ -67,13 +67,13 @@ export class FileResolver {
 
         // 完全一致がなければ、拡張子なしで再検索
         LogManager.log(
-          `No exact matches found for ${filePath}, trying without extension restriction`
+          `${filePath}の完全一致が見つかりません。拡張子制限なしで再試行します`
         );
       }
 
       // 拡張子なしパターンで検索（拡張子指定がない場合、または完全一致が見つからなかった場合）
       searchPattern = `${dirPattern}${fileNameWithoutExt}.*`;
-      LogManager.log(`Searching with wildcard pattern: ${searchPattern}`);
+      LogManager.log(`ワイルドカードパターンで検索: ${searchPattern}`);
 
       // VSCodeのAPIでファイルを検索
       files = await vscode.workspace.findFiles(
@@ -82,30 +82,30 @@ export class FileResolver {
         10 // 最大結果数
       );
 
-      LogManager.log(`Found ${files.length} files matching ${searchPattern}`);
+      LogManager.log(`${searchPattern}に一致するファイルが${files.length}個見つかりました`);
 
       if (files.length === 0) {
-        return fileFailure(`File not found: ${filePath}`);
+        return fileFailure(`ファイルが見つかりません: ${filePath}`);
       }
 
       try {
         // ファイルが見つかった場合は、最適なものを選択
         const bestMatch = await this.selectBestMatch(files, basePath, hasExtension);
-        LogManager.log(`Selected best match: ${bestMatch.fsPath}`);
+        LogManager.log(`最適な一致を選択: ${bestMatch.fsPath}`);
         return fileSuccess(bestMatch.fsPath);
       } catch (error) {
-        LogManager.error(`Error selecting best match: ${error}`);
+        LogManager.error(`最適な一致の選択エラー: ${error}`);
         // テスト用に、ファイルが見つかった場合は最初のファイルを返す
         if (files.length > 0) {
           return fileSuccess(files[0].fsPath);
         }
         return fileFailure(
-          `Error selecting file: ${error instanceof Error ? error.message : String(error)}`
+          `ファイル選択エラー: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     } catch (error) {
-      LogManager.error(`Error resolving file: ${error}`);
-      return fileFailure(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      LogManager.error(`ファイル解決エラー: ${error}`);
+      return fileFailure(`エラー: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -119,21 +119,21 @@ export class FileResolver {
   ): Promise<vscode.Uri> {
     // デバッグログを追加
     LogManager.log(
-      `selectBestMatch called with ${matches.length} matches, hasExtension: ${hasExtension}`
+      `selectBestMatch が呼び出されました: ${matches.length}件の一致、hasExtension: ${hasExtension}`
     );
     for (const match of matches) {
-      LogManager.log(`  - Match: ${match.fsPath}`);
+      LogManager.log(`  - 一致: ${match.fsPath}`);
     }
 
     if (matches.length === 1) {
-      LogManager.log(`Single match found, returning: ${matches[0].fsPath}`);
+      LogManager.log(`単一の一致が見つかりました。返却: ${matches[0].fsPath}`);
       return matches[0];
     }
 
     // 拡張子付きで検索した場合は、ファイル名が完全一致するものを優先
     if (hasExtension) {
       const requestedFileName = path.basename(matches[0].fsPath);
-      LogManager.log(`Requested filename with extension: ${requestedFileName}`);
+      LogManager.log(`拡張子付きの要求ファイル名: ${requestedFileName}`);
 
       const exactMatches = matches.filter(
         uri => path.basename(uri.fsPath).toLowerCase() === requestedFileName.toLowerCase()
@@ -145,24 +145,24 @@ export class FileResolver {
           return a.fsPath.length - b.fsPath.length;
         });
         LogManager.log(
-          `Found ${exactMatches.length} exact matches, selecting: ${sortedByPathLength[0].fsPath}`
+          `${exactMatches.length}件の完全一致が見つかりました。選択: ${sortedByPathLength[0].fsPath}`
         );
         return sortedByPathLength[0];
       }
     }
 
     // 拡張子なしで検索した場合、拡張子の優先順位でソート
-    LogManager.log(`Sorting matches by extension priority`);
+    LogManager.log(`拡張子の優先順位で一致をソート`);
 
     const sortedByExtension = [...matches].sort((a, b) => {
       const extA = path.extname(a.fsPath).toLowerCase();
       const extB = path.extname(b.fsPath).toLowerCase();
-      LogManager.log(`Comparing extensions: ${extA} vs ${extB}`);
+      LogManager.log(`拡張子の比較: ${extA} vs ${extB}`);
 
       // デフォルト拡張子リストに基づき優先順位付け
       const indexA = this.DEFAULT_EXTENSIONS.indexOf(extA);
       const indexB = this.DEFAULT_EXTENSIONS.indexOf(extB);
-      LogManager.log(`Extension priorities: ${extA}=${indexA}, ${extB}=${indexB}`);
+      LogManager.log(`拡張子の優先順位: ${extA}=${indexA}, ${extB}=${indexB}`);
 
       // リストにある拡張子を優先
       if (indexA === -1 && indexB === -1) {
@@ -179,12 +179,12 @@ export class FileResolver {
     });
 
     if (sortedByExtension.length > 0) {
-      LogManager.log(`Sorted by extension priority, best match: ${sortedByExtension[0].fsPath}`);
+      LogManager.log(`拡張子の優先順位でソート済み、最適な一致: ${sortedByExtension[0].fsPath}`);
       return sortedByExtension[0];
     }
 
     // マッチが見つからなかった場合はエラー
-    throw new Error('No matching files found');
+    throw new Error('一致するファイルが見つかりません');
   }
 
   /**
@@ -200,7 +200,7 @@ export class FileResolver {
 
       return uris.map(uri => vscode.workspace.asRelativePath(uri));
     } catch (error) {
-      LogManager.error(`Error getting suggestions: ${error}`);
+      LogManager.error(`候補取得エラー: ${error}`);
       return [];
     }
   }

@@ -11,33 +11,33 @@ export class InlinedCopyService {
     try {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        LogManager.log('No active editor found');
+        LogManager.log('アクティブなエディタが見つかりません');
         return;
       }
 
-      // Get the selected text or entire document if no selection
+      // 選択されたテキストまたは選択がない場合は文書全体を取得
       const selection = editor.selection;
       const text = selection.isEmpty
         ? editor.document.getText()
         : editor.document.getText(selection);
 
       if (!text) {
-        LogManager.log('No text to process');
+        LogManager.log('処理するテキストがありません');
         return;
       }
 
-      // Get the directory of the current file to resolve relative paths
+      // 相対パスを解決するために現在のファイルのディレクトリを取得
       const currentFilePath = editor.document.uri.fsPath;
       const currentDir = path.dirname(currentFilePath);
 
-      // Process the text - expand file references
+      // テキストを処理 - ファイル参照を展開
       const processedText = await FileExpander.expandFileReferences(text, currentDir);
 
-      // Copy the processed text to clipboard
+      // 処理されたテキストをクリップボードにコピー
       await VSCodeEnvironment.writeClipboard(processedText);
-      LogManager.log('Text copied to clipboard with expanded references');
+      LogManager.log('展開された参照を含むテキストがクリップボードにコピーされました');
     } catch (error) {
-      LogManager.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      LogManager.error(`エラー: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }
