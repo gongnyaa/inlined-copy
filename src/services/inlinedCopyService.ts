@@ -11,7 +11,7 @@ export class InlinedCopyService {
     try {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
-        LogManager.warn('No active editor found', true);
+        LogManager.log('No active editor found');
         return;
       }
 
@@ -22,7 +22,7 @@ export class InlinedCopyService {
         : editor.document.getText(selection);
 
       if (!text) {
-        LogManager.warn('No text to process', true);
+        LogManager.log('No text to process');
         return;
       }
 
@@ -35,9 +35,9 @@ export class InlinedCopyService {
 
       // Copy the processed text to clipboard
       await VSCodeEnvironment.writeClipboard(processedText);
-      LogManager.info('Text copied to clipboard with expanded references', true);
+      LogManager.log('Text copied to clipboard with expanded references');
     } catch (error) {
-      LogManager.error(`Error: ${error instanceof Error ? error.message : String(error)}`, true);
+      LogManager.log(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

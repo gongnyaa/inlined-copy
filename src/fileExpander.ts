@@ -16,7 +16,7 @@ export class FileExpander {
     visitedPaths: string[] = [],
     currentDepth = 0
   ): Promise<string> {
-    LogManager.debug(`Expanding file references at depth ${currentDepth}`);
+    LogManager.log(`Expanding file references at depth ${currentDepth}`);
 
     const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration(
       'inlined-copy',
@@ -25,7 +25,7 @@ export class FileExpander {
     );
 
     if (currentDepth > MAX_RECURSION_DEPTH) {
-      LogManager.debug(`Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}`);
+      LogManager.log(`Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}`);
       throw new RecursionDepthException(
         `Maximum recursion depth (${MAX_RECURSION_DEPTH}) exceeded`
       );
@@ -61,17 +61,17 @@ export class FileExpander {
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('File not found:')) {
-          LogManager.info(`![[${filePath}]] was not found`, true);
+          LogManager.log(`![[${filePath}]] was not found`);
         } else {
           if (error instanceof LargeDataException) {
-            LogManager.warn(`Large file detected: ${error.message}`);
+            LogManager.log(`Large file detected: ${error.message}`);
           } else if (error instanceof CircularReferenceException) {
-            LogManager.error(error.message);
+            LogManager.log(error.message);
           } else if (error instanceof RecursionDepthException) {
-            LogManager.warn(error.message);
+            LogManager.log(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            LogManager.error(`Error expanding file reference: ${errorMessage}`);
+            LogManager.log(`Error expanding file reference: ${errorMessage}`);
             throw error;
           }
         }

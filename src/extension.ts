@@ -10,7 +10,7 @@ import { InlinedCopyService } from './services/inlinedCopyService';
 export function activate(context: vscode.ExtensionContext): void {
   // Initialize LogManager
   LogManager.initialize(context);
-  LogManager.info('inlined Copy extension is now active');
+  LogManager.log('inlined Copy extension is now active');
 
   // アクティベーション時にトースト通知を表示
   VSCodeEnvironment.showInformationMessage(
@@ -34,5 +34,5 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   // Clean up resources if needed
   LogManager.dispose();
-  LogManager.debug('inlined Copy extension is now deactivated');
+  LogManager.log('inlined Copy extension is now deactivated');
 }
