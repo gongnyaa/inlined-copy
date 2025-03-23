@@ -25,8 +25,15 @@ code --extensionDevelopmentPath=${PWD}
 デバッグ起動: F5キー
 
 ## ロギング
-- `LogManager`: 4レベル（debug, info, warn, error）
-- 設定: VS Code設定で`logLevel`と`debugMode`調整可能
+- `LogManager`: シンプルな単一メソッド（log）
+- コンソールとVS Code出力チャンネルに出力
+
+```typescript
+import { LogManager } from './utils/logManager';
+
+// ログメッセージを出力
+LogManager.log('Your message here');
+```
 
 ## テスト
 - 場所: `src/test/vitest/`
