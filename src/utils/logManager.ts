@@ -24,7 +24,14 @@ export class LogManager {
    */
   public static log(message: string): void {
     console.log(`[Inlined Copy] ${message}`);
-    this.outputChannel?.appendLine(`[Inlined Copy] ${message}`);
+  }
+  
+  /**
+   * Error log method
+   * @param message The error message to log
+   */
+  public static error(message: string): void {
+    console.error(`[Inlined Copy] ERROR: ${message}`);
   }
   
   /**
