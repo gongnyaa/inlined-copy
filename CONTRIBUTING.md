@@ -1,183 +1,55 @@
-# inlined-copyへの貢献について
+# inlined-copy 開発ガイド（簡略版）
 
-inlined-copy VS Code拡張機能への貢献に興味をお持ちいただき、ありがとうございます！このドキュメントでは、プロジェクトへの貢献に関するガイドラインと手順を提供します。
-
-## 目次
-
-- [inlined-copyへの貢献について](#inlined-copyへの貢献について)
-  - [目次](#目次)
-  - [開発環境のセットアップ](#開発環境のセットアップ)
-    - [前提条件](#前提条件)
-    - [はじめ方](#はじめ方)
-  - [プロジェクト構造](#プロジェクト構造)
-  - [コーディングガイドライン](#コーディングガイドライン)
-    - [TypeScriptスタイル](#typescriptスタイル)
-    - [コード品質](#コード品質)
-  - [テスト](#テスト)
-    - [テストの実行](#テストの実行)
-    - [テストの作成](#テストの作成)
-  - [プルリクエストのプロセス](#プルリクエストのプロセス)
-  - [コミットメッセージのガイドライン](#コミットメッセージのガイドライン)
-    - [タイプ](#タイプ)
-    - [スコープ](#スコープ)
-    - [件名](#件名)
-    - [例](#例)
-  - [ライセンス](#ライセンス)
-
-## 開発環境のセットアップ
-
-### 前提条件
-
+## 技術スタック
 - Node.js (v18以上)
-- pnpm (推奨パッケージマネージャ)
-- Visual Studio Code
+- vscode: ^1.94.0 (重要)
+- pnpm: 依存関係管理
+- TypeScript: 実装言語
+- ESLint + Prettier: コード品質管理
+- Vitest: テスト
+- VS Code Extension API
 
-### はじめ方
+## コード規約
+- 命名規則: 変数は`camelCase`、定数は`UPPER_CASE`、クラスは`PascalCase`
+- 未使用変数: `_prefixed`で表記（`_unusedVar`）
+- ESLint設定: `@typescript-eslint/recommended`ベース
+- 自動フォーマット: Prettier使用、手動フォーマット禁止
+- プリコミットフック: lint-staged, 型チェック, テスト自動実行
 
-1. リポジトリのクローン：
-   ```bash
-   git clone https://github.com/gongnyaa/inlined-copy.git
-   cd inlined-copy
-   ```
-
-2. 依存関係のインストール：
-   ```bash
-   pnpm install
-   ```
-
-3. 拡張機能のコンパイル：
-   ```bash
-   pnpm run compile
-   ```
-
-4. 開発モードで拡張機能を起動：
-   ```bash
-   # VS CodeでF5を押す
-   # または以下のコマンドを実行：
-   code --extensionDevelopmentPath=${PWD}
-   ```
-
-開発環境についての詳細な技術情報は、[DEVELOP.md](DEVELOP.md)を参照してください。
-
-## プロジェクト構造
+## セットアップと実行
 ```
-![[PROJECT_STRUCTURE]]
+pnpm install
+pnpm run compile
+code --extensionDevelopmentPath=${PWD}
 ```
+デバッグ起動: F5キー
 
-## コーディングガイドライン
-
-### TypeScriptスタイル
-
-- プロジェクトで提供されているESLintとPrettierの設定に従う
-- 意味のある変数名と関数名を使用する
-- 公開関数とクラスにはJSDocコメントを追加する
-- 強力な型付けを使用し、可能な限り`any`を避ける
-
-### コード品質
-
-- 変更を送信する前にリンティングを実行する：
-  ```bash
-  pnpm run lint
-  ```
-
-- リンティングの問題を修正する：
-  ```bash
-  pnpm run lint --fix
-  ```
-
-コーディングスタイル、命名規則、その他の技術的なガイドラインについての詳細は、DEVELOP.mdの[コード品質とスタイルガイドライン](DEVELOP.md#code-quality-and-style-guidelines)セクションを参照してください。
+## ロギング
+- `LogManager`: 4レベル（debug, info, warn, error）
+- 設定: VS Code設定で`logLevel`と`debugMode`調整可能
 
 ## テスト
+- 場所: `src/test/vitest/`
+- 実行: `pnpm test`（全テスト）, `pnpm run test:coverage`（カバレッジ）
+- モック: 共通実装は`mocks/`ディレクトリ
+- エッジケース: 特殊文字パス、パフォーマンス、循環参照など
 
-プロジェクトはユニットテストにVitestを使用しています。テストは`src/test`ディレクトリにあります。
+## 主要コマンド
+- `pnpm run lint`: ESLintチェック
+- `pnpm run lint:fix`: ESLint自動修正
+- `pnpm run prettier:fix`: 自動フォーマット
+- `pnpm run typecheck`: 型チェック
+- `vsce package`: VSIXパッケージ作成
 
-### テストの実行
+## エラー処理
+- カスタムエラークラス使用
+- 主要エラー: `LargeDataException`, `CircularReferenceException`など
+- `FileResult`型で結果伝達
 
-```bash
-# すべてのテストを実行
-pnpm test
 
-# カバレッジ付きでテストを実行
-pnpm run test:coverage
-```
+## 開発用ドキュメント
+- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
 
-### テストの作成
-
-- `.test.ts`拡張子でテストファイルを作成する
-- `src/test/vitest/`以下の適切なディレクトリにテストを配置する
-- 提供されたモック実装を使用してVS Code API依存関係をモックする
-- 成功ケースとエラーケースの両方をテストする
-
-より詳細なテスト情報とベストプラクティスについては、DEVELOP.mdの[テスト](DEVELOP.md#testing)セクションを参照してください。
-
-## プルリクエストのプロセス
-
-1. 説明的な名前で`master`から新しいブランチを作成する：
-   ```bash
-   git checkout -b feature/あなたの機能名
-   ```
-
-2. 変更を加え、すべてのテストがパスすることを確認する：
-   ```bash
-   pnpm test
-   ```
-
-3. [コミットメッセージのガイドライン](#コミットメッセージのガイドライン)に従ってコミットする
-
-4. ブランチをプッシュしてGitHubでプルリクエストを作成する
-
-5. PRの説明を以下で更新する：
-   - 変更の概要
-   - 関連する課題番号（ある場合）
-   - 該当する場合はテスト手順
-
-6. コードレビューからのフィードバックに対応する
-
-## コミットメッセージのガイドライン
-
-conventional commitsの仕様に従います：
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-### タイプ
-
-- **feat**: 新機能
-- **fix**: バグ修正
-- **docs**: ドキュメントのみの変更
-- **style**: コードの意味に影響を与えない変更（フォーマットなど）
-- **refactor**: バグ修正でも機能追加でもないコード変更
-- **perf**: パフォーマンスを改善するコード変更
-- **test**: テストの追加または修正
-- **build**: ビルドシステムまたは依存関係の変更
-- **ci**: CI設定ファイルとスクリプトの変更
-- **chore**: srcまたはtestファイルを変更しないその他の変更
-
-### スコープ
-
-スコープは影響を受けるモジュールの名前にする必要があります（例：fileResolver、parameterProcessor）。
-
-### 件名
-
-- 命令形、現在形を使用する：「変更する」ではなく「変更」
-- 最初の文字を大文字にしない
-- 末尾にピリオド（.）を付けない
-
-### 例
-
-```
-feat(fileResolver): プロジェクトルートパスのサポートを追加
-
-fix(parameterProcessor): ネストされたパラメータの問題を解決
-
-docs(readme): インストール手順を更新
-```
 
 ## ライセンス
-
-このプロジェクトに貢献することにより、あなたの貢献がプロジェクトのMITライセンスの下でライセンスされることに同意するものとします。
+MIT
