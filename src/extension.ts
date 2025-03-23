@@ -14,7 +14,9 @@ export function activate(context: vscode.ExtensionContext): void {
   LogManager.info('inlined Copy extension is now active');
 
   // アクティベーション時にトースト通知を表示
-  VSCodeEnvironment.showInformationMessage('inlined Copy 拡張機能がアクティブになりました');
+  VSCodeEnvironment.showInformationMessage(
+    'inlined Copy 拡張機能 Ver0.1.4がアクティブになりました'
+  );
 
   // Register the copyInline command
   const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', async () => {
@@ -52,42 +54,6 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   context.subscriptions.push(disposable);
-
-  // Set up FileSystemWatcher to invalidate cache when files change
-  // Get configuration for file types to watch
-  const config = VSCodeEnvironment.getConfiguration('inlined-copy', 'watchFileTypes', ['**/*.md']);
-
-  // Create a file change handler that clears both caches
-  const fileChangeHandler = (): void => {
-    // Clear the FileResolver cache when files change
-    // Import FileResolver dynamically to avoid circular dependencies
-    import('./fileResolver/fileResolver').then(module => {
-      module.FileResolver.clearCache();
-      LogManager.debug('FileResolver cache cleared due to file system changes');
-    });
-
-    // Clear the FileExpander cache as well
-    import('./fileExpander').then(module => {
-      module.FileExpander.clearCache();
-      LogManager.debug('FileExpander cache cleared due to file system changes');
-    });
-  };
-
-  // Create watchers for each pattern
-  const watchers: vscode.FileSystemWatcher[] = [];
-
-  // Create a watcher for each pattern
-  config.forEach(pattern => {
-    const watcher = VSCodeEnvironment.createFileSystemWatcher(pattern);
-    watcher.onDidChange(fileChangeHandler);
-    watcher.onDidCreate(fileChangeHandler);
-    watcher.onDidDelete(fileChangeHandler);
-    watchers.push(watcher);
-    context.subscriptions.push(watcher);
-  });
-
-  // Log the watched patterns
-  LogManager.debug(`Watching file patterns: ${config.join(', ')}`);
 }
 
 /**
