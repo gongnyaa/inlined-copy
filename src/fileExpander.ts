@@ -66,12 +66,12 @@ export class FileExpander {
           if (error instanceof LargeDataException) {
             LogManager.log(`Large file detected: ${error.message}`);
           } else if (error instanceof CircularReferenceException) {
-            LogManager.log(error.message);
+            LogManager.error(error.message);
           } else if (error instanceof RecursionDepthException) {
-            LogManager.log(error.message);
+            LogManager.error(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            LogManager.log(`Error expanding file reference: ${errorMessage}`);
+            LogManager.error(`Error expanding file reference: ${errorMessage}`);
             throw error;
           }
         }

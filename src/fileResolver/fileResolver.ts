@@ -94,7 +94,7 @@ export class FileResolver {
         LogManager.log(`Selected best match: ${bestMatch.fsPath}`);
         return fileSuccess(bestMatch.fsPath);
       } catch (error) {
-        LogManager.log(`Error selecting best match: ${error}`);
+        LogManager.error(`Error selecting best match: ${error}`);
         // テスト用に、ファイルが見つかった場合は最初のファイルを返す
         if (files.length > 0) {
           return fileSuccess(files[0].fsPath);
@@ -104,7 +104,7 @@ export class FileResolver {
         );
       }
     } catch (error) {
-      LogManager.log(`Error resolving file: ${error}`);
+      LogManager.error(`Error resolving file: ${error}`);
       return fileFailure(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -200,7 +200,7 @@ export class FileResolver {
 
       return uris.map(uri => vscode.workspace.asRelativePath(uri));
     } catch (error) {
-      LogManager.log(`Error getting suggestions: ${error}`);
+      LogManager.error(`Error getting suggestions: ${error}`);
       return [];
     }
   }

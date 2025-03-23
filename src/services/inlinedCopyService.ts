@@ -37,7 +37,7 @@ export class InlinedCopyService {
       await VSCodeEnvironment.writeClipboard(processedText);
       LogManager.log('Text copied to clipboard with expanded references');
     } catch (error) {
-      LogManager.log(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      LogManager.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

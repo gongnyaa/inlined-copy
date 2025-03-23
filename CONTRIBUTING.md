@@ -25,14 +25,17 @@ code --extensionDevelopmentPath=${PWD}
 デバッグ起動: F5キー
 
 ## ロギング
-- `LogManager`: シンプルな単一メソッド（log）
-- コンソールとVS Code出力チャンネルに出力
+- `LogManager`: 2つのメソッド（log, error）
+- コンソールに出力
 
 ```typescript
 import { LogManager } from './utils/logManager';
 
-// ログメッセージを出力
+// 通常のログメッセージを出力
 LogManager.log('Your message here');
+
+// エラーメッセージを出力
+LogManager.error('Your error message here');
 ```
 
 ## テスト

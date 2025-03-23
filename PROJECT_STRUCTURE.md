@@ -16,7 +16,7 @@ inlined-copy/
 │   ├── parameterProcessor.ts # パラメータ処理ロジック
 │   ├── sectionExtractor.ts  # 見出しセクション抽出ロジック
 │   └── utils/               # ユーティリティ関数
-│       ├── logManager.ts       # シンプルなログ出力ユーティリティ
+│       ├── logManager.ts       # ログ出力ユーティリティ（log/errorメソッド）
 │       └── vscodeEnvironment.ts # VS Code環境操作ラッパー
 ├── asset/                   # マーケット用素材
 ├── test/                    # 結合テスト
