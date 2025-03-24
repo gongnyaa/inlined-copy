@@ -5,3 +5,4 @@ node_modules
 pr_diff.txt
 .eslintcache
 .obsidian/
+coverage/
