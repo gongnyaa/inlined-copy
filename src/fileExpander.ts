@@ -1,11 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolver } from './fileResolver/fileResolver';
-import {
-  LargeDataException,
-  CircularReferenceException,
-  RecursionDepthException,
-} from './errors/errorTypes';
+import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
 import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 import { LogManager } from './utils/logManager';
 
@@ -25,10 +21,7 @@ export class FileExpander {
     );
 
     if (currentDepth > MAX_RECURSION_DEPTH) {
-      LogManager.log(`再帰の深さ${currentDepth}が最大値${MAX_RECURSION_DEPTH}を超えています`);
-      throw new RecursionDepthException(
-        `最大再帰深度(${MAX_RECURSION_DEPTH})を超えました`
-      );
+      return text;
     }
 
     const fileReferenceRegex = /!\[\[(.*?)\]\]/g;
@@ -67,12 +60,9 @@ export class FileExpander {
             LogManager.log(`大きなファイルを検出: ${error.message}`);
           } else if (error instanceof CircularReferenceException) {
             LogManager.error(error.message);
-          } else if (error instanceof RecursionDepthException) {
-            LogManager.error(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
             LogManager.error(`ファイル参照の展開エラー: ${errorMessage}`);
-            throw error;
           }
         }
 

@@ -33,16 +33,6 @@ export class CircularReferenceException extends Error {
 }
 
 /**
- * 再帰の深さが設定された制限を超えた時にスローされる例外
- */
-export class RecursionDepthException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'RecursionDepthException';
-  }
-}
-
-/**
  * ErrorオブジェクトをFileResult形式に変換する
  * @param error 変換するエラー
  * @returns success=falseとエラーメッセージを含むFileResultオブジェクト
