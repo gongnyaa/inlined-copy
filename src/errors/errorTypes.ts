@@ -1,9 +1,9 @@
 /**
- * Custom error types for the inlined-copy extension
+ * inlined-copy拡張機能のカスタムエラータイプ
  */
 
 /**
- * Exception thrown when attempting to process data that exceeds size limits
+ * サイズ制限を超えるデータを処理しようとした時にスローされる例外
  */
 export class LargeDataException extends Error {
   constructor(message: string) {
@@ -13,7 +13,7 @@ export class LargeDataException extends Error {
 }
 
 /**
- * Exception thrown when a duplicate file reference is detected
+ * 重複ファイル参照が検出された時にスローされる例外
  */
 export class DuplicateReferenceException extends Error {
   constructor(message: string) {
@@ -23,7 +23,7 @@ export class DuplicateReferenceException extends Error {
 }
 
 /**
- * Exception thrown when a circular reference is detected
+ * 循環参照が検出された時にスローされる例外
  */
 export class CircularReferenceException extends Error {
   constructor(message: string) {
@@ -33,7 +33,7 @@ export class CircularReferenceException extends Error {
 }
 
 /**
- * Exception thrown when recursion depth exceeds the configured limit
+ * 再帰の深さが設定された制限を超えた時にスローされる例外
  */
 export class RecursionDepthException extends Error {
   constructor(message: string) {
@@ -43,9 +43,9 @@ export class RecursionDepthException extends Error {
 }
 
 /**
- * Converts an Error object to a FileResult format
- * @param error The error to convert
- * @returns A FileResult object with success=false and the error message
+ * ErrorオブジェクトをFileResult形式に変換する
+ * @param error 変換するエラー
+ * @returns success=falseとエラーメッセージを含むFileResultオブジェクト
  */
 export function errorToFileResult(error: Error): import('../fileResolver/fileResult').FileResult {
   return { success: false, error: `${error.name}: ${error.message}` };

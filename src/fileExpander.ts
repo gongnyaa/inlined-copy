@@ -16,7 +16,7 @@ export class FileExpander {
     visitedPaths: string[] = [],
     currentDepth = 0
   ): Promise<string> {
-    LogManager.debug(`Expanding file references at depth ${currentDepth}`);
+    LogManager.log(`深さ${currentDepth}でファイル参照を展開中`);
 
     const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration(
       'inlined-copy',
@@ -25,9 +25,9 @@ export class FileExpander {
     );
 
     if (currentDepth > MAX_RECURSION_DEPTH) {
-      LogManager.debug(`Recursion depth ${currentDepth} exceeds maximum ${MAX_RECURSION_DEPTH}`);
+      LogManager.log(`再帰の深さ${currentDepth}が最大値${MAX_RECURSION_DEPTH}を超えています`);
       throw new RecursionDepthException(
-        `Maximum recursion depth (${MAX_RECURSION_DEPTH}) exceeded`
+        `最大再帰深度(${MAX_RECURSION_DEPTH})を超えました`
       );
     }
 
@@ -61,17 +61,17 @@ export class FileExpander {
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('File not found:')) {
-          LogManager.info(`![[${filePath}]] was not found`, true);
+          LogManager.log(`![[${filePath}]] が見つかりませんでした`);
         } else {
           if (error instanceof LargeDataException) {
-            LogManager.warn(`Large file detected: ${error.message}`);
+            LogManager.log(`大きなファイルを検出: ${error.message}`);
           } else if (error instanceof CircularReferenceException) {
             LogManager.error(error.message);
           } else if (error instanceof RecursionDepthException) {
-            LogManager.warn(error.message);
+            LogManager.error(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            LogManager.error(`Error expanding file reference: ${errorMessage}`);
+            LogManager.error(`ファイル参照の展開エラー: ${errorMessage}`);
             throw error;
           }
         }
@@ -88,7 +88,7 @@ export class FileExpander {
 
     if (!result.success) {
       await FileResolver.getSuggestions(filePath);
-      throw new Error(`File not found: ${filePath}`);
+      throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
     return result.path;
@@ -101,12 +101,12 @@ export class FileExpander {
       const MAX_FILE_SIZE = VSCodeEnvironment.getConfiguration(
         'inlined-copy',
         'maxFileSize',
-        1024 * 1024 * 5 // 5MB default
+        1024 * 1024 * 5 // デフォルト5MB
       );
 
       if (stats.size > MAX_FILE_SIZE) {
         throw new LargeDataException(
-          `File size (${(stats.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed limit (${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)`
+          `ファイルサイズ(${(stats.size / 1024 / 1024).toFixed(2)}MB)が許容最大サイズ(${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)を超えています`
         );
       }
 
@@ -117,7 +117,7 @@ export class FileExpander {
       return await new Promise<string>((resolve, reject) => {
         fs.readFile(filePath, 'utf8', (err, data) => {
           if (err) {
-            reject(new Error(`Failed to read file: ${err.message}`));
+            reject(new Error(`ファイルの読み込みに失敗: ${err.message}`));
             return;
           }
           resolve(data);
@@ -128,7 +128,7 @@ export class FileExpander {
         throw error;
       }
       throw new Error(
-        `Failed to access file: ${error instanceof Error ? error.message : String(error)}`
+        `ファイルへのアクセスに失敗: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -143,7 +143,7 @@ export class FileExpander {
       });
 
       stream.on('error', err => {
-        reject(new Error(`Failed to read file stream: ${err.message}`));
+        reject(new Error(`ファイルストリームの読み込みに失敗: ${err.message}`));
       });
 
       stream.on('end', () => {

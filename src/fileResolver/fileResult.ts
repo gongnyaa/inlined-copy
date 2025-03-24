@@ -1,21 +1,21 @@
 /**
- * Result type for file resolution operations
+ * ファイル解決操作の結果型
  */
 export type FileResult = { success: true; path: string } | { success: false; error: string };
 
 /**
- * Creates a successful file result
- * @param path The resolved file path
- * @returns A successful file result
+ * 成功したファイル結果を作成
+ * @param path 解決されたファイルパス
+ * @returns 成功したファイル結果
  */
 export function fileSuccess(path: string): FileResult {
   return { success: true, path };
 }
 
 /**
- * Creates a failed file result
- * @param error The error message
- * @returns A failed file result
+ * 失敗したファイル結果を作成
+ * @param error エラーメッセージ
+ * @returns 失敗したファイル結果
  */
 export function fileFailure(error: string): FileResult {
   return { success: false, error };
