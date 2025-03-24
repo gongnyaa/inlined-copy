@@ -12,8 +12,6 @@ export class FileExpander {
     visitedPaths: string[] = [],
     currentDepth = 0
   ): Promise<string> {
-    LogManager.log(`深さ${currentDepth}でファイル参照を展開中`);
-
     const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration(
       'inlined-copy',
       'maxRecursionDepth',
@@ -21,6 +19,9 @@ export class FileExpander {
     );
 
     if (currentDepth > MAX_RECURSION_DEPTH) {
+      LogManager.log(
+        `maxRecursionDepthを超える深さ:${currentDepth}のファイル参照が行われたため、そのまま表記します。`
+      );
       return text;
     }
 
