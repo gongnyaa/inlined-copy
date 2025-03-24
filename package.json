@@ -56,11 +56,6 @@
     "configuration": {
       "title": "Inlined Copy",
       "properties": {
-        "inlined-copy.maxSearchDepth": {
-          "type": "number",
-          "default": 3,
-          "description": "Maximum depth for proximity-based file search"
-        },
         "inlined-copy.maxFileSize": {
           "type": "number",
           "default": 5242880,
