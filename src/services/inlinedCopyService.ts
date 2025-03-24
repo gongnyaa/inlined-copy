@@ -7,7 +7,7 @@ import { VSCodeEnvironment } from '../utils/vscodeEnvironment';
 import { LogManager } from '../utils/logManager';
 
 export class InlinedCopyService {
-  public async executeCommand(): Promise<void> {
+  public static async executeCommand(): Promise<void> {
     try {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {

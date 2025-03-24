@@ -6,17 +6,18 @@ import { InlinedCopyService } from './services/inlinedCopyService';
  * 拡張機能をアクティブ化する
  * @param context 拡張機能のコンテキスト
  */
-export function activate(context: vscode.ExtensionContext): void {
+export function activate(
+  context: vscode.ExtensionContext,
+  logManager = LogManager,
+  service = InlinedCopyService
+): void {
   // LogManagerを初期化
-  LogManager.initialize(context);
-  LogManager.log('inlined Copy extension is now active');
-
-  const service = new InlinedCopyService();
+  logManager.initialize(context);
 
   // copyInlineコマンドを登録
   const disposable = vscode.commands.registerCommand(
     'inlined-copy.copyInline',
-    service.executeCommand.bind(service)
+    service.executeCommand
   );
 
   context.subscriptions.push(disposable);
@@ -25,8 +26,7 @@ export function activate(context: vscode.ExtensionContext): void {
 /**
  * 拡張機能を非アクティブ化する
  */
-export function deactivate(): void {
+export function deactivate(logManager = LogManager): void {
   // 必要に応じてリソースをクリーンアップ
-  LogManager.dispose();
-  LogManager.log('inlined Copy extension is now deactivated');
+  logManager.dispose();
 }

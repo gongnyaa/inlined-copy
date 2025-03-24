@@ -40,6 +40,7 @@ export class LogManager {
    * LogManagerのリソースを破棄する
    */
   public static dispose(): void {
+    this.log('inlined Copy extension is now deactivated');
     this.outputChannel?.dispose();
     this.outputChannel = undefined;
   }
