@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
  */
 export class LogManager {
   private static outputChannel: vscode.OutputChannel | undefined;
-  
+
   /**
    * LogManagerを初期化する
    * @param context 拡張機能のコンテキスト
@@ -15,25 +15,27 @@ export class LogManager {
     if (!this.outputChannel) {
       this.outputChannel = vscode.window.createOutputChannel('Inlined Copy');
       context.subscriptions.push(this.outputChannel);
+      this.outputChannel?.appendLine(`[Inlined Copy] initialized`);
     }
   }
-  
+
   /**
    * シンプルなログメソッド
    * @param message ログに記録するメッセージ
    */
   public static log(message: string): void {
-    console.log(`[Inlined Copy] ${message}`);
+    this.outputChannel?.appendLine(`[Inlined Copy] ${message}`);
   }
-  
+
   /**
    * エラーログメソッド
    * @param message ログに記録するエラーメッセージ
    */
   public static error(message: string): void {
-    console.error(`[Inlined Copy] ERROR: ${message}`);
+    this.outputChannel?.appendLine(`[Inlined Copy] ERROR ${message}`);
+    this.outputChannel?.show();
   }
-  
+
   /**
    * LogManagerのリソースを破棄する
    */

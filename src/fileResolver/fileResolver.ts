@@ -66,9 +66,8 @@ export class FileResolver {
         }
 
         // 完全一致がなければ、拡張子なしで再検索
-        LogManager.log(
-          `${filePath}の完全一致が見つかりません。拡張子制限なしで再試行します`
-        );
+        LogManager.log(`${filePath}の完全一致が見つかりません。拡張子制限なしで再試行します`);
+        return fileFailure(`ファイルが見つかりません: ${filePath}`);
       }
 
       // 拡張子なしパターンで検索（拡張子指定がない場合、または完全一致が見つからなかった場合）

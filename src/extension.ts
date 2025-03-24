@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 import { LogManager } from './utils/logManager';
 import { InlinedCopyService } from './services/inlinedCopyService';
 
@@ -11,11 +10,6 @@ export function activate(context: vscode.ExtensionContext): void {
   // LogManagerを初期化
   LogManager.initialize(context);
   LogManager.log('inlined Copy extension is now active');
-
-  // アクティベーション時にトースト通知を表示
-  VSCodeEnvironment.showInformationMessage(
-    'inlined Copy 拡張機能 Ver0.1.4がアクティブになりました'
-  );
 
   const service = new InlinedCopyService();
 

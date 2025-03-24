@@ -30,8 +30,12 @@ export class InlinedCopyService {
       const currentFilePath = editor.document.uri.fsPath;
       const currentDir = path.dirname(currentFilePath);
 
+      LogManager.log('currentDir:' + currentDir);
+
+      LogManager.log('変換前されたテキストの長さ:' + text.length);
       // テキストを処理 - ファイル参照を展開
       const processedText = await FileExpander.expandFileReferences(text, currentDir);
+      LogManager.log('取得されたテキストの長さ:' + processedText.length);
 
       // 処理されたテキストをクリップボードにコピー
       await VSCodeEnvironment.writeClipboard(processedText);
