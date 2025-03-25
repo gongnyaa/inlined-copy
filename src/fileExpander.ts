@@ -12,8 +12,8 @@ export interface IFileExpander {
   expandFileReferences(
     text: string,
     basePath: string,
-    visitedPaths: string[],
-    currentDepth: number
+    visitedPaths?: string[],
+    currentDepth?: number
   ): Promise<string>;
 }
 

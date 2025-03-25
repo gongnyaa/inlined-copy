@@ -13,7 +13,7 @@ export class InlinedCopyService {
   ): Promise<void> {
     try {
       const { text, currentDir } = await editorTextService.getTextFromEditor();
-      const processedText = await fileExpander.expandFileReferences(text, currentDir, [], 0);
+      const processedText = await fileExpander.expandFileReferences(text, currentDir);
       await VSCodeEnvironment.writeClipboard(processedText);
       LogManager.notify('展開された参照を含むテキストがクリップボードにコピーされました');
     } catch (error) {
