@@ -11,13 +11,12 @@ export function activate(
   logManager = LogManager,
   service = InlinedCopyService
 ): void {
-  // LogManagerを初期化
   logManager.initialize(context);
 
-  // copyInlineコマンドを登録
-  const disposable = vscode.commands.registerCommand(
-    'inlined-copy.copyInline',
-    service.executeCommand
+  const inlinedCopyService = service.createDefault();
+
+  const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', () =>
+    inlinedCopyService.executeCommand()
   );
 
   context.subscriptions.push(disposable);
@@ -27,6 +26,5 @@ export function activate(
  * 拡張機能を非アクティブ化する
  */
 export function deactivate(logManager = LogManager): void {
-  // 必要に応じてリソースをクリーンアップ
   logManager.dispose();
 }

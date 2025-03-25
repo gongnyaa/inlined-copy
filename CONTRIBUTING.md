@@ -10,11 +10,7 @@
 - VS Code Extension API
 
 ## コード規約
-- 命名規則: 変数は`camelCase`、定数は`UPPER_CASE`、クラスは`PascalCase`
-- 未使用変数: `_prefixed`で表記（`_unusedVar`）
-- ESLint設定: `@typescript-eslint/recommended`ベース
-- 自動フォーマット: Prettier使用、手動フォーマット禁止
-- プリコミットフック: lint-staged, 型チェック, テスト自動実行
+![[guideline_coding]]
 
 ## セットアップと実行
 ```
