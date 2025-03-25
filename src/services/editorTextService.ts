@@ -1,31 +1,21 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { LogManager } from '../utils/logManager';
+import { TextNotFoundException } from '../errors/errorTypes';
 
-/**
- * エディタからテキストを取得するためのインターフェース
- */
 export interface IEditorTextService {
   /**
    * アクティブなエディタからテキストを取得する
-   * @returns 取得したテキストと現在のディレクトリのパス、または取得できない場合はnull
+   * @returns 取得したテキストと現在のディレクトリのパス
+   * @throws TextNotFoundException テキストが見つからない場合にスローされる
    */
-  getTextFromEditor(): Promise<{ text: string; currentDir: string } | null>;
+  getTextFromEditor(): Promise<{ text: string; currentDir: string }>;
 }
 
-/**
- * VS Code環境でエディタからテキストを取得するサービス
- */
 export class EditorTextService implements IEditorTextService {
-  /**
-   * アクティブなエディタからテキストを取得する
-   * @returns 取得したテキストと現在のディレクトリのパス、または取得できない場合はnull
-   */
-  public async getTextFromEditor(): Promise<{ text: string; currentDir: string } | null> {
+  public async getTextFromEditor(): Promise<{ text: string; currentDir: string }> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      LogManager.log('アクティブなエディタが見つかりません');
-      return null;
+      throw new TextNotFoundException('アクティブなエディタが見つかりません');
     }
 
     // 選択されたテキストまたは選択がない場合は文書全体を取得
@@ -33,15 +23,12 @@ export class EditorTextService implements IEditorTextService {
     const text = selection.isEmpty ? editor.document.getText() : editor.document.getText(selection);
 
     if (!text) {
-      LogManager.log('処理するテキストがありません');
-      return null;
+      throw new TextNotFoundException('コピーするするテキストがありません');
     }
 
     // 相対パスを解決するために現在のファイルのディレクトリを取得
     const currentFilePath = editor.document.uri.fsPath;
     const currentDir = path.dirname(currentFilePath);
-
-    LogManager.log('currentDir:' + currentDir);
 
     return { text, currentDir };
   }
