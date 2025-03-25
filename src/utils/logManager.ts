@@ -44,4 +44,13 @@ export class LogManager {
     this.outputChannel?.dispose();
     this.outputChannel = undefined;
   }
+
+  /**
+   * トースト通知を表示する
+   * @param message 表示するメッセージ
+   * @returns メッセージが表示されたときに解決するプロミス
+   */
+  public static notify(message: string): Thenable<string | undefined> {
+    return vscode.window.showInformationMessage(`[Inlined Copy] ${message}`);
+  }
 }

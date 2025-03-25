@@ -6,3 +6,4 @@ pr_diff.txt
 .eslintcache
 .obsidian/
 coverage/
+pr_**

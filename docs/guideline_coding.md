@@ -5,6 +5,7 @@
 
 ### インターフェース
 - 名称: `I` + クラス名
+- デフォルト引数にはオプショナルパラメータをつける。
 
 ### クラス
 - `PascalCase`
@@ -63,6 +64,11 @@ MyLogger.Instance().log("hogehoge");
 const mockLogger = { log: (message: string) => { /* mock implementation */ } };
 MyLogger.SetInstance(mockLogger);
 ```
+
+### 依存性注入方法
+- なるべく引数で注入する。
+- 状態を持つ依存先の場合、必要に応じてコンストラクタで注入する。
+- 多くのクラスから利用される共通クラスの場合は、シングルトンで注入する。
 
 ## エラー処理
 - 方針:

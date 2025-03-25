@@ -9,11 +9,9 @@ import { InlinedCopyService } from './services/inlinedCopyService';
 export function activate(
   context: vscode.ExtensionContext,
   logManager = LogManager,
-  service = InlinedCopyService
+  inlinedCopyService = new InlinedCopyService()
 ): void {
   logManager.initialize(context);
-
-  const inlinedCopyService = service.createDefault();
 
   const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', () =>
     inlinedCopyService.executeCommand()

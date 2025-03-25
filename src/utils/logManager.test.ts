@@ -11,6 +11,7 @@ vi.mock('vscode', () => {
         show: vi.fn(),
         dispose: vi.fn(),
       }),
+      showInformationMessage: vi.fn().mockResolvedValue('OK'),
     },
   };
 });
@@ -20,6 +21,7 @@ let mockCreateOutputChannel: any;
 let mockAppendLine: any;
 let mockShow: any;
 let mockDispose: any;
+let mockShowInformationMessage: any;
 
 let mockContext: any;
 
@@ -30,6 +32,7 @@ describe('LogManager 機能テスト', () => {
     mockAppendLine = mockCreateOutputChannel().appendLine;
     mockShow = mockCreateOutputChannel().show;
     mockDispose = mockCreateOutputChannel().dispose;
+    mockShowInformationMessage = vscode.window.showInformationMessage;
 
     // モックをリセット
     vi.clearAllMocks();
@@ -91,5 +94,15 @@ describe('LogManager 機能テスト', () => {
     );
 
     expect(mockDispose).toHaveBeenCalled();
+  });
+
+  it('トースト通知を表示し、ログにも記録すること', async () => {
+    (LogManager as any).outputChannel = mockCreateOutputChannel();
+    const testMessage = 'テスト通知メッセージ';
+
+    await LogManager.notify(testMessage);
+
+    // トースト通知が表示されることを確認
+    expect(mockShowInformationMessage).toHaveBeenCalledWith(`[Inlined Copy] ${testMessage}`);
   });
 });

@@ -33,6 +33,18 @@ export class CircularReferenceException extends Error {
 }
 
 /**
+ * 対象となる元テキストが見つからない場合にスローされる例外
+ */
+export class TextNotFoundException extends Error {
+  constructor(message: string = '対象となる元テキストが見つかりません') {
+    super(message);
+    this.name = 'TextNotFoundException';
+    // Error クラスの prototype チェーンを正しく設定
+    Object.setPrototypeOf(this, TextNotFoundException.prototype);
+  }
+}
+
+/**
  * ErrorオブジェクトをFileResult形式に変換する
  * @param error 変換するエラー
  * @returns success=falseとエラーメッセージを含むFileResultオブジェクト

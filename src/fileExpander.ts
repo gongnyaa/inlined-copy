@@ -5,12 +5,24 @@ import { LargeDataException, CircularReferenceException } from './errors/errorTy
 import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 import { LogManager } from './utils/logManager';
 
-export class FileExpander {
-  public static async expandFileReferences(
+export interface IFileExpander {
+  /**
+   *
+   */
+  expandFileReferences(
+    text: string,
+    basePath: string,
+    visitedPaths?: string[],
+    currentDepth?: number
+  ): Promise<string>;
+}
+
+export class FileExpander implements IFileExpander {
+  public async expandFileReferences(
     text: string,
     basePath: string,
     visitedPaths: string[] = [],
-    currentDepth = 0
+    currentDepth: number = 0
   ): Promise<string> {
     const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration(
       'inlined-copy',
@@ -74,7 +86,7 @@ export class FileExpander {
     return result;
   }
 
-  private static async resolveFilePath(filePath: string, basePath: string): Promise<string> {
+  private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
     const result = await FileResolver.resolveFilePath(filePath, basePath);
 
     if (!result.success) {
@@ -85,7 +97,7 @@ export class FileExpander {
     return result.path;
   }
 
-  private static async readFileContent(filePath: string): Promise<string> {
+  private async readFileContent(filePath: string): Promise<string> {
     try {
       const stats = fs.statSync(filePath);
 
@@ -124,7 +136,7 @@ export class FileExpander {
     }
   }
 
-  private static readFileContentStreaming(filePath: string): Promise<string> {
+  private readFileContentStreaming(filePath: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
       const chunks: Buffer[] = [];
       const stream = fs.createReadStream(filePath);
