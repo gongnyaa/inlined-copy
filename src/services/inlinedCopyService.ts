@@ -1,41 +1,29 @@
 // inlinedCopyService.ts
 
-import * as vscode from 'vscode';
-import * as path from 'path';
 import { FileExpander } from '../fileExpander';
 import { VSCodeEnvironment } from '../utils/vscodeEnvironment';
 import { LogManager } from '../utils/logManager';
+import { EditorTextService, IEditorTextService } from './editorTextService';
 
 export class InlinedCopyService {
+  private readonly editorTextService: IEditorTextService;
+
+  constructor(editorTextService?: IEditorTextService) {
+    this.editorTextService = editorTextService || new EditorTextService();
+  }
+
   public async executeCommand(): Promise<void> {
     try {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        LogManager.log('アクティブなエディタが見つかりません');
+      // エディタからテキストを取得
+      const editorContent = await this.editorTextService.getTextFromEditor();
+      if (!editorContent) {
         return;
       }
 
-      // 選択されたテキストまたは選択がない場合は文書全体を取得
-      const selection = editor.selection;
-      const text = selection.isEmpty
-        ? editor.document.getText()
-        : editor.document.getText(selection);
+      const { text, currentDir } = editorContent;
 
-      if (!text) {
-        LogManager.log('処理するテキストがありません');
-        return;
-      }
-
-      // 相対パスを解決するために現在のファイルのディレクトリを取得
-      const currentFilePath = editor.document.uri.fsPath;
-      const currentDir = path.dirname(currentFilePath);
-
-      LogManager.log('currentDir:' + currentDir);
-
-      LogManager.log('変換前されたテキストの長さ:' + text.length);
       // テキストを処理 - ファイル参照を展開
       const processedText = await FileExpander.expandFileReferences(text, currentDir);
-      LogManager.log('取得されたテキストの長さ:' + processedText.length);
 
       // 処理されたテキストをクリップボードにコピー
       await VSCodeEnvironment.writeClipboard(processedText);
@@ -43,5 +31,13 @@ export class InlinedCopyService {
     } catch (error) {
       LogManager.error(`エラー: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  /**
+   * 静的ファクトリメソッド - デフォルトの実装でインスタンスを作成
+   * @returns InlinedCopyServiceのインスタンス
+   */
+  public static createDefault(): InlinedCopyService {
+    return new InlinedCopyService();
   }
 }

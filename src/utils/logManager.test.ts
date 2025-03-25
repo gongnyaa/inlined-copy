@@ -86,10 +86,10 @@ describe('LogManager 機能テスト', () => {
     (LogManager as any).outputChannel = mockCreateOutputChannel();
 
     LogManager.dispose();
+    expect(mockAppendLine).toHaveBeenCalledWith(
+      '[Inlined Copy] inlined Copy extension is now deactivated'
+    );
 
     expect(mockDispose).toHaveBeenCalled();
-
-    LogManager.log('破棄後のテスト');
-    expect(mockAppendLine).not.toHaveBeenCalled();
   });
 });
