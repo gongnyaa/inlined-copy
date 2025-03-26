@@ -2,7 +2,7 @@
   "name": "inlined-copy",
   "displayName": "inlined Copy",
   "description": "Copy text with inlined content",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "publisher": "frecre",
   "icon": "assets/icon.png",
   "license": "MIT",
@@ -36,7 +36,7 @@
     "type": "git",
     "url": "https://github.com/gongnyaa/inlined-copy"
   },
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
       {
@@ -72,7 +72,7 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
-    "compile": "tsc -p ./",
+    "compile": "rimraf out && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile",
     "lint": "eslint . --ext .ts --cache",
@@ -95,18 +95,19 @@
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.23.0",
     "@types/glob": "^7.2.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.19.83",
     "@types/vscode": "1.94.0",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
     "@vitest/coverage-v8": "3.0.9",
-    "@vscode/test-electron": "^2.3.9",
+    "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.23.0",
     "eslint-config-prettier": "^10.1.1",
     "glob": "^11.0.1",
     "husky": "^8.0.3",
     "lint-staged": "^15.5.0",
     "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
     "typescript": "^4.9.5",
     "typescript-eslint": "^8.28.0",
     "vitest": "^3.0.9"

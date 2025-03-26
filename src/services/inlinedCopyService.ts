@@ -15,7 +15,7 @@ export class InlinedCopyService {
       const { text, currentDir } = await editorTextService.getTextFromEditor();
       const processedText = await fileExpander.expandFileReferences(text, currentDir);
       await VSCodeEnvironment.writeClipboard(processedText);
-      LogManager.notify('展開された参照を含むテキストがクリップボードにコピーされました');
+      LogManager.notify('展開された参照を含むテキストがクリップボードにコピーされました v0.1.7');
     } catch (error) {
       if (error instanceof TextNotFoundException) {
         LogManager.notify('コピー元のテキストが見つかりませんでした');
