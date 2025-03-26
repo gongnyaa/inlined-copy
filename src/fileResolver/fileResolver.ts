@@ -22,67 +22,68 @@ export class FileResolver {
       const parsedPath = path.parse(filePath);
       const hasExtension = parsedPath.ext !== '';
 
-      // 親フォルダが指定されているか確認 (例: folderName/fileName → dir: "folderName", name: "fileName")
+      // 例: filePath = "folderName/fileName.md"
+      //   → parsedPath.dir = "folderName", parsedPath.name = "fileName", parsedPath.ext = ".md"
+      // 例: filePath = "sub_in_folder.md"
+      //   → parsedPath.dir = "", parsedPath.name = "sub_in_folder", parsedPath.ext = ".md"
+
+      // 親フォルダが指定されているか確認
       const hasParentFolder = parsedPath.dir !== '';
-      // 例: parentFolder = "folderName" または "folderName/subFolder" のように複数階層もあり得る
       const parentFolder = hasParentFolder ? parsedPath.dir : '';
 
       // 検索パターンの基本部分を準備
-      // 例: 拡張子が無いなら "fileName.*", 拡張子があれば "fileName.ext"
       const baseSearchPattern = hasExtension
-        ? parsedPath.base // 例: "fileName.ext"
-        : `${parsedPath.name}.*`; // 例: "fileName.*"
+        ? parsedPath.base // "fileName.ext"
+        : `${parsedPath.name}.*`; // "fileName.*"
 
-      // basePath からワークスペースルートまでの相対パス
       let currentPath = basePath;
+
+      // basePath からワークスペースルートまで一つずつ上にたどる
       while (currentPath.startsWith(workspaceRoot)) {
         const relativeBase = path.relative(workspaceRoot, currentPath);
 
-        // 親フォルダが指定されているなら、それを検索パターンに含める
-        // → 例: relativeBase + parentFolder + baseSearchPattern
-        //    = "apps/myApp/src" + "folderName" + "fileName.*"
         let searchPattern: string;
+
         if (hasParentFolder) {
+          // 親フォルダがある: "relativeBase/parentFolder/fileName.*" を検索
+          // → 例: "apps/myApp/src/folderName/fileName.*"
+          // "**/" は付けずに、階層を固定して検索
           searchPattern = path.join(relativeBase, parentFolder, baseSearchPattern);
         } else {
-          // 親フォルダなしの場合は currentPath 配下の直下を検索
-          searchPattern = path.join(relativeBase, baseSearchPattern);
+          // 親フォルダがない: "relativeBase/**/fileName.*" を検索
+          // → 例: "apps/myApp/src/**/sub_in_folder.*"
+          // これによって、relativeBase 配下のサブディレクトリも含めて探す
+          searchPattern = path.join(relativeBase, '**', baseSearchPattern);
         }
 
-        // '**/' を付けないことで「searchPattern として与えたパス」に対してのみ検索
-        // 第2引数は除外パターン (node_modules を除外)
+        // node_modules などは除外
         const files = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 10);
 
         if (files.length > 0) {
-          // 見つかったファイルの中から「本当に parentFolder が直下の親ディレクトリとして一致しているか」を確認
           if (hasParentFolder) {
-            // 例: parentFolder = "folderName/subFolder" の場合は、そこがディレクトリパスとして丸ごと一致するか
+            // 親フォルダ指定がある場合は「直上ディレクトリが parentFolder と完全一致」するものだけを返す
+            // (複数階層の場合も含め、"relativeBase/parentFolder" と丸ごと一致させる)
             const matchingFiles = files.filter(file => {
-              // ワークスペースルートからの相対パス (例: "apps/myApp/src/folderName/subFolder/fileName.js")
+              // ワークスペースルートからの相対パスにして比較
               const relativeFilePath = path.relative(workspaceRoot, file.fsPath);
-              // そのファイルの直上ディレクトリ (例: "apps/myApp/src/folderName/subFolder")
               const actualParentDir = path.dirname(relativeFilePath);
-              // 期待するディレクトリパス (例: "apps/myApp/src/folderName/subFolder")
               const expectedParentDir = path.join(relativeBase, parentFolder);
-
-              // 丸ごと一致するかどうか
               return actualParentDir === expectedParentDir;
             });
 
             if (matchingFiles.length > 0) {
-              // 最初にマッチしたものを返す (要件に応じて複数ヒット時の扱いを変更してください)
               return fileSuccess(matchingFiles[0].fsPath);
             }
           } else {
-            // 親フォルダが指定されていない場合は、見つかったファイルをそのまま返す
+            // 親フォルダ指定がない場合はファイル名一致だけでOKなので、そのまま返す
             return fileSuccess(files[0].fsPath);
           }
         }
 
-        // ファイルが見つからない場合、親ディレクトリに移動して再検索
+        // 見つからなければ一つ上のディレクトリへ
         const parentPath = path.dirname(currentPath);
         if (parentPath === currentPath) {
-          // ルートに到達した場合は終了
+          // ルートに到達
           break;
         }
         currentPath = parentPath;
@@ -101,7 +102,7 @@ export class FileResolver {
   public static async getSuggestions(filePath: string): Promise<string[]> {
     try {
       const fileName = path.parse(filePath).name;
-      // こちらは単純に「ワークスペース全体から fileName.* を最大5件探す」例
+      // 単純にワークスペース全体から fileName.* を拾う例
       const searchPattern = `**/${fileName}.*`;
 
       const uris = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 5);
