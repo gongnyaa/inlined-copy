@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { VSCodeEnvironment } from './vscodeEnvironment';
 
 /**
  * 拡張機能用の簡略化されたログマネージャー
@@ -51,6 +52,6 @@ export class LogManager {
    * @returns メッセージが表示されたときに解決するプロミス
    */
   public static notify(message: string): Thenable<string | undefined> {
-    return vscode.window.showInformationMessage(`[Inlined Copy] ${message}`);
+    return VSCodeEnvironment.showInformationMessage(`[Inlined Copy] ${message}`);
   }
 }
