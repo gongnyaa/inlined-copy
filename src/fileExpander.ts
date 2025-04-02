@@ -3,7 +3,7 @@ import * as path from 'path';
 import { FileResolver } from './fileResolver/fileResolver';
 import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
 import { IVSCodeEnvironment, VSCodeEnvironment } from './utils/vscodeEnvironment';
-import { LogWrapper } from './utils/logManager';
+import { LogWrapper } from './utils/logWrapper';
 
 export interface IFileExpander {
   /**

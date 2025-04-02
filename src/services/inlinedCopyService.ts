@@ -2,7 +2,7 @@
 
 import { FileExpander, IFileExpander } from '../fileExpander';
 import { IVSCodeEnvironment, VSCodeEnvironment } from '../utils/vscodeEnvironment';
-import { LogWrapper } from '../utils/logManager';
+import { LogWrapper } from '../utils/logWrapper';
 import { EditorTextService, IEditorTextService } from './editorTextService';
 import { TextNotFoundException } from '../errors/errorTypes';
 

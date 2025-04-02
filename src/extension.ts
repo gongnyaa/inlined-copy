@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { LogWrapper } from './utils/logManager';
 import { IInlinedCopyService, InlinedCopyService } from './services/inlinedCopyService';
+import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -17,5 +17,5 @@ export function activate(
 }
 
 export function deactivate(): void {
-  LogWrapper.Instance().dispose();
+  VSCodeEnvironment.Instance().registerDisposable();
 }
