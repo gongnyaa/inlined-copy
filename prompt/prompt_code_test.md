@@ -4,7 +4,10 @@
 以下のクラスに関するテストコードを作成してください
 
 ## テスト対象クラス
-![[extension.ts]]
+![[vSCodeWrapper.ts]]
 
-## ガイドライン
+## ユニットテストガイドライン
 ![[guideline_test_unit.md]]
+
+## TypeScriptガイドライン
+![[guideline_coding]]
