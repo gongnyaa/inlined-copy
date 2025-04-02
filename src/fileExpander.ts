@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolver } from './fileResolver/fileResolver';
 import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
-import { VSCodeEnvironment } from './utils/vscodeEnvironment';
-import { LogManager } from './utils/logManager';
+import { IVSCodeEnvironment, VSCodeEnvironment } from './utils/vscodeEnvironment';
+import { ILogManager, LogManager } from './utils/logManager';
 
 export interface IFileExpander {
   /**
@@ -18,20 +18,43 @@ export interface IFileExpander {
 }
 
 export class FileExpander implements IFileExpander {
+  private static _instance: IFileExpander;
+  private _vscodeEnvironment: IVSCodeEnvironment;
+  private _logManager: ILogManager;
+
+  constructor(
+    vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance(),
+    logManager: ILogManager = LogManager.Instance()
+  ) {
+    this._vscodeEnvironment = vscodeEnvironment;
+    this._logManager = logManager;
+  }
+
+  public static Instance(): IFileExpander {
+    if (!this._instance) {
+      this._instance = new FileExpander();
+    }
+    return this._instance;
+  }
+
+  public static SetInstance(instance: IFileExpander): void {
+    this._instance = instance;
+  }
+
   public async expandFileReferences(
     text: string,
     basePath: string,
     visitedPaths: string[] = [],
     currentDepth: number = 0
   ): Promise<string> {
-    const MAX_RECURSION_DEPTH = VSCodeEnvironment.getConfiguration(
+    const MAX_RECURSION_DEPTH = this._vscodeEnvironment.getConfiguration(
       'inlined-copy',
       'maxRecursionDepth',
       1
     );
 
     if (currentDepth > MAX_RECURSION_DEPTH) {
-      LogManager.log(
+      this._logManager.log(
         `maxRecursionDepthを超える深さ:${currentDepth}のファイル参照が行われたため、そのまま表記します。`
       );
       return text;
@@ -67,15 +90,15 @@ export class FileExpander implements IFileExpander {
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('File not found:')) {
-          LogManager.log(`![[${filePath}]] が見つかりませんでした`);
+          this._logManager.log(`![[${filePath}]] が見つかりませんでした`);
         } else {
           if (error instanceof LargeDataException) {
-            LogManager.log(`大きなファイルを検出: ${error.message}`);
+            this._logManager.log(`大きなファイルを検出: ${error.message}`);
           } else if (error instanceof CircularReferenceException) {
-            LogManager.error(error.message);
+            this._logManager.error(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            LogManager.error(`ファイル参照の展開エラー: ${errorMessage}`);
+            this._logManager.error(`ファイル参照の展開エラー: ${errorMessage}`);
           }
         }
 
@@ -101,7 +124,7 @@ export class FileExpander implements IFileExpander {
     try {
       const stats = fs.statSync(filePath);
 
-      const MAX_FILE_SIZE = VSCodeEnvironment.getConfiguration(
+      const MAX_FILE_SIZE = this._vscodeEnvironment.getConfiguration(
         'inlined-copy',
         'maxFileSize',
         1024 * 1024 * 5 // デフォルト5MB

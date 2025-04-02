@@ -1,57 +1,58 @@
 import * as vscode from 'vscode';
-import { VSCodeEnvironment } from './vscodeEnvironment';
+import { IVSCodeEnvironment, VSCodeEnvironment } from './vscodeEnvironment';
 
-/**
- * 拡張機能用の簡略化されたログマネージャー
- */
-export class LogManager {
-  private static outputChannel: vscode.OutputChannel | undefined;
+export interface ILogManager {
+  initialize(context: vscode.ExtensionContext): void;
+  log(message: string): void;
+  error(message: string): void;
+  dispose(): void;
+  notify(message: string): Thenable<string | undefined>;
+}
 
-  /**
-   * LogManagerを初期化する
-   * @param context 拡張機能のコンテキスト
-   */
-  public static initialize(context: vscode.ExtensionContext): void {
-    // 出力チャンネルが存在しない場合は作成
-    if (!this.outputChannel) {
-      this.outputChannel = vscode.window.createOutputChannel('Inlined Copy');
-      context.subscriptions.push(this.outputChannel);
-      this.outputChannel?.appendLine(`[Inlined Copy] initialized`);
+export class LogManager implements ILogManager {
+  private static _instance: ILogManager;
+  private _outputChannel: vscode.OutputChannel | undefined;
+  private _vscodeEnvironment: IVSCodeEnvironment;
+
+  constructor(vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance()) {
+    this._vscodeEnvironment = vscodeEnvironment;
+  }
+
+  public static Instance(): ILogManager {
+    if (!this._instance) {
+      this._instance = new LogManager();
+    }
+    return this._instance;
+  }
+
+  public static SetInstance(instance: ILogManager): void {
+    this._instance = instance;
+  }
+
+  public initialize(context: vscode.ExtensionContext): void {
+    if (!this._outputChannel) {
+      this._outputChannel = vscode.window.createOutputChannel('Inlined Copy');
+      context.subscriptions.push(this._outputChannel);
+      this._outputChannel?.appendLine(`[Inlined Copy] initialized`);
     }
   }
 
-  /**
-   * シンプルなログメソッド
-   * @param message ログに記録するメッセージ
-   */
-  public static log(message: string): void {
-    this.outputChannel?.appendLine(`[Inlined Copy] ${message}`);
+  public log(message: string): void {
+    this._outputChannel?.appendLine(`[Inlined Copy] ${message}`);
   }
 
-  /**
-   * エラーログメソッド
-   * @param message ログに記録するエラーメッセージ
-   */
-  public static error(message: string): void {
-    this.outputChannel?.appendLine(`[Inlined Copy] ERROR ${message}`);
-    this.outputChannel?.show();
+  public error(message: string): void {
+    this._outputChannel?.appendLine(`[Inlined Copy] ERROR ${message}`);
+    this._outputChannel?.show();
   }
 
-  /**
-   * LogManagerのリソースを破棄する
-   */
-  public static dispose(): void {
+  public dispose(): void {
     this.log('inlined Copy extension is now deactivated');
-    this.outputChannel?.dispose();
-    this.outputChannel = undefined;
+    this._outputChannel?.dispose();
+    this._outputChannel = undefined;
   }
 
-  /**
-   * トースト通知を表示する
-   * @param message 表示するメッセージ
-   * @returns メッセージが表示されたときに解決するプロミス
-   */
-  public static notify(message: string): Thenable<string | undefined> {
-    return VSCodeEnvironment.showInformationMessage(`[Inlined Copy] ${message}`);
+  public notify(message: string): Thenable<string | undefined> {
+    return this._vscodeEnvironment.showInformationMessage(`[Inlined Copy] ${message}`);
   }
 }
