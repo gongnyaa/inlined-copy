@@ -1,38 +1,52 @@
 import * as vscode from 'vscode';
 import { IVSCodeEnvironment, VSCodeEnvironment } from './vscodeEnvironment';
 
-export interface ILogManager {
-  initialize(context: vscode.ExtensionContext): void;
+export interface ILogWrapper {
   log(message: string): void;
   error(message: string): void;
   dispose(): void;
   notify(message: string): Thenable<string | undefined>;
+  initialize(): void;
 }
 
-export class LogManager implements ILogManager {
-  private static _instance: ILogManager;
+export class LogWrapper implements ILogWrapper {
+  private static _instance: LogWrapper;
   private _outputChannel: vscode.OutputChannel | undefined;
   private _vscodeEnvironment: IVSCodeEnvironment;
 
-  constructor(vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance()) {
-    this._vscodeEnvironment = vscodeEnvironment;
-  }
-
-  public static Instance(): ILogManager {
-    if (!this._instance) {
-      this._instance = new LogManager();
+  private constructor(skipInitialize: boolean = false) {
+    this._vscodeEnvironment = VSCodeEnvironment.Instance();
+    if (!skipInitialize) {
+      this.initialize();
     }
-    return this._instance;
   }
 
-  public static SetInstance(instance: ILogManager): void {
+  public static Instance(): LogWrapper {
+    if (!this._instance) {
+      this._instance = new LogWrapper();
+    }
+    return this._instance as LogWrapper;
+  }
+
+  public static SetInstance(instance: LogWrapper): void {
     this._instance = instance;
   }
 
-  public initialize(context: vscode.ExtensionContext): void {
+  /**
+   * テスト用のファクトリメソッド
+   * @param vscodeEnvironment テスト用のVSCodeEnvironmentモック
+   * @returns テスト用のLogWrapperインスタンス
+   */
+  public static CreateForTest(vscodeEnvironment: IVSCodeEnvironment): LogWrapper {
+    const instance = new LogWrapper(true); // 初期化をスキップ
+    instance._vscodeEnvironment = vscodeEnvironment;
+    return instance;
+  }
+
+  public initialize(): void {
     if (!this._outputChannel) {
-      this._outputChannel = vscode.window.createOutputChannel('Inlined Copy');
-      context.subscriptions.push(this._outputChannel);
+      this._outputChannel = this._vscodeEnvironment.createOutputChannel('Inlined Copy');
+      this._vscodeEnvironment.registerDisposable(this._outputChannel);
       this._outputChannel?.appendLine(`[Inlined Copy] initialized`);
     }
   }

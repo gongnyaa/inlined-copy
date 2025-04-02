@@ -3,7 +3,7 @@ import * as path from 'path';
 import { FileResolver } from './fileResolver/fileResolver';
 import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
 import { IVSCodeEnvironment, VSCodeEnvironment } from './utils/vscodeEnvironment';
-import { ILogManager, LogManager } from './utils/logManager';
+import { LogWrapper } from './utils/logManager';
 
 export interface IFileExpander {
   /**
@@ -20,14 +20,9 @@ export interface IFileExpander {
 export class FileExpander implements IFileExpander {
   private static _instance: IFileExpander;
   private _vscodeEnvironment: IVSCodeEnvironment;
-  private _logManager: ILogManager;
 
-  constructor(
-    vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance(),
-    logManager: ILogManager = LogManager.Instance()
-  ) {
+  constructor(vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance()) {
     this._vscodeEnvironment = vscodeEnvironment;
-    this._logManager = logManager;
   }
 
   public static Instance(): IFileExpander {
@@ -54,7 +49,7 @@ export class FileExpander implements IFileExpander {
     );
 
     if (currentDepth > MAX_RECURSION_DEPTH) {
-      this._logManager.log(
+      LogWrapper.Instance().log(
         `maxRecursionDepthを超える深さ:${currentDepth}のファイル参照が行われたため、そのまま表記します。`
       );
       return text;
@@ -90,15 +85,15 @@ export class FileExpander implements IFileExpander {
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('File not found:')) {
-          this._logManager.log(`![[${filePath}]] が見つかりませんでした`);
+          LogWrapper.Instance().log(`![[${filePath}]] が見つかりませんでした`);
         } else {
           if (error instanceof LargeDataException) {
-            this._logManager.log(`大きなファイルを検出: ${error.message}`);
+            LogWrapper.Instance().log(`大きなファイルを検出: ${error.message}`);
           } else if (error instanceof CircularReferenceException) {
-            this._logManager.error(error.message);
+            LogWrapper.Instance().error(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            this._logManager.error(`ファイル参照の展開エラー: ${errorMessage}`);
+            LogWrapper.Instance().error(`ファイル参照の展開エラー: ${errorMessage}`);
           }
         }
 

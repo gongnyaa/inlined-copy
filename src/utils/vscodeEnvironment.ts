@@ -5,6 +5,8 @@ export interface IVSCodeEnvironment {
   showErrorMessage(message: string): Thenable<string | undefined>;
   getConfiguration<T>(section: string, key: string, defaultValue: T): T;
   writeClipboard(text: string): Thenable<void>;
+  createOutputChannel(name: string): vscode.OutputChannel;
+  registerDisposable(disposable: vscode.Disposable): void;
 }
 
 export class VSCodeEnvironment implements IVSCodeEnvironment {
@@ -35,5 +37,14 @@ export class VSCodeEnvironment implements IVSCodeEnvironment {
 
   public writeClipboard(text: string): Thenable<void> {
     return vscode.env.clipboard.writeText(text);
+  }
+
+  public createOutputChannel(name: string): vscode.OutputChannel {
+    return vscode.window.createOutputChannel(name);
+  }
+
+  public registerDisposable(_disposable: vscode.Disposable): void {
+    // 拡張機能のコンテキストが利用可能な場合に登録するため、現時点では何もしない
+    // 実際の登録はextension.tsのactivate関数内で行われる
   }
 }
