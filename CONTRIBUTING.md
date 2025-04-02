@@ -47,5 +47,11 @@ code --extensionDevelopmentPath=${PWD}
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
 
 
+## 開発指針
+pnpm test:coverageで、テスト率を100％に
+すべてのドキュメントは必要最小限に
+
+
+
 ## ライセンス
 MIT

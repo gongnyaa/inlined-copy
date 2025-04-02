@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogManager } from './utils/logManager';
+import { ILogManager, LogManager } from './utils/logManager';
+import { IVSCodeEnvironment, VSCodeEnvironment } from './utils/vscodeEnvironment';
 import * as vscode from 'vscode';
 
 vi.mock('vscode', () => {
@@ -10,6 +11,7 @@ vi.mock('vscode', () => {
         show: vi.fn(),
         dispose: vi.fn(),
       }),
+      showInformationMessage: vi.fn().mockResolvedValue('OK'),
     },
   };
 });
@@ -21,10 +23,28 @@ const mockOutputChannel = {
   dispose: vi.fn(),
 };
 
+let logManagerInstance: ILogManager;
+let mockVSCodeEnv: IVSCodeEnvironment;
+
 describe('LogManager 機能テスト', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (LogManager as any).outputChannel = undefined;
+
+    // VSCodeEnvironmentのモックを作成し、設定
+    mockVSCodeEnv = {
+      showInformationMessage: vi.fn().mockResolvedValue('OK'),
+      showErrorMessage: vi.fn(),
+      getConfiguration: vi.fn(),
+      writeClipboard: vi.fn(),
+    };
+    VSCodeEnvironment.SetInstance(mockVSCodeEnv);
+
+    // LogManagerのインスタンスを作成し、設定
+    logManagerInstance = new LogManager(mockVSCodeEnv);
+    LogManager.SetInstance(logManagerInstance);
+
+    // プライベートフィールドをリセット
+    (logManagerInstance as any)._outputChannel = undefined;
 
     // createOutputChannelが戻り値として返すモックを設定
     (vscode.window.createOutputChannel as any).mockReturnValue(mockOutputChannel);
@@ -35,7 +55,7 @@ describe('LogManager 機能テスト', () => {
       subscriptions: [],
     } as unknown as vscode.ExtensionContext;
 
-    LogManager.initialize(mockContext);
+    LogManager.Instance().initialize(mockContext);
 
     expect(vscode.window.createOutputChannel).toHaveBeenCalledWith('Inlined Copy');
     expect(vscode.window.createOutputChannel).toHaveBeenCalledTimes(1);
@@ -48,26 +68,26 @@ describe('LogManager 機能テスト', () => {
       subscriptions: [],
     } as unknown as vscode.ExtensionContext;
 
-    LogManager.initialize(mockContext);
-    LogManager.initialize(mockContext);
+    LogManager.Instance().initialize(mockContext);
+    LogManager.Instance().initialize(mockContext);
 
     expect(vscode.window.createOutputChannel).toHaveBeenCalledTimes(1);
     expect(mockContext.subscriptions.length).toBe(1);
   });
 
   it('初期化後にログメッセージをプレフィックス付きで出力すること', () => {
-    (LogManager as any).outputChannel = mockOutputChannel;
+    (logManagerInstance as any)._outputChannel = mockOutputChannel;
 
-    LogManager.log('テストメッセージ');
+    LogManager.Instance().log('テストメッセージ');
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith('[Inlined Copy] テストメッセージ');
     expect(mockOutputChannel.appendLine).toHaveBeenCalledTimes(1);
   });
 
   it('エラーメッセージを出力し、出力チャンネルを表示すること', () => {
-    (LogManager as any).outputChannel = mockOutputChannel;
+    (logManagerInstance as any)._outputChannel = mockOutputChannel;
 
-    LogManager.error('エラーメッセージ');
+    LogManager.Instance().error('エラーメッセージ');
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       '[Inlined Copy] ERROR エラーメッセージ'
@@ -76,9 +96,9 @@ describe('LogManager 機能テスト', () => {
   });
 
   it('出力チャンネルを正しく破棄すること', () => {
-    (LogManager as any).outputChannel = mockOutputChannel;
+    (logManagerInstance as any)._outputChannel = mockOutputChannel;
 
-    LogManager.dispose();
+    LogManager.Instance().dispose();
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       '[Inlined Copy] inlined Copy extension is now deactivated'

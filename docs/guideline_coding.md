@@ -9,6 +9,14 @@
 
 ### クラス
 - `PascalCase`
+- 以下の特徴を持つクラスは、適切な接頭辞・接尾辞を使う
+| 役割・特徴 | 接尾辞 | 例 |
+|-----------|-------|----|
+| 元のAPIを薄く覆って、そのままの機能を提供する | Wrapper | `VSCodeWrapper` |
+| 元のAPIと内部で異なるインターフェースを適合させる | Adapter | `PaymentGatewayAdapter` |
+| 複数機能をシンプルにまとめた統一インターフェースを提供する | Facade | `UserAuthFacade` |
+| より高レベルで抽象化し、追加の機能やロジックを提供する | Service | `UserNotificationService` |
+
 
 ### 変数
 - 変数は`camelCase`
@@ -22,53 +30,22 @@
 - 静的ファクトリメソッドは`PascalCase`
 
 ### コメント
-- 公開API/クラスにはJSDocコメントを使用
-- その他コメントは、コードを読めばわかる事は書かない。
+- JSDocコメントは基本的に書かない。インターフェースから推測できない、利用者が知るべき情報があるときのみJSDocコメントを記載する。
+- その他コメントは、コードを読めばわかる事は書かない。背景や意図等をコードを読んでも分からないときのみ記載する。
 
-## クラス設計
+## 📌 クラス設計・依存性注入のコーディングルール
 
-### 複数のクラスから利用される共通サービス
-- 方針: インターフェース＋シングルトンパターンを使用
-- 目的: テスト容易性、実装切り替え可能に、簡潔性
-- 実装例:
+以下の基準で適切な依存性注入パターンを選択する。
 
-```typescript
-interface IMyLogger {
-  log(message: string): void;
-}
+| No. | 対象クラス | 状態 | 注入方法 | 実装例 |
+| --- | -------- | ---- | -------- | ------ |
+| ① | 共通サービス (Logger、API Wrapper 等) | なし | インターフェース＋シングルトン | `LoggerWrapper.Instance().log(message);` |
+| ② | 状態を持つサービス (Repository、Service、Facade 等) | あり | コンストラクタ注入 | `constructor(private userRepo: IUserRepository) {}` |
+| ③ | 状態を持たず頻繁に実装を切り替える単純な依存（バリデータ、フォーマッタ等） | なし | メソッド引数で注入 | `getUser(id: string, validator: IUserValidator): User` |
 
-class MyLogger implements IMyLogger {
-  private static _instance: IMyLogger;
-  
-  public static Instance(): IMyLogger {
-    if (!this._instance) {
-      this._instance = new MyLogger();
-    }
-    return this._instance;
-  }
-  
-  // テスト用に実装を差し替えるメソッド
-  public static SetInstance(logger: IMyLogger): void {
-    this._instance = logger;
-  }
-  
-  log(message: string): void {
-    console.log(message);
-  }
-}
-
-// 通常使用時
-MyLogger.Instance().log("hogehoge");
-
-// テスト時
-const mockLogger = { log: (message: string) => { /* mock implementation */ } };
-MyLogger.SetInstance(mockLogger);
-```
-
-### 依存性注入方法
-- なるべく引数で注入する。
-- 状態を持つ依存先の場合、必要に応じてコンストラクタで注入する。
-- 多くのクラスから利用される共通クラスの場合は、シングルトンで注入する。
+### ⚠️ 補足
+- Loggerなどの共通サービスはグローバルにシングルトンで提供し、メソッド引数やコンストラクタでは注入しない。
+- メソッド引数注入はテスト時など頻繁な実装切り替えを想定する場合に限定して利用する。
 
 ## エラー処理
 - 方針:

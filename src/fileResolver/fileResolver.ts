@@ -1,15 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileResult, fileSuccess, fileFailure } from './fileResult';
-import { LogManager } from '../utils/logManager';
+import { ILogManager, LogManager } from '../utils/logManager';
 
-/**
- * ファイルパス解決クラス
- */
 export class FileResolver {
-  /**
-   * ファイルパスを解決する
-   */
+  private static _logManager: ILogManager = LogManager.Instance();
+
+  public static SetLogManager(logManager: ILogManager): void {
+    this._logManager = logManager;
+  }
   public static async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
     try {
       // ワークスペースのルートフォルダを取得
@@ -91,14 +90,11 @@ export class FileResolver {
 
       return fileFailure(`ファイルが見つかりません: ${filePath}`);
     } catch (error) {
-      LogManager.error(`ファイル解決エラー: ${error}`);
+      this._logManager.error(`ファイル解決エラー: ${error}`);
       return fileFailure(`エラー: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
-  /**
-   * 代替のファイル候補を取得
-   */
   public static async getSuggestions(filePath: string): Promise<string[]> {
     try {
       const fileName = path.parse(filePath).name;
@@ -108,7 +104,7 @@ export class FileResolver {
       const uris = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 5);
       return uris.map(uri => vscode.workspace.asRelativePath(uri));
     } catch (error) {
-      LogManager.error(`候補取得エラー: ${error}`);
+      this._logManager.error(`候補取得エラー: ${error}`);
       return [];
     }
   }

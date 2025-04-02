@@ -1,15 +1,11 @@
 import * as vscode from 'vscode';
-import { LogManager } from './utils/logManager';
-import { InlinedCopyService } from './services/inlinedCopyService';
+import { ILogManager, LogManager } from './utils/logManager';
+import { IInlinedCopyService, InlinedCopyService } from './services/inlinedCopyService';
 
-/**
- * 拡張機能をアクティブ化する
- * @param context 拡張機能のコンテキスト
- */
 export function activate(
   context: vscode.ExtensionContext,
-  logManager = LogManager,
-  inlinedCopyService = new InlinedCopyService()
+  logManager: ILogManager = LogManager.Instance(),
+  inlinedCopyService: IInlinedCopyService = InlinedCopyService.Instance()
 ): void {
   logManager.initialize(context);
 
@@ -20,9 +16,6 @@ export function activate(
   context.subscriptions.push(disposable);
 }
 
-/**
- * 拡張機能を非アクティブ化する
- */
-export function deactivate(logManager = LogManager): void {
+export function deactivate(logManager: ILogManager = LogManager.Instance()): void {
   logManager.dispose();
 }
