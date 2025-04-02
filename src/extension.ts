@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { ILogManager, LogManager } from './utils/logManager';
 import { IInlinedCopyService, InlinedCopyService } from './services/inlinedCopyService';
+import { VSCodeEnvironment } from './utils/vscodeEnvironment';
 
 export function activate(
   context: vscode.ExtensionContext,
-  logManager: ILogManager = LogManager.Instance(),
   inlinedCopyService: IInlinedCopyService = InlinedCopyService.Instance()
 ): void {
-  logManager.initialize(context);
+  // LogWrapperはインスタンス作成時に既に初期化されている
+  // コンテキストに登録する必要があるディスポーザブルはここで登録
 
   const disposable = vscode.commands.registerCommand('inlined-copy.copyInline', () =>
     inlinedCopyService.executeCommand()
@@ -16,6 +16,6 @@ export function activate(
   context.subscriptions.push(disposable);
 }
 
-export function deactivate(logManager: ILogManager = LogManager.Instance()): void {
-  logManager.dispose();
+export function deactivate(): void {
+  VSCodeEnvironment.Instance().registerDisposable();
 }

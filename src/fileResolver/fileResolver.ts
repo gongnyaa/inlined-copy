@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileResult, fileSuccess, fileFailure } from './fileResult';
-import { ILogManager, LogManager } from '../utils/logManager';
+import { LogWrapper } from '../utils/logWrapper';
 
 export class FileResolver {
-  private static _logManager: ILogManager = LogManager.Instance();
-
-  public static SetLogManager(logManager: ILogManager): void {
-    this._logManager = logManager;
-  }
+  // シングルトンを使用するため、個別のセッターは不要
+  // テスト時は LogWrapper.SetInstance() を使用
   public static async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
     try {
       // ワークスペースのルートフォルダを取得
@@ -90,7 +87,7 @@ export class FileResolver {
 
       return fileFailure(`ファイルが見つかりません: ${filePath}`);
     } catch (error) {
-      this._logManager.error(`ファイル解決エラー: ${error}`);
+      LogWrapper.Instance().error(`ファイル解決エラー: ${error}`);
       return fileFailure(`エラー: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -104,7 +101,7 @@ export class FileResolver {
       const uris = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 5);
       return uris.map(uri => vscode.workspace.asRelativePath(uri));
     } catch (error) {
-      this._logManager.error(`候補取得エラー: ${error}`);
+      LogWrapper.Instance().error(`候補取得エラー: ${error}`);
       return [];
     }
   }
