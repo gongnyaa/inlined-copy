@@ -8,14 +8,39 @@
 - デフォルト引数にはオプショナルパラメータをつける。
 
 ### クラス
+#### 命名規則（役割別接尾辞）
 - `PascalCase`
 - 以下の特徴を持つクラスは、適切な接頭辞・接尾辞を使う
-| 役割・特徴 | 接尾辞 | 例 |
-|-----------|-------|----|
-| 元のAPIを薄く覆って、そのままの機能を提供する | Wrapper | `VSCodeWrapper` |
-| 元のAPIと内部で異なるインターフェースを適合させる | Adapter | `PaymentGatewayAdapter` |
-| 複数機能をシンプルにまとめた統一インターフェースを提供する | Facade | `UserAuthFacade` |
-| より高レベルで抽象化し、追加の機能やロジックを提供する | Service | `UserNotificationService` |
+| 役割 | 接尾辞 |
+|------|--------|
+| APIの薄いラップ | `Wrapper` |
+| 型変換などの適合 | `Adapter` |
+| 複数機能の集約 | `Facade` |
+| ビジネスロジック | `Service` |
+
+#### 依存注入ルール
+
+| 種類 | 状態 | 注入方法 | 例 |
+|------|------|-----------|-----|
+| 共通サービス（Logger等） | なし | シングルトン | `LoggerWrapper.Instance()` |
+| 状態あり | あり | コンストラクタ注入 | `constructor(repo: IUserRepo)` |
+| 軽量な切替依存（バリデータ等） | なし | メソッド引数注入 | `doX(validator: IValidator)` |
+
+- 共通サービスは `.Instance()` でのみ使用し、引数やDI禁止
+- テスト時は `SetInstance()` による差し替えのみ許可
+
+#### importルール
+
+- 利用側は **クラスのみimport**（インターフェースはimportしない）
+
+```ts
+// ✅ OK
+import { LogWrapper } from './logManager';
+LogWrapper.Instance().log("msg");
+
+// ❌ NG
+import { ILogWrapper, LogWrapper } from './logManager';
+```
 
 
 ### 変数
@@ -33,19 +58,7 @@
 - JSDocコメントは基本的に書かない。インターフェースから推測できない、利用者が知るべき情報があるときのみJSDocコメントを記載する。
 - その他コメントは、コードを読めばわかる事は書かない。背景や意図等をコードを読んでも分からないときのみ記載する。
 
-## 📌 クラス設計・依存性注入のコーディングルール
-
-以下の基準で適切な依存性注入パターンを選択する。
-
-| No. | 対象クラス | 状態 | 注入方法 | 実装例 |
-| --- | -------- | ---- | -------- | ------ |
-| ① | 共通サービス (Logger、API Wrapper 等) | なし | インターフェース＋シングルトン | `LoggerWrapper.Instance().log(message);` |
-| ② | 状態を持つサービス (Repository、Service、Facade 等) | あり | コンストラクタ注入 | `constructor(private userRepo: IUserRepository) {}` |
-| ③ | 状態を持たず頻繁に実装を切り替える単純な依存（バリデータ、フォーマッタ等） | なし | メソッド引数で注入 | `getUser(id: string, validator: IUserValidator): User` |
-
-### ⚠️ 補足
-- Loggerなどの共通サービスはグローバルにシングルトンで提供し、メソッド引数やコンストラクタでは注入しない。
-- メソッド引数注入はテスト時など頻繁な実装切り替えを想定する場合に限定して利用する。
+以下が、冗長性を排除した**極めて簡潔なガイドライン**です：
 
 ## エラー処理
 - 方針:
