@@ -3,10 +3,16 @@
 ## 基本ルール
 
 - `vitest` を使用
-- `vi.mock` はファイル先頭に記述
 - `vi.clearAllMocks()` を `beforeEach` に記述
 - テストケース名は日本語で具体的に
 - 独自クラスへの依存はxxx.mock.tsでモック。その他クラスは、vi.mockでモック
+- `vi.mock`の使用方法：
+  1. ファイル先頭に記述
+  2. 外部変数に依存させない（ホイスティングの問題を防ぐため）
+  3. 基本的なモック定義のみを含める
+  4. 複雑なモックや外部依存が必要な場合は：
+     - `beforeEach`内でモックの振る舞いを設定
+     - `vi.mocked()`を使用して型安全に設定
 
 ---
 
@@ -69,20 +75,50 @@ beforeEach(() => {
 });
 ```
 
-## VSCode API のモック例
+## VSCode API のモック化
+
+### 基本的なアプローチ
 
 ```ts
-vi.mock('vscode', () => ({
+// 1. モックの定義
+vi.mock('vscode', async () => ({
   window: {
-    createOutputChannel: vi.fn().mockReturnValue({
-      appendLine: vi.fn(),
-      show: vi.fn(),
-      dispose: vi.fn()
-    }),
+    createOutputChannel: vi.fn(),
     showInformationMessage: vi.fn()
   }
 }));
+
+// 2. テストファイル内での使用
+describe('テスト対象', () => {
+  let vscode: any;
+  let mockOutputChannel: any;
+  
+  beforeEach(async () => {
+    // モジュールの再インポートとモックの設定
+    vscode = await import('vscode');
+    mockOutputChannel = {
+      appendLine: vi.fn(),
+      show: vi.fn()
+    };
+    vi.mocked(vscode.window.createOutputChannel).mockReturnValue(mockOutputChannel);
+  });
+});
 ```
+
+### 注意点
+
+1. **ホイスティングの考慮**
+   - `vi.mock`はファイルの最上部にホイスティングされる
+   - モック定義内で外部変数を参照しない
+   - 複雑なモックは`beforeEach`内で設定
+
+2. **モックの再利用**
+   - 共通のモックは別ファイル（`xxx.mock.ts`）に分離
+   - テストファイル固有のモックは直接定義
+
+3. **型安全性**
+   - モックオブジェクトの型は`any`を許容
+   - VSCode APIの型定義は参照のみ使用
 
 ## 例外処理テスト
 
