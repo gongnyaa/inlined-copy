@@ -31,7 +31,8 @@
 
 #### importルール
 
-- 利用側は **クラスのみimport**（インターフェースはimportしない）
+- 不必要にインターフェースはimportしない
+- モックファイル（`xxx.mock.ts`）ではインターフェースをimportして型定義に使用する
 
 ```ts
 // ✅ OK
@@ -40,7 +41,24 @@ LogWrapper.Instance().log("msg");
 
 // ❌ NG
 import { ILogWrapper, LogWrapper } from './logManager';
+
+// モックファイルでの例
+import { ILogWrapper } from './logWrapper';
+export const mockLogWrapper: ILogWrapper = { ... };
+
 ```
+
+#### ファイル構成ルール
+
+- ユーティリティや共通サービスは、以下のように用途ごとに分割する：
+
+| ファイル名 | 用途 |
+|------------|------|
+| `xxx.ts` | 本体の実装 |
+| `xxx.test.ts` | ユニットテスト |
+| `xxx.mock.ts` | モック定義（テストや差し替え用） |
+
+- 例：`logWrapper.ts`, `logWrapper.test.ts`, `logWrapper.mock.ts`
 
 
 ### 変数

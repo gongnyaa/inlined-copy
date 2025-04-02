@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { IInlinedCopyService, InlinedCopyService } from './services/inlinedCopyService';
-import { VSCodeEnvironment } from './utils/vscodeEnvironment';
+import { VSCodeWrapper } from './utils/VSCodeWrapper';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -17,5 +17,5 @@ export function activate(
 }
 
 export function deactivate(): void {
-  VSCodeEnvironment.Instance().registerDisposable();
+  VSCodeWrapper.Instance().dispose();
 }

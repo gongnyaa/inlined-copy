@@ -1,4 +1,4 @@
-import { VSCodeEnvironment } from './vscodeEnvironment';
+import { VSCodeWrapper } from './VSCodeWrapper';
 
 export interface ILogWrapper {
   log(message: string): void;
@@ -21,14 +21,14 @@ export class LogWrapper implements ILogWrapper {
   }
 
   public log(message: string): void {
-    VSCodeEnvironment.Instance().appendLine(`[Inlined Copy] ${message}`, false);
+    VSCodeWrapper.Instance().appendLine(`[Inlined Copy] ${message}`, false);
   }
 
   public error(message: string): void {
-    VSCodeEnvironment.Instance().appendLine(`[Inlined Copy] ERROR ${message}`, true);
+    VSCodeWrapper.Instance().appendLine(`[Inlined Copy] ERROR ${message}`, true);
   }
 
   public notify(message: string): Thenable<string | undefined> {
-    return VSCodeEnvironment.Instance().showInformationMessage(`[Inlined Copy] ${message}`);
+    return VSCodeWrapper.Instance().showInformationMessage(`[Inlined Copy] ${message}`);
   }
 }
