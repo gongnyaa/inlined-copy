@@ -1,7 +1,7 @@
 // inlinedCopyService.ts
 
 import { FileExpander, IFileExpander } from '../fileExpander';
-import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
+import { IVSCodeWrapper, VSCodeWrapper } from '../utils/vSCodeWrapper';
 import { LogWrapper } from '../utils/logWrapper';
 import { EditorTextService, IEditorTextService } from './editorTextService';
 import { TextNotFoundException } from '../errors/errorTypes';

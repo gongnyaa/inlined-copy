@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LogWrapper } from './logWrapper';
-import { VSCodeWrapper } from './VSCodeWrapper';
-import { mockVSCodeWrapper } from './VSCodeWrapper.mock';
+import { VSCodeWrapper } from './vSCodeWrapper';
+import { mockVSCodeWrapper } from './vSCodeWrapper.mock';
 
 describe('LogWrapper 機能テスト', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // VSCodeWrapperのモックを設定
     VSCodeWrapper.SetInstance(mockVSCodeWrapper as VSCodeWrapper);
+    LogWrapper.SetInstance(null);
   });
 
   it('エラーメッセージを出力すること', () => {

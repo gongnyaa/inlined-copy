@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolver } from './fileResolver/fileResolver';
 import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
-import { IVSCodeWrapper, VSCodeWrapper } from './utils/VSCodeWrapper';
+import { IVSCodeWrapper, VSCodeWrapper } from './utils/vSCodeWrapper';
 import { LogWrapper } from './utils/logWrapper';
 
 export interface IFileExpander {

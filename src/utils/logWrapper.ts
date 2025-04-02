@@ -1,4 +1,4 @@
-import { VSCodeWrapper } from './VSCodeWrapper';
+import { VSCodeWrapper } from './vSCodeWrapper';
 
 export interface ILogWrapper {
   log(message: string): void;
@@ -7,16 +7,16 @@ export interface ILogWrapper {
 }
 
 export class LogWrapper implements ILogWrapper {
-  private static _instance: LogWrapper;
+  private static _instance: ILogWrapper | null;
 
-  public static Instance(): LogWrapper {
+  public static Instance(): ILogWrapper {
     if (!this._instance) {
       this._instance = new LogWrapper();
     }
-    return this._instance as LogWrapper;
+    return this._instance;
   }
 
-  public static SetInstance(instance: LogWrapper): void {
+  public static SetInstance(instance: ILogWrapper | null): void {
     this._instance = instance;
   }
 

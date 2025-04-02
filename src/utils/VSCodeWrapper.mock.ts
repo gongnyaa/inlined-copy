@@ -1,4 +1,4 @@
-import { IVSCodeWrapper } from './VSCodeWrapper';
+import { IVSCodeWrapper } from './vSCodeWrapper';
 import { vi } from 'vitest';
 
 export const mockVSCodeWrapper: IVSCodeWrapper = {
