@@ -3,9 +3,10 @@
 ## 命名規則
 `@typescript-eslint/recommended`をベースとする。
 
-### インターフェース
+### interface
 - 名称: `I` + クラス名
 - デフォルト引数にはオプショナルパラメータをつける。
+- typeが不可避な場合以外、interfaceを利用する。
 
 ### クラス
 #### 命名規則（役割別接尾辞）
@@ -20,18 +21,19 @@
 
 #### 依存注入ルール
 
-| 種類 | 状態 | 注入方法 | 例 |
-|------|------|-----------|-----|
-| 共通サービス（Logger等） | なし | シングルトン | `LoggerWrapper.Instance()` |
-| 状態あり | あり | コンストラクタ注入 | `constructor(repo: IUserRepo)` |
-| 軽量な切替依存（バリデータ等） | なし | メソッド引数注入 | `doX(validator: IValidator)` |
+| 種類 | インスタンス特性 | 注入方法 | 例 |
+|------|----------------|-----------|-----|
+| グローバル共通サービス | アプリケーション全体で単一インスタンス | シングルトン | `LoggerWrapper.Instance()` |
+| コンテキスト依存サービス | コンテキストごとに異なるインスタンスが必要 | コンストラクタ注入 | `constructor(repo: IUserRepo)` |
+| 操作固有の依存 | 操作ごとに切り替える可能性がある | メソッド引数注入 | `doX(validator: IValidator)` |
 
 - 共通サービスは `.Instance()` でのみ使用し、引数やDI禁止
 - テスト時は `SetInstance()` による差し替えのみ許可
 
 #### importルール
 
-- 利用側は **クラスのみimport**（インターフェースはimportしない）
+- 不必要にインターフェースはimportしない
+- モックファイル（`xxx.mock.ts`）ではインターフェースをimportして型定義に使用する
 
 ```ts
 // ✅ OK
@@ -40,7 +42,24 @@ LogWrapper.Instance().log("msg");
 
 // ❌ NG
 import { ILogWrapper, LogWrapper } from './logManager';
+
+// モックファイルでの例
+import { ILogWrapper } from './logWrapper';
+export const mockLogWrapper: ILogWrapper = { ... };
+
 ```
+
+#### ファイル構成ルール
+
+- ユーティリティや共通サービスは、以下のように用途ごとに分割する：
+
+| ファイル名 | 用途 |
+|------------|------|
+| `xxx.ts` | 本体の実装 |
+| `xxx.test.ts` | ユニットテスト |
+| `xxx.mock.ts` | モック定義（テストや差し替え用） |
+
+- 例：`logWrapper.ts`, `logWrapper.test.ts`, `logWrapper.mock.ts`
 
 
 ### 変数

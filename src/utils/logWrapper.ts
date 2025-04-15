@@ -1,4 +1,4 @@
-import { VSCodeEnvironment } from './vscodeEnvironment';
+import { VSCodeWrapper } from './vSCodeWrapper';
 
 export interface ILogWrapper {
   log(message: string): void;
@@ -7,28 +7,28 @@ export interface ILogWrapper {
 }
 
 export class LogWrapper implements ILogWrapper {
-  private static _instance: LogWrapper;
+  private static _instance: ILogWrapper | null;
 
-  public static Instance(): LogWrapper {
+  public static Instance(): ILogWrapper {
     if (!this._instance) {
       this._instance = new LogWrapper();
     }
-    return this._instance as LogWrapper;
+    return this._instance;
   }
 
-  public static SetInstance(instance: LogWrapper): void {
+  public static SetInstance(instance: ILogWrapper | null): void {
     this._instance = instance;
   }
 
   public log(message: string): void {
-    VSCodeEnvironment.Instance().appendLine(`[Inlined Copy] ${message}`, false);
+    VSCodeWrapper.Instance().appendLine(`[Inlined Copy] ${message}`, false);
   }
 
   public error(message: string): void {
-    VSCodeEnvironment.Instance().appendLine(`[Inlined Copy] ERROR ${message}`, true);
+    VSCodeWrapper.Instance().appendLine(`[Inlined Copy] ERROR ${message}`, true);
   }
 
   public notify(message: string): Thenable<string | undefined> {
-    return VSCodeEnvironment.Instance().showInformationMessage(`[Inlined Copy] ${message}`);
+    return VSCodeWrapper.Instance().showInformationMessage(`[Inlined Copy] ${message}`);
   }
 }

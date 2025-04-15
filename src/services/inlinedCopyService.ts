@@ -1,10 +1,12 @@
 // inlinedCopyService.ts
 
-import { FileExpander, IFileExpander } from '../fileExpander';
-import { IVSCodeEnvironment, VSCodeEnvironment } from '../utils/vscodeEnvironment';
+import { FileExpander } from '../fileExpander';
+import { VSCodeWrapper } from '../utils/vSCodeWrapper';
 import { LogWrapper } from '../utils/logWrapper';
-import { EditorTextService, IEditorTextService } from './editorTextService';
+import { EditorTextService } from './editorTextService';
 import { TextNotFoundException } from '../errors/errorTypes';
+import { t } from '../utils/i18n';
+import { MESSAGE_KEYS } from '../constants/messages';
 
 export interface IInlinedCopyService {
   executeCommand(): Promise<void>;
@@ -12,19 +14,6 @@ export interface IInlinedCopyService {
 
 export class InlinedCopyService implements IInlinedCopyService {
   private static _instance: IInlinedCopyService;
-  private _editorTextService: IEditorTextService;
-  private _fileExpander: IFileExpander;
-  private _vscodeEnvironment: IVSCodeEnvironment;
-
-  constructor(
-    editorTextService: IEditorTextService = new EditorTextService(),
-    fileExpander: IFileExpander = new FileExpander(),
-    vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance()
-  ) {
-    this._editorTextService = editorTextService;
-    this._fileExpander = fileExpander;
-    this._vscodeEnvironment = vscodeEnvironment;
-  }
 
   public static Instance(): IInlinedCopyService {
     if (!this._instance) {
@@ -39,20 +28,17 @@ export class InlinedCopyService implements IInlinedCopyService {
 
   public async executeCommand(): Promise<void> {
     try {
-      const { text, currentDir } = await this._editorTextService.getTextFromEditor();
-      const processedText = await this._fileExpander.expandFileReferences(text, currentDir);
-      await this._vscodeEnvironment.writeClipboard(processedText);
-      LogWrapper.Instance().notify(
-        '展開された参照を含むテキストがクリップボードにコピーされました v0.1.7'
-      );
+      const { text, currentDir } = await EditorTextService.Instance().getTextFromEditor();
+      const processedText = await FileExpander.Instance().expandFileReferences(text, currentDir);
+      await VSCodeWrapper.Instance().writeClipboard(processedText);
+      LogWrapper.Instance().notify(t(MESSAGE_KEYS.COPY_SUCCESS));
     } catch (error) {
       if (error instanceof TextNotFoundException) {
-        LogWrapper.Instance().notify('コピー元のテキストが見つかりませんでした');
+        LogWrapper.Instance().notify(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
         return;
       }
-      LogWrapper.Instance().error(
-        `予期せぬエラー: ${error instanceof Error ? error.message : String(error)}`
-      );
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      LogWrapper.Instance().error(t(MESSAGE_KEYS.UNEXPECTED_ERROR, { message: errorMessage }));
     }
   }
 }

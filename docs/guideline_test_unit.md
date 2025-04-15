@@ -1,220 +1,119 @@
-```markdown
-# VSCode拡張機能のテストコード作成ガイドライン
+# TypeScript ユニットテストガイドライン
 
-VSCode拡張機能でテストを行う際の、実践的かつシンプルなガイドラインです。  
-一般的なテスト原則の説明は省略し、VSCode特有の問題を中心にまとめています。  
+## 基本ルール
+
+- `vitest` を使用
+- `vi.clearAllMocks()` を `beforeEach` に記述
+- テストケース名は日本語で具体的に
+- 独自クラスへの依存はxxx.mock.tsでモック。その他クラスは、vi.mockでモック
+- `vi.mock`の使用方法：
+  1. ファイル先頭に記述
+  2. 外部変数に依存させない（ホイスティングの問題を防ぐため）
+  3. 基本的なモック定義のみを含める
+  4. 複雑なモックや外部依存が必要な場合は：
+     - `beforeEach`内でモックの振る舞いを設定
+     - `vi.mocked()`を使用して型安全に設定
 
 ---
 
-## 1. 基本的なテスト例
+## テスト構成
+対象ファイルと同ディレクトリに配置
+| ファイル名 | 用途 |
+|------------|------|
+| `xxx.test.ts` | テスト本体 |
+| `xxx.mock.ts` | モック定義（`vi.fn()` 使用） |
 
-VSCode APIをモックしつつ、クラスやモジュールをテストする最小限のコード例です。  
-テストファイルの冒頭で`vi.mock`を呼び出すこと、`beforeEach`でモック状態をリセットすることがポイントです。
+## テスト対象外
+- SetInstance等のテスト用に作られたメソッド
+- シングルトンでインスタンスを取得するための、Instance()・メソッド
 
-```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as vscode from 'vscode';
-import { 対象クラス } from './対象ファイル';
+---
 
-// VSCode APIのモック設定
-vi.mock('vscode', () => ({
+## モックの書き方
+
+- インターフェース準拠
+- `vi.fn()` で関数モック化
+- `xxx.mock.ts` 内で `mockXxx` 名で export
+
+```ts
+// logWrapper.mock.ts
+import { ILogWrapper } from './logWrapper';
+import { vi } from 'vitest';
+
+export const mockLogWrapper: ILogWrapper = {
+  log: vi.fn(),
+  error: vi.fn(),
+  notify: vi.fn().mockResolvedValue('OK'),
+};
+```
+
+## テスト対象の初期化
+
+```ts
+let target: TargetClass;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  // 依存のモックを設定
+  DependencyClass.SetInstance(mockDependency);
+  // テスト対象の初期化
+  target = new TargetClass();
+});
+```
+
+## VSCode API のモック化
+
+### 基本的なアプローチ
+
+1. モックの定義
+```ts
+vi.mock('vscode', async () => ({
   window: {
-    createOutputChannel: vi.fn().mockReturnValue({
-      appendLine: vi.fn(),
-      show: vi.fn(),
-      dispose: vi.fn()
-    })
+    createOutputChannel: vi.fn(),
+    showInformationMessage: vi.fn()
   }
 }));
 
-describe('対象クラスのテスト', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('メソッド呼び出し時にOutputChannelへログが出力されること', () => {
-    対象クラス.メソッド();
-    expect(vscode.window.createOutputChannel).toHaveBeenCalled();
-    expect(vscode.window.createOutputChannel().appendLine).toHaveBeenCalledWith('期待するメッセージ');
-  });
-});
-```
-
----
-
-## 2. テストを書く上でのポイント
-
-- **`vi.mock`の宣言はファイルの先頭へ**  
-  テスト開始前にモジュールがモック化されるようにするため。  
-
-- **モック対象は直接参照**  
-  例: `expect(vscode.window.createOutputChannel).toHaveBeenCalled()` など。  
-
-- **プライベートプロパティへのアクセス**  
-  TypeScriptの型制限を回避するため、`(クラス as any).privateProp` の形式を使用。  
-
-- **テストケース名は日本語で具体的に**  
-  実際のユースケースをわかりやすく表現。  
-
-- **モックのプロパティアクセス**  
-  呼び出し履歴などを確認する場合は型アサーションを使用。  
-  ```typescript
-  const handler = (vscode.commands.registerCommand as any).mock.calls[0][1];
-  ```  
-
----
-
-## 3. VSCode APIモックの例
-
-### 3-1. コマンド登録
-
-```typescript
-vi.mock('vscode', () => ({
-  commands: {
-    registerCommand: vi.fn(),
-    executeCommand: vi.fn()
-  }
-}));
-```
-
-### 3-2. ファイルシステムアクセス
-
-```typescript
-vi.mock('vscode', () => ({
-  workspace: {
-    fs: {
-      readFile: vi.fn().mockResolvedValue(Buffer.from('ファイル内容')),
-      writeFile: vi.fn().mockResolvedValue(undefined)
-    }
-  }
-}));
-```
-
-### 3-3. イベント処理
-
-```typescript
-vi.mock('vscode', () => ({
-  EventEmitter: vi.fn().mockImplementation(() => ({
-    event: vi.fn().mockImplementation(callback => {
-      callback();
-      return { dispose: vi.fn() };
-    }),
-    fire: vi.fn()
-  }))
-}));
-```
-
-### 3-4. ExtensionContextのモック
-
-```typescript
-const mockContext = {
-  subscriptions: [],
-  asAbsolutePath: vi.fn()
-} as unknown as vscode.ExtensionContext;
-```
-
----
-
-## 4. モック化が難しいケースの対応
-
-- **静的メソッドのモック**  
-  一時的にクラスのメソッドを差し替える。  
-  ```typescript
-  const original = MyClass.staticMethod;
-  MyClass.staticMethod = vi.fn().mockReturnValue('結果');
-  // ...テスト
-  MyClass.staticMethod = original; // テスト後に元に戻す
-  ```
+// 2. テストファイル内での使用
+describe('テスト対象', () => {
+  let vscode: any;
+  let mockOutputChannel: any;
   
-- **複雑なオブジェクト構造**  
-  URIや設定など、ネストされたプロパティをすべてモックする。  
-  ```typescript
-  vi.mock('vscode', () => ({
-    Uri: { file: vi.fn(path => ({ fsPath: path })) }
-  }));
-  ```
-
-- **バインドされたメソッド**  
-  `this`を含むメソッドの場合、テスト時に明示的にバインドやラップをしてモック化。  
-
----
-
-## 5. 依存性注入（DI）のパターン
-
-コードをテストしやすくするため、拡張機能が利用するサービスやクラスを外部から注入する方法を示します。
-
-### 5-1. デフォルト引数を使う
-
-```typescript
-export function activate(
-  context: vscode.ExtensionContext,
-  logManager = LogManager,
-  serviceFactory = () => new MyService()
-) {
-  logManager.initialize(context);
-  const service = serviceFactory();
-}
-```
-
-**テスト例:**
-```typescript
-it('依存サービスを正しく利用する', () => {
-  const mockLogManager = { initialize: vi.fn() };
-  const mockService = { doSomething: vi.fn() };
-
-  activate(mockContext, mockLogManager, () => mockService);
-  expect(mockLogManager.initialize).toHaveBeenCalledWith(mockContext);
+  beforeEach(async () => {
+    // モジュールの再インポートとモックの設定
+    vscode = await import('vscode');
+    mockOutputChannel = {
+      appendLine: vi.fn(),
+      show: vi.fn()
+    };
+    vi.mocked(vscode.window.createOutputChannel).mockReturnValue(mockOutputChannel);
+  });
 });
 ```
 
-### 5-2. モジュールレベルでエクスポート
+### 注意点
 
-```typescript
-export const service = new MyService();
+1. **ホイスティングの考慮**
+   - `vi.mock`はファイルの最上部にホイスティングされる
+   - モック定義内で外部変数を参照しない
+   - 複雑なモックは`beforeEach`内で設定
 
-export function activate(context: vscode.ExtensionContext) {
-  service.execute();
-}
+2. **モックの再利用**
+   - 共通のモックは別ファイル（`xxx.mock.ts`）に分離
+   - テストファイル固有のモックは直接定義
+
+3. **型安全性**
+   - モックオブジェクトの型は`any`を許容
+   - VSCode APIの型定義は参照のみ使用
+
+## 例外処理テスト
+
+```ts
+expect(() => someFunc()).toThrow(MyError);
 ```
 
-**テスト例:**
-```typescript
-vi.mock('./services', () => ({
-  service: { execute: vi.fn() }
-}));
+## テストカバレッジ
 
-it('モジュールレベルのサービスを使用する', () => {
-  activate(mockContext);
-  expect(service.execute).toHaveBeenCalled();
-});
-```
-
-### 5-3. ファクトリー関数で生成
-
-```typescript
-export const createService = () => new MyService();
-
-export function activate(context: vscode.ExtensionContext) {
-  const service = createService();
-  service.execute();
-}
-```
-
-**テスト例:**
-```typescript
-import * as module from './module';
-
-it('ファクトリー関数を使用する', () => {
-  const mockService = { execute: vi.fn() };
-  vi.spyOn(module, 'createService').mockReturnValue(mockService);
-
-  activate(mockContext);
-  expect(mockService.execute).toHaveBeenCalled();
-});
-```
-
----
-
-これらのポイントやコード例を参考に、VSCode拡張機能開発特有のテストを効率よく実装してください。  
-適切なモックとDIパターンを活用することで、堅牢なテストを書けるようになります。
-```
+- 基本: 80%以上
+- 共通サービス（Wrapper等）: 100%
+- 複雑な条件分岐は全パターンをテスト

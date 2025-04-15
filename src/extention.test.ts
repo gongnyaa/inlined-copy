@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LogWrapper } from './utils/logWrapper';
-import { IVSCodeEnvironment, VSCodeEnvironment } from './utils/vscodeEnvironment';
-import * as vscode from 'vscode';
+import { IVSCodeWrapper, VSCodeWrapper } from './utils/vSCodeWrapper';
 
 vi.mock('vscode', () => {
   return {
@@ -16,15 +15,8 @@ vi.mock('vscode', () => {
   };
 });
 
-// テスト用のモックOutputChannelへの参照
-const mockOutputChannel = {
-  appendLine: vi.fn(),
-  show: vi.fn(),
-  dispose: vi.fn(),
-};
-
 let logWrapperInstance: LogWrapper;
-let mockVSCodeEnv: IVSCodeEnvironment;
+let mockVSCodeEnv: IVSCodeWrapper;
 
 describe('LogWrapper 機能テスト', () => {
   beforeEach(() => {
@@ -37,19 +29,15 @@ describe('LogWrapper 機能テスト', () => {
       showErrorMessage: vi.fn(),
       getConfiguration: vi.fn(),
       writeClipboard: vi.fn(),
-      createOutputChannel: vi.fn().mockReturnValue(mockOutputChannel),
-      registerDisposable: vi.fn(),
+      dispose: vi.fn(),
     };
-    VSCodeEnvironment.SetInstance(mockVSCodeEnv);
+    VSCodeWrapper.SetInstance(mockVSCodeEnv);
 
     // LogWrapperのインスタンスを作成し、設定
     LogWrapper.SetInstance(logWrapperInstance);
 
     // LogWrapperのインスタンスを作成し、設定
     logWrapperInstance = LogWrapper.Instance();
-
-    // createOutputChannelが戻り値として返すモックを設定
-    (vscode.window.createOutputChannel as any).mockReturnValue(mockOutputChannel);
   });
 
   it('ログメッセージをプレフィックス付きで出力すること', () => {

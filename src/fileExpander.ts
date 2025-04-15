@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolver } from './fileResolver/fileResolver';
 import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
-import { IVSCodeEnvironment, VSCodeEnvironment } from './utils/vscodeEnvironment';
+import { IVSCodeWrapper, VSCodeWrapper } from './utils/vSCodeWrapper';
 import { LogWrapper } from './utils/logWrapper';
 
 export interface IFileExpander {
@@ -19,9 +19,9 @@ export interface IFileExpander {
 
 export class FileExpander implements IFileExpander {
   private static _instance: IFileExpander;
-  private _vscodeEnvironment: IVSCodeEnvironment;
+  private _vscodeEnvironment: IVSCodeWrapper;
 
-  constructor(vscodeEnvironment: IVSCodeEnvironment = VSCodeEnvironment.Instance()) {
+  constructor(vscodeEnvironment: IVSCodeWrapper = VSCodeWrapper.Instance()) {
     this._vscodeEnvironment = vscodeEnvironment;
   }
 
