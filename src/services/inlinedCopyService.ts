@@ -30,7 +30,7 @@ export class InlinedCopyService implements IInlinedCopyService {
       const processedText = await FileExpander.Instance().expandFileReferences(text, currentDir);
       await VSCodeWrapper.Instance().writeClipboard(processedText);
       LogWrapper.Instance().notify(
-        '展開された参照を含むテキストがクリップボードにコピーされました v0.1.7'
+        '展開された参照を含むテキストがクリップボードにコピーされました'
       );
     } catch (error) {
       if (error instanceof TextNotFoundException) {

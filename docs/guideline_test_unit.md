@@ -1,4 +1,4 @@
-# TypeScript ユニットテストガイドライン（簡潔版）
+# TypeScript ユニットテストガイドライン
 
 ## 基本ルール
 
@@ -47,24 +47,6 @@ export const mockLogWrapper: ILogWrapper = {
 };
 ```
 
-## シングルトンのテスト
-
-```ts
-beforeEach(() => {
-  vi.clearAllMocks();
-  // テスト前にインスタンスをリセット
-  LogWrapper.SetInstance(mockLogWrapper as LogWrapper);
-});
-```
-
-## 非同期テスト
-
-```ts
-it('非同期処理が正しく完了すること', async () => {
-  await expect(asyncFunction()).resolves.toBe(expectedValue);
-});
-```
-
 ## テスト対象の初期化
 
 ```ts
@@ -83,8 +65,8 @@ beforeEach(() => {
 
 ### 基本的なアプローチ
 
+1. モックの定義
 ```ts
-// 1. モックの定義
 vi.mock('vscode', async () => ({
   window: {
     createOutputChannel: vi.fn(),
