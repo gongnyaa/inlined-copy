@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogWrapper } from './logWrapper';
-import { VSCodeWrapper } from './vSCodeWrapper';
-import { mockVSCodeWrapper } from './vSCodeWrapper.mock';
+import { LogWrapper } from './LogWrapper';
+import { VSCodeWrapper } from './VSCodeWrapper';
+import { mockVSCodeWrapper } from './VSCodeWrapper.mock';
 
 describe('LogWrapper', () => {
   let logWrapper: LogWrapper;

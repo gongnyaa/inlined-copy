@@ -1,6 +1,6 @@
 // src/utils/vSCodeWrapper.test.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { VSCodeWrapper } from './vSCodeWrapper';
+import { VSCodeWrapper } from './VSCodeWrapper';
 
 vi.mock('vscode', () => {
   const mockOutputChannel = {

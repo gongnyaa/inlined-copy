@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { InlinedCopyService } from './inlinedCopyService';
-import { EditorTextService } from './editorTextService';
-import { FileExpander } from '../fileExpander';
-import { VSCodeWrapper } from '../utils/vSCodeWrapper';
-import { LogWrapper } from '../utils/logWrapper';
-import { mockEditorTextService } from './editorTextService.mock';
-import { mockFileExpander } from '../fileExpander.mock';
-import { mockVSCodeWrapper } from '../utils/vSCodeWrapper.mock';
-import { mockLogWrapper } from '../utils/logWrapper.mock';
-import { TextNotFoundException } from '../errors/errorTypes';
-import { t } from '../utils/i18n';
-import { MESSAGE_KEYS } from '../constants/messages';
+import { InlinedCopyService } from './InlinedCopyService';
+import { EditorTextService } from './EditorTextService';
+import { FileExpander } from '../FileExpander';
+import { VSCodeWrapper } from '../utils/VSCodeWrapper';
+import { LogWrapper } from '../utils/LogWrapper';
+import { mockEditorTextService } from './EditorTextService.mock';
+import { mockFileExpander } from '../FileExpander.mock';
+import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
+import { mockLogWrapper } from '../utils/LogWrapper.mock';
+import { TextNotFoundException } from '../errors/ErrorTypes';
+import { t } from '../utils/I18n';
+import { MESSAGE_KEYS } from '../constants/Messages';
 
 const mockTextFromEditor = 'mockTextFromEditor';
 const mockCurrentDirFromEditor = '/test/dir';

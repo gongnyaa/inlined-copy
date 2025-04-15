@@ -1,5 +1,5 @@
-import { MessageKey } from '../constants/messages';
-import { DEFAULT_MESSAGES } from '../constants/defaultMessages';
+import { MessageKey } from '../constants/Messages';
+import { DEFAULT_MESSAGES } from '../constants/DefaultMessages';
 
 /**
  * パラメータ置換を行うインターフェース

@@ -1,4 +1,4 @@
-import { IFileExpander } from './fileExpander';
+import { IFileExpander } from './FileExpander';
 import { vi } from 'vitest';
 
 export const mockFileExpander: IFileExpander = {

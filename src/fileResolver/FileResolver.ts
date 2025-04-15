@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { FileResult, fileSuccess, fileFailure } from './fileResult';
-import { LogWrapper } from '../utils/logWrapper';
+import { FileResult, fileSuccess, fileFailure } from './FileResult';
+import { LogWrapper } from '../utils/LogWrapper';
 
 export class FileResolver {
   // シングルトンを使用するため、個別のセッターは不要

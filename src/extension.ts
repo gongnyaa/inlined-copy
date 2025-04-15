@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { InlinedCopyService } from './services/inlinedCopyService';
-import { VSCodeWrapper } from './utils/vSCodeWrapper';
+import { InlinedCopyService } from './services/InlinedCopyService';
+import { VSCodeWrapper } from './utils/VSCodeWrapper';
 
 export function activate(context: vscode.ExtensionContext): void {
   // LogWrapperはインスタンス作成時に既に初期化されている

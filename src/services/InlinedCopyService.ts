@@ -1,12 +1,12 @@
 // inlinedCopyService.ts
 
-import { FileExpander } from '../fileExpander';
-import { VSCodeWrapper } from '../utils/vSCodeWrapper';
-import { LogWrapper } from '../utils/logWrapper';
-import { EditorTextService } from './editorTextService';
-import { TextNotFoundException } from '../errors/errorTypes';
-import { t } from '../utils/i18n';
-import { MESSAGE_KEYS } from '../constants/messages';
+import { FileExpander } from '../FileExpander';
+import { VSCodeWrapper } from '../utils/VSCodeWrapper';
+import { LogWrapper } from '../utils/LogWrapper';
+import { EditorTextService } from './EditorTextService';
+import { TextNotFoundException } from '../errors/ErrorTypes';
+import { t } from '../utils/I18n';
+import { MESSAGE_KEYS } from '../constants/Messages';
 
 export interface IInlinedCopyService {
   executeCommand(): Promise<void>;
