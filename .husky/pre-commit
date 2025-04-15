@@ -2,13 +2,10 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 echo "Running pre-commit checks..."
-echo "1. Running lint-staged (ESLint + Prettier on staged files)..."
-pnpm exec lint-staged || { echo "❌ lint-staged failed. Please fix the issues and try again."; exit 1; }
+echo "1. Running lint and type checks in parallel..."
+pnpm exec concurrently "pnpm exec lint-staged" "pnpm run type-check" --names "LINT,TYPE" --prefix-colors "blue,green" || { echo "❌ Checks failed. Please fix the issues and try again."; exit 1; }
 
-echo "2. TypeScript type checking..."
-pnpm run compile || { echo "❌ Type checking failed. Please fix the type errors and try again."; exit 1; }
-
-echo "3. Running tests..."
-pnpm run test || { echo "❌ Tests failed. Please fix the failing tests and try again."; exit 1; }
+echo "2. Running affected tests..."
+pnpm run test:affected || { echo "❌ Tests failed. Please fix the failing tests and try again."; exit 1; }
 
 echo "✅ All pre-commit checks passed!"
