@@ -9,6 +9,8 @@ import { mockFileExpander } from '../fileExpander.mock';
 import { mockVSCodeWrapper } from '../utils/vSCodeWrapper.mock';
 import { mockLogWrapper } from '../utils/logWrapper.mock';
 import { TextNotFoundException } from '../errors/errorTypes';
+import { t } from '../utils/i18n';
+import { MESSAGE_KEYS } from '../constants/messages';
 
 const mockTextFromEditor = 'mockTextFromEditor';
 const mockCurrentDirFromEditor = '/test/dir';
@@ -45,23 +47,21 @@ describe('InlinedCopyService', () => {
       mockCurrentDirFromEditor
     );
     expect(mockVSCodeWrapper.writeClipboard).toHaveBeenCalledWith(mockExpandedText);
-    expect(mockLogWrapper.notify).toHaveBeenCalledWith(
-      '展開された参照を含むテキストがクリップボードにコピーされました'
-    );
+    expect(mockLogWrapper.notify).toHaveBeenCalledWith(t(MESSAGE_KEYS.COPY_SUCCESS));
   });
 
   it('異常系: テキストが見つからない場合、適切なエラーメッセージが表示されること', async () => {
     // モックの設定
     // テスト用に一時的にモックの実装を上書き
     (mockEditorTextService.getTextFromEditor as any).mockImplementationOnce(() => {
-      return Promise.reject(new TextNotFoundException('コピー元のテキストが見つかりませんでした'));
+      return Promise.reject(new TextNotFoundException(t(MESSAGE_KEYS.TEXT_NOT_FOUND)));
     });
 
     // 実行
     await target.executeCommand();
 
     // 検証
-    expect(mockLogWrapper.notify).toHaveBeenCalledWith('コピー元のテキストが見つかりませんでした');
+    expect(mockLogWrapper.notify).toHaveBeenCalledWith(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
     expect(mockFileExpander.expandFileReferences).not.toHaveBeenCalled();
     expect(mockVSCodeWrapper.writeClipboard).not.toHaveBeenCalled();
   });
@@ -78,7 +78,9 @@ describe('InlinedCopyService', () => {
     await target.executeCommand();
 
     // 検証
-    expect(mockLogWrapper.error).toHaveBeenCalledWith('予期せぬエラー: テストエラー');
+    expect(mockLogWrapper.error).toHaveBeenCalledWith(
+      t(MESSAGE_KEYS.UNEXPECTED_ERROR, { message: 'テストエラー' })
+    );
     expect(mockFileExpander.expandFileReferences).not.toHaveBeenCalled();
     expect(mockVSCodeWrapper.writeClipboard).not.toHaveBeenCalled();
   });
