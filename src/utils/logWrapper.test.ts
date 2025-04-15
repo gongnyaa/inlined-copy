@@ -3,16 +3,17 @@ import { LogWrapper } from './logWrapper';
 import { VSCodeWrapper } from './vSCodeWrapper';
 import { mockVSCodeWrapper } from './vSCodeWrapper.mock';
 
-describe('LogWrapper 機能テスト', () => {
+describe('LogWrapper', () => {
+  let logWrapper: LogWrapper;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    // VSCodeWrapperのモックを設定
     VSCodeWrapper.SetInstance(mockVSCodeWrapper as VSCodeWrapper);
-    LogWrapper.SetInstance(null);
+    logWrapper = new LogWrapper();
   });
 
-  it('エラーメッセージを出力すること', () => {
-    LogWrapper.Instance().error('エラーメッセージ');
+  it('error', () => {
+    logWrapper.error('エラーメッセージ');
 
     expect(mockVSCodeWrapper.appendLine).toHaveBeenCalledWith(
       '[Inlined Copy] ERROR エラーメッセージ',
@@ -21,7 +22,7 @@ describe('LogWrapper 機能テスト', () => {
   });
 
   it('ログメッセージを出力すること', () => {
-    LogWrapper.Instance().log('テストメッセージ');
+    logWrapper.log('テストメッセージ');
 
     expect(mockVSCodeWrapper.appendLine).toHaveBeenCalledWith(
       '[Inlined Copy] テストメッセージ',
@@ -32,7 +33,7 @@ describe('LogWrapper 機能テスト', () => {
   it('トースト通知を表示すること', async () => {
     const testMessage = 'テスト通知メッセージ';
 
-    await LogWrapper.Instance().notify(testMessage);
+    logWrapper.notify(testMessage);
 
     // 通知メソッドが呼ばれたことを確認
     expect(mockVSCodeWrapper.showInformationMessage).toHaveBeenCalledWith(

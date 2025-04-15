@@ -12,6 +12,10 @@ export interface IEditorTextService {
 }
 
 export class EditorTextService implements IEditorTextService {
+  public static Instance(): IEditorTextService {
+    return new EditorTextService();
+  }
+
   public async getTextFromEditor(): Promise<{ text: string; currentDir: string }> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {

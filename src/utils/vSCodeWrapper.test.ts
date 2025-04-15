@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { VSCodeWrapper } from './vSCodeWrapper';
 
-vi.mock('vscode', async () => {
+vi.mock('vscode', () => {
   const mockOutputChannel = {
     appendLine: vi.fn(),
     show: vi.fn(),
@@ -38,51 +38,34 @@ describe('VSCodeWrapper', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vscode = await import('vscode');
-    mockOutputChannel = {
-      appendLine: vi.fn(),
-      show: vi.fn(),
-      dispose: vi.fn(),
-    };
-    vi.mocked(vscode.window.createOutputChannel).mockReturnValue(mockOutputChannel);
+    mockOutputChannel = (await import('vscode')).window.createOutputChannel('Test Channel');
+
     wrapper = new VSCodeWrapper();
-    VSCodeWrapper.SetInstance(wrapper);
   });
 
-  it('シングルトンインスタンスが正しく取得できること', () => {
-    const instance = VSCodeWrapper.Instance();
-    expect(instance).toBe(wrapper);
-  });
-
-  it('SetInstanceで設定したインスタンスが取得できること', () => {
-    const mockInstance = {} as VSCodeWrapper;
-    VSCodeWrapper.SetInstance(mockInstance);
-    const instance = VSCodeWrapper.Instance();
-    expect(instance).toBe(mockInstance);
-  });
-
-  it('appendLineがメッセージを出力すること', () => {
+  it('appendLine,needShow false', () => {
     wrapper.appendLine('テストメッセージ', false);
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith('テストメッセージ');
     expect(mockOutputChannel.show).not.toHaveBeenCalled();
   });
 
-  it('appendLineでneedShowがtrueの場合、出力チャンネルが表示されること', () => {
+  it('appendLine,needShow true', () => {
     wrapper.appendLine('テストメッセージ', true);
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith('テストメッセージ');
     expect(mockOutputChannel.show).toHaveBeenCalled();
   });
 
-  it('showInformationMessageが正しく呼ばれること', async () => {
+  it('showInformationMessage', async () => {
     await wrapper.showInformationMessage('情報メッセージ');
     expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('情報メッセージ');
   });
 
-  it('showErrorMessageが正しく呼ばれること', async () => {
+  it('showErrorMessage', async () => {
     await wrapper.showErrorMessage('エラーメッセージ');
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('エラーメッセージ');
   });
 
-  it('getConfigurationが設定値を正しく取得すること', () => {
+  it('getConfiguration,が設定値を正しく取得すること', () => {
     const getMock = vi.fn().mockReturnValue('設定値');
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({ get: getMock });
 

@@ -23,6 +23,10 @@
 | `xxx.test.ts` | テスト本体 |
 | `xxx.mock.ts` | モック定義（`vi.fn()` 使用） |
 
+## テスト対象外
+- SetInstance等のテスト用に作られたメソッド
+- シングルトンでインスタンスを取得するための、Instance()・メソッド
+
 ---
 
 ## モックの書き方
@@ -71,7 +75,7 @@ beforeEach(() => {
   // 依存のモックを設定
   DependencyClass.SetInstance(mockDependency);
   // テスト対象の初期化
-  target = TargetClass.Instance();
+  target = new TargetClass();
 });
 ```
 

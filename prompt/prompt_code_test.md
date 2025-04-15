@@ -4,7 +4,7 @@
 以下のクラスに関するテストコードを作成してください
 
 ## テスト対象クラス
-![[vSCodeWrapper.ts]]
+![[inlinedCopyService.ts]]
 
 ## ユニットテストガイドライン
 ![[guideline_test_unit.md]]
