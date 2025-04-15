@@ -1,4 +1,4 @@
-import { VSCodeWrapper } from './vSCodeWrapper';
+import { VSCodeWrapper } from './VSCodeWrapper';
 
 export interface ILogWrapper {
   log(message: string): void;

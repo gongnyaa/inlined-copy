@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogWrapper } from './utils/logWrapper';
-import { IVSCodeWrapper, VSCodeWrapper } from './utils/vSCodeWrapper';
+import { LogWrapper } from './utils/LogWrapper';
+import { IVSCodeWrapper, VSCodeWrapper } from './utils/VSCodeWrapper';
 
 vi.mock('vscode', () => {
   return {

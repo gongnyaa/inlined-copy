@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileResolver } from './fileResolver/fileResolver';
-import { LargeDataException, CircularReferenceException } from './errors/errorTypes';
-import { IVSCodeWrapper, VSCodeWrapper } from './utils/vSCodeWrapper';
-import { LogWrapper } from './utils/logWrapper';
+import { FileResolver } from './fileResolver/FileResolver';
+import { LargeDataException, CircularReferenceException } from './errors/ErrorTypes';
+import { IVSCodeWrapper, VSCodeWrapper } from './utils/VSCodeWrapper';
+import { LogWrapper } from './utils/LogWrapper';
 
 export interface IFileExpander {
   /**

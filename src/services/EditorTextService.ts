@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { TextNotFoundException } from '../errors/errorTypes';
+import { TextNotFoundException } from '../errors/ErrorTypes';
 
 export interface IEditorTextService {
   /**

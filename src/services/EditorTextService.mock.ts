@@ -1,4 +1,4 @@
-import { IEditorTextService } from './editorTextService';
+import { IEditorTextService } from './EditorTextService';
 import { vi } from 'vitest';
 
 export const mockEditorTextService: IEditorTextService = {

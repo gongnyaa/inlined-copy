@@ -1,4 +1,4 @@
-import { ILogWrapper } from './logWrapper';
+import { ILogWrapper } from './LogWrapper';
 import { vi } from 'vitest';
 
 export const mockLogWrapper: ILogWrapper = {

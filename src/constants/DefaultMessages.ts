@@ -1,4 +1,4 @@
-import { MessageKey, MESSAGE_KEYS } from './messages';
+import { MessageKey, MESSAGE_KEYS } from './Messages';
 
 /**
  * デフォルトの日本語メッセージ定義
