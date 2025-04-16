@@ -36,7 +36,7 @@ describe('InlinedCopyService', () => {
     target = new InlinedCopyService();
   });
 
-  it('executeCommand Happy Path', async () => {
+  it('executeCommand_Happy', async () => {
     // Do
     await target.executeCommand();
 
@@ -50,7 +50,7 @@ describe('InlinedCopyService', () => {
     expect(mockLogWrapper.notify).toHaveBeenCalledWith(t(MESSAGE_KEYS.COPY_SUCCESS));
   });
 
-  it('異常系: テキストが見つからない場合、適切なエラーメッセージが表示されること', async () => {
+  it('executeCommand_Error_TextNotFound', async () => {
     // モックの設定
     // テスト用に一時的にモックの実装を上書き
     (mockEditorTextService.getTextFromEditor as any).mockImplementationOnce(() => {
@@ -66,7 +66,7 @@ describe('InlinedCopyService', () => {
     expect(mockVSCodeWrapper.writeClipboard).not.toHaveBeenCalled();
   });
 
-  it('異常系: 予期せぬエラーが発生した場合、エラーログが出力されること', async () => {
+  it('executeCommand_Error_UnexpectedError', async () => {
     // モックの設定
     const testError = new Error('テストエラー');
     // テスト用に一時的にモックの実装を上書き
