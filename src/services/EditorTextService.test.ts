@@ -7,11 +7,11 @@ import { MESSAGE_KEYS } from '../constants/Messages';
 import { t } from '../utils/I18n';
 
 vi.mock('../utils/I18n', () => ({
-  t: vi.fn(key => {
+  t: vi.fn().mockImplementation(key => {
     if (key === MESSAGE_KEYS.TEXT_NOT_FOUND) {
       return 'コピー元のテキストが見つかりませんでした';
     }
-    return key;
+    return `Mocked translation for ${key}`;
   }),
 }));
 

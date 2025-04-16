@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { MessageKey } from '../constants/Messages';
+import { MessageKey, MESSAGE_KEYS } from '../constants/Messages';
 
 /**
  * I18n関数のモック
@@ -7,5 +7,8 @@ import { MessageKey } from '../constants/Messages';
 export const mockT = vi
   .fn()
   .mockImplementation((key: MessageKey, _params?: Record<string, string | number>) => {
+    if (key === MESSAGE_KEYS.TEXT_NOT_FOUND) {
+      return 'コピー元のテキストが見つかりませんでした';
+    }
     return `Mocked translation for ${key}`;
   });
