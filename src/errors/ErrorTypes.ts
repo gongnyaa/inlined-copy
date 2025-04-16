@@ -1,3 +1,6 @@
+import { t } from '../utils/I18n';
+import { MESSAGE_KEYS } from '../constants/Messages';
+
 /**
  * inlined-copy拡張機能の基本例外インターフェース
  */
@@ -54,8 +57,8 @@ export class CircularReferenceError extends InlinedCopyBaseError {
  * 対象となる元テキストが見つからない場合にスローされる例外
  */
 export class TextNotFoundError extends InlinedCopyBaseError {
-  constructor(message: string = '対象となる元テキストが見つかりません') {
-    super(message);
+  constructor(message?: string) {
+    super(message || t(MESSAGE_KEYS.TEXT_NOT_FOUND));
     this.name = 'TextNotFoundError';
     Object.setPrototypeOf(this, TextNotFoundError.prototype);
   }
