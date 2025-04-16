@@ -1,6 +1,6 @@
 // inlinedCopyService.ts
 
-import { FileExpander } from '../FileExpander';
+import { FileExpanderService } from './FileExpanderService';
 import { VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { LogWrapper } from '../utils/LogWrapper';
 import { EditorTextService } from './EditorTextService';
@@ -29,7 +29,10 @@ export class InlinedCopyService implements IInlinedCopyService {
   public async executeCommand(): Promise<void> {
     try {
       const { text, currentDir } = await EditorTextService.Instance().getTextFromEditor();
-      const processedText = await FileExpander.Instance().expandFileReferences(text, currentDir);
+      const processedText = await FileExpanderService.Instance().expandFileReferences(
+        text,
+        currentDir
+      );
       await VSCodeWrapper.Instance().writeClipboard(processedText);
       LogWrapper.Instance().notify(t(MESSAGE_KEYS.COPY_SUCCESS));
     } catch (error) {
