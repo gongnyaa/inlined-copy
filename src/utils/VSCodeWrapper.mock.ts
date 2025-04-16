@@ -10,6 +10,6 @@ export const mockVSCodeWrapper: IVSCodeWrapper = {
     .mockImplementation(<T>(section: string, key: string, defaultValue: T) => defaultValue),
   writeClipboard: vi.fn().mockResolvedValue(undefined),
   getActiveTextEditor: vi.fn(),
-  getEditorText: vi.fn().mockReturnValue({ text: '', filePath: '' }),
+  getEditorText: vi.fn().mockReturnValue({ text: '', currentDir: '' }),
   dispose: vi.fn(),
 };

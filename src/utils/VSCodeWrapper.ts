@@ -59,8 +59,9 @@ export class VSCodeWrapper implements IVSCodeWrapper {
   public getEditorText(editor: vscode.TextEditor): { text: string; currentDir: string } {
     const selection = editor.selection;
     const text = selection.isEmpty ? editor.document.getText() : editor.document.getText(selection);
-    const filePath = editor.document.uri.fsPath;
-    return { text, currentDir: path.dirname(filePath) };
+    const currentFilePath = editor.document.uri.fsPath;
+    const currentDir = path.dirname(currentFilePath);
+    return { text, currentDir };
   }
 
   public dispose(): void {
