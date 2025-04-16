@@ -67,6 +67,8 @@ export class TextNotFoundError extends InlinedCopyBaseError {
 /**
  * ErrorオブジェクトをFileResult形式に変換する
  */
-export function errorToFileResult(error: Error): import('../services/FileResolver').FileResult {
+export function errorToFileResult(
+  error: Error
+): import('../services/FileResolverService').FileResult {
   return { success: false, error: `${error.name}: ${error.message}` };
 }

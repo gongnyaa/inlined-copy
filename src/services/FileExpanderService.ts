@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileResolverService } from './FileResolver';
+import { FileResolverService } from './FileResolverService';
 import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
 import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { LogWrapper } from '../utils/LogWrapper';
