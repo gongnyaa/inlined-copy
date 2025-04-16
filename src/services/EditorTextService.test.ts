@@ -7,7 +7,7 @@ import { MESSAGE_KEYS } from '../constants/Messages';
 import { t } from '../utils/I18n';
 
 vi.mock('../utils/I18n', () => ({
-  t: vi.fn((key) => {
+  t: vi.fn(key => {
     if (key === MESSAGE_KEYS.TEXT_NOT_FOUND) {
       return 'コピー元のテキストが見つかりませんでした';
     }
@@ -17,51 +17,20 @@ vi.mock('../utils/I18n', () => ({
 
 describe('EditorTextService', () => {
   let target: EditorTextService;
-  let mockEditor: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    mockEditor = {
-      selection: {
-        isEmpty: true,
-      },
-      document: {
-        getText: vi.fn(),
-        uri: {
-          fsPath: '/test/path/file.md',
-        },
-      },
-    };
-    
-    mockVSCodeWrapper.getActiveTextEditor = vi.fn();
-    mockVSCodeWrapper.getEditorText = vi.fn();
-    
+
+    mockVSCodeWrapper.getSelectionText = vi.fn().mockReturnValue({ text: null, currentDir: '' });
+    mockVSCodeWrapper.getDocumentText = vi.fn().mockReturnValue({ text: null, currentDir: '' });
+
     VSCodeWrapper.SetInstance(mockVSCodeWrapper);
-    
+
     target = new EditorTextService();
   });
 
-  it('getTextFromEditor_WithFullDocument_ReturnsAllText', async () => {
-    vi.mocked(mockVSCodeWrapper.getActiveTextEditor).mockReturnValue(mockEditor);
-    vi.mocked(mockVSCodeWrapper.getEditorText).mockReturnValue({
-      text: 'Test Text Content',
-      currentDir: '/test/path',
-    });
-
-    const result = await target.getTextFromEditor();
-
-    expect(result.text).toBe('Test Text Content');
-    expect(result.currentDir).toBe('/test/path');
-    expect(mockVSCodeWrapper.getActiveTextEditor).toHaveBeenCalledTimes(1);
-    expect(mockVSCodeWrapper.getEditorText).toHaveBeenCalledWith(mockEditor);
-  });
-
   it('getTextFromEditor_WithSelection_ReturnsSelectedText', async () => {
-    mockEditor.selection.isEmpty = false;
-    
-    vi.mocked(mockVSCodeWrapper.getActiveTextEditor).mockReturnValue(mockEditor);
-    vi.mocked(mockVSCodeWrapper.getEditorText).mockReturnValue({
+    vi.mocked(mockVSCodeWrapper.getSelectionText).mockReturnValue({
       text: 'Selected Text Content',
       currentDir: '/test/path',
     });
@@ -70,20 +39,51 @@ describe('EditorTextService', () => {
 
     expect(result.text).toBe('Selected Text Content');
     expect(result.currentDir).toBe('/test/path');
-    expect(mockVSCodeWrapper.getActiveTextEditor).toHaveBeenCalledTimes(1);
-    expect(mockVSCodeWrapper.getEditorText).toHaveBeenCalledWith(mockEditor);
+    expect(mockVSCodeWrapper.getSelectionText).toHaveBeenCalledTimes(1);
+    expect(mockVSCodeWrapper.getDocumentText).not.toHaveBeenCalled();
   });
 
-  it('getTextFromEditor_NoActiveEditor_ThrowsTextNotFoundException', async () => {
-    vi.mocked(mockVSCodeWrapper.getActiveTextEditor).mockReturnValue(undefined);
+  it('getTextFromEditor_WithoutSelection_ReturnsDocumentText', async () => {
+    vi.mocked(mockVSCodeWrapper.getSelectionText).mockReturnValue({
+      text: null,
+      currentDir: '',
+    });
+
+    vi.mocked(mockVSCodeWrapper.getDocumentText).mockReturnValue({
+      text: 'Document Text Content',
+      currentDir: '/test/path',
+    });
+
+    const result = await target.getTextFromEditor();
+
+    expect(result.text).toBe('Document Text Content');
+    expect(result.currentDir).toBe('/test/path');
+    expect(mockVSCodeWrapper.getSelectionText).toHaveBeenCalledTimes(1);
+    expect(mockVSCodeWrapper.getDocumentText).toHaveBeenCalledTimes(1);
+  });
+
+  it('getTextFromEditor_NoEditor_ThrowsTextNotFoundException', async () => {
+    vi.mocked(mockVSCodeWrapper.getSelectionText).mockReturnValue({
+      text: null,
+      currentDir: '',
+    });
+
+    vi.mocked(mockVSCodeWrapper.getDocumentText).mockReturnValue({
+      text: null,
+      currentDir: '',
+    });
 
     await expect(target.getTextFromEditor()).rejects.toThrow(TextNotFoundException);
     expect(t).toHaveBeenCalledWith(MESSAGE_KEYS.TEXT_NOT_FOUND);
   });
 
   it('getTextFromEditor_EmptyText_ThrowsTextNotFoundException', async () => {
-    vi.mocked(mockVSCodeWrapper.getActiveTextEditor).mockReturnValue(mockEditor);
-    vi.mocked(mockVSCodeWrapper.getEditorText).mockReturnValue({
+    vi.mocked(mockVSCodeWrapper.getSelectionText).mockReturnValue({
+      text: null,
+      currentDir: '',
+    });
+
+    vi.mocked(mockVSCodeWrapper.getDocumentText).mockReturnValue({
       text: '',
       currentDir: '/test/path',
     });

@@ -26,17 +26,16 @@ export class EditorTextService implements IEditorTextService {
   }
 
   public async getTextFromEditor(): Promise<{ text: string; currentDir: string }> {
-    const editor = VSCodeWrapper.Instance().getActiveTextEditor();
-    if (!editor) {
+    const selectionResult = VSCodeWrapper.Instance().getSelectionText();
+    if (selectionResult.text) {
+      return { text: selectionResult.text, currentDir: selectionResult.currentDir };
+    }
+
+    const documentResult = VSCodeWrapper.Instance().getDocumentText();
+    if (!documentResult.text) {
       throw new TextNotFoundException(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
     }
 
-    const { text, currentDir } = VSCodeWrapper.Instance().getEditorText(editor);
-
-    if (!text) {
-      throw new TextNotFoundException(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
-    }
-
-    return { text, currentDir };
+    return { text: documentResult.text, currentDir: documentResult.currentDir };
   }
 }
