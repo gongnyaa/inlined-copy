@@ -1,63 +1,57 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogWrapper } from './utils/LogWrapper';
-import { IVSCodeWrapper, VSCodeWrapper } from './utils/VSCodeWrapper';
+import { vi, describe, beforeEach, afterEach, it, expect } from 'vitest';
+import * as vscode from 'vscode';
+import { InlinedCopyService } from './services/InlinedCopyService';
+import { VSCodeWrapper } from './utils/VSCodeWrapper';
+import { mockVSCodeWrapper } from './utils/VSCodeWrapper.mock';
+import { mockInlinedCopyService } from './services/InlinedCopyService.mock';
+import { activate, deactivate } from './extension';
 
-vi.mock('vscode', () => {
-  return {
-    window: {
-      createOutputChannel: vi.fn().mockReturnValue({
-        appendLine: vi.fn(),
-        show: vi.fn(),
-        dispose: vi.fn(),
-      }),
-      showInformationMessage: vi.fn().mockResolvedValue('OK'),
-    },
-  };
-});
-
-let logWrapperInstance: LogWrapper;
-let mockVSCodeEnv: IVSCodeWrapper;
-
-describe('LogWrapper 機能テスト', () => {
-  beforeEach(() => {
+describe('extension', () => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-
-    // VSCodeEnvironmentのモックを作成し、設定
-    mockVSCodeEnv = {
-      appendLine: vi.fn(),
-      showInformationMessage: vi.fn().mockResolvedValue('OK'),
-      showErrorMessage: vi.fn(),
-      getConfiguration: vi.fn(),
-      writeClipboard: vi.fn(),
-      dispose: vi.fn(),
-    };
-    VSCodeWrapper.SetInstance(mockVSCodeEnv);
-
-    // LogWrapperのインスタンスを作成し、設定
-    LogWrapper.SetInstance(logWrapperInstance);
-
-    // LogWrapperのインスタンスを作成し、設定
-    logWrapperInstance = LogWrapper.Instance();
+    InlinedCopyService.SetInstance(mockInlinedCopyService);
+    VSCodeWrapper.SetInstance(mockVSCodeWrapper);
   });
 
-  it('ログメッセージをプレフィックス付きで出力すること', () => {
-    LogWrapper.Instance().log('テストメッセージ');
-
-    expect(mockVSCodeEnv.appendLine).toHaveBeenCalledWith('[Inlined Copy] テストメッセージ', false);
+  afterEach(() => {
+    vi.resetModules();
   });
 
-  it('エラーメッセージを出力し、出力チャンネルを表示すること', () => {
-    LogWrapper.Instance().error('エラーメッセージ');
+  describe('activate', () => {
+    it('activate_HappyPath', () => {
+      const mockContext: Pick<vscode.ExtensionContext, 'subscriptions'> = {
+        subscriptions: [],
+      };
 
-    expect(mockVSCodeEnv.appendLine).toHaveBeenCalledWith(
-      '[Inlined Copy] ERROR エラーメッセージ',
-      true
-    );
+      const mockDisposable = { dispose: vi.fn() };
+
+      vi.mocked(vscode.commands.registerCommand).mockImplementation(
+        (command: string, callback: () => Promise<void>) => {
+          callback();
+          return mockDisposable;
+        }
+      );
+
+      activate(mockContext as vscode.ExtensionContext);
+
+      expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+        'inlined-copy.copyInline',
+        expect.any(Function)
+      );
+
+      expect(mockInlinedCopyService.executeCommand).toHaveBeenCalledTimes(1);
+      expect(mockInlinedCopyService.executeCommand).toHaveBeenCalledWith();
+
+      expect(mockContext.subscriptions).toHaveLength(1);
+      expect(mockContext.subscriptions[0]).toBe(mockDisposable);
+    });
   });
 
-  it('ログ出力のテスト', () => {
-    LogWrapper.Instance().log('テストメッセージ');
+  describe('deactivate', () => {
+    it('deactivate_HappyPath', () => {
+      deactivate();
 
-    expect(mockVSCodeEnv.appendLine).toHaveBeenCalledWith('[Inlined Copy] テストメッセージ', false);
+      expect(mockVSCodeWrapper.dispose).toHaveBeenCalledTimes(1);
+    });
   });
 });

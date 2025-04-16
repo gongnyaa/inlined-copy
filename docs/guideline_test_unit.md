@@ -4,7 +4,7 @@
 
 - `vitest` を使用
 - `vi.clearAllMocks()` を `beforeEach` に記述
-- テストケース名は日本語で具体的に
+- テストケース名はメソッド名_HappyPathまたはメソッド名_Errorの形式
 - 独自クラスへの依存はxxx.mock.tsでモック。その他クラスは、vi.mockでモック
 - `vi.mock`の使用方法：
   1. ファイル先頭に記述

@@ -6,9 +6,9 @@ vi.mock('vscode', () => {
     workspace: {
       workspaceFolders: [{ uri: { fsPath: '/workspace/root' } }],
       findFiles: vi.fn().mockResolvedValue([]),
-      asRelativePath: vi.fn().mockImplementation((uri) => {
+      asRelativePath: vi.fn().mockImplementation(uri => {
         return typeof uri === 'string' ? uri : uri.fsPath.replace('/workspace/root/', '');
-      })
+      }),
     },
     window: {
       showInformationMessage: vi.fn(),
@@ -17,29 +17,30 @@ vi.mock('vscode', () => {
       createOutputChannel: vi.fn().mockReturnValue({
         appendLine: vi.fn(),
         show: vi.fn(),
-        clear: vi.fn()
-      })
+        clear: vi.fn(),
+        dispose: vi.fn(),
+      }),
     },
     env: {
       clipboard: {
-        writeText: vi.fn()
-      }
+        writeText: vi.fn(),
+      },
     },
     Uri: {
-      file: vi.fn().mockImplementation((path) => ({ fsPath: path })),
-      parse: vi.fn().mockImplementation((uri) => ({ fsPath: uri }))
+      file: vi.fn().mockImplementation(path => ({ fsPath: path })),
+      parse: vi.fn().mockImplementation(uri => ({ fsPath: uri })),
     },
     commands: {
-      registerCommand: vi.fn()
+      registerCommand: vi.fn(),
     },
     extensions: {
-      getExtension: vi.fn()
+      getExtension: vi.fn(),
     },
     ConfigurationTarget: {
       Global: 1,
       Workspace: 2,
-      WorkspaceFolder: 3
-    }
+      WorkspaceFolder: 3,
+    },
   };
 });
 
@@ -59,20 +60,6 @@ vi.mock('fs', () => {
     readdirSync: vi.fn().mockReturnValue([]),
     unlinkSync: vi.fn(),
     rmdirSync: vi.fn(),
-    rmSync: vi.fn()
-  };
-});
-
-// Mock LogManager to avoid "Cannot read properties of undefined (reading 'toLowerCase')" error
-vi.mock('../src/utils/logManager', () => {
-  return {
-    LogManager: {
-      getLogLevel: vi.fn().mockReturnValue(0), // LogLevel.NONE
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-      setLogLevel: vi.fn()
-    }
+    rmSync: vi.fn(),
   };
 });
