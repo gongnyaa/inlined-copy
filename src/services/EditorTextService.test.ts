@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EditorTextService } from './EditorTextService';
 import { VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
-import { TextNotFoundException } from '../errors/ErrorTypes';
+import { TextNotFoundError } from '../errors/ErrorTypes';
 import { MESSAGE_KEYS } from '../constants/Messages';
 import { t } from '../utils/I18n';
 
@@ -62,7 +62,7 @@ describe('EditorTextService', () => {
     expect(mockVSCodeWrapper.getDocumentText).toHaveBeenCalledTimes(1);
   });
 
-  it('getTextFromEditor_NoEditor_ThrowsTextNotFoundException', async () => {
+  it('getTextFromEditor_NoEditor_ThrowsTextNotFoundError', async () => {
     vi.mocked(mockVSCodeWrapper.getSelectionText).mockReturnValue({
       text: null,
       currentDir: '',
@@ -73,11 +73,11 @@ describe('EditorTextService', () => {
       currentDir: '',
     });
 
-    await expect(target.getTextFromEditor()).rejects.toThrow(TextNotFoundException);
+    await expect(target.getTextFromEditor()).rejects.toThrow(TextNotFoundError);
     expect(t).toHaveBeenCalledWith(MESSAGE_KEYS.TEXT_NOT_FOUND);
   });
 
-  it('getTextFromEditor_EmptyText_ThrowsTextNotFoundException', async () => {
+  it('getTextFromEditor_EmptyText_ThrowsTextNotFoundError', async () => {
     vi.mocked(mockVSCodeWrapper.getSelectionText).mockReturnValue({
       text: null,
       currentDir: '',
@@ -88,7 +88,7 @@ describe('EditorTextService', () => {
       currentDir: '/test/path',
     });
 
-    await expect(target.getTextFromEditor()).rejects.toThrow(TextNotFoundException);
+    await expect(target.getTextFromEditor()).rejects.toThrow(TextNotFoundError);
     expect(t).toHaveBeenCalledWith(MESSAGE_KEYS.TEXT_NOT_FOUND);
   });
 });
