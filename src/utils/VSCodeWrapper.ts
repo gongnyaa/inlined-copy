@@ -1,5 +1,5 @@
-import * as path from 'path';
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export interface IVSCodeWrapper {
   appendLine(message: string, needShow: boolean): void;
