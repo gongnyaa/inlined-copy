@@ -5,16 +5,13 @@ import { VSCodeWrapper } from './utils/VSCodeWrapper';
 import { mockVSCodeWrapper } from './utils/VSCodeWrapper.mock';
 import { mockInlinedCopyService } from './services/InlinedCopyService.mock';
 import { activate, deactivate } from './extension';
+import { COMMANDS } from './constants/Commands';
 
 describe('extension', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     InlinedCopyService.SetInstance(mockInlinedCopyService);
     VSCodeWrapper.SetInstance(mockVSCodeWrapper);
-  });
-
-  afterEach(() => {
-    vi.resetModules();
   });
 
   describe('activate', () => {
@@ -35,7 +32,7 @@ describe('extension', () => {
       activate(mockContext as vscode.ExtensionContext);
 
       expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
-        'inlined-copy.copyInline',
+        COMMANDS.COPY_INLINE,
         expect.any(Function)
       );
 
