@@ -8,3 +8,7 @@ pr_diff.txt
 coverage/
 pr_**
 pr.txt
+vitest.config.js
+vitest.config.js.map
+vitest.setup.js
+vitest.setup.js.map

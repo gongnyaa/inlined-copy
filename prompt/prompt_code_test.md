@@ -2,13 +2,26 @@
 
 下記の　ガイドラインを参考に
 以下のクラスに関するテストコードを作成し、
-テスト実行してください。
+テストの成功を確かめた上で、PRを作成してください。
+既に該当ファイルがある場合は、適切に修正してください。
+作成にあたり、参考にすべきファイルを理解し、準拠すること。
 
 ## テスト対象クラス
-![[inlinedCopyService.ts]]
+![[EditorTextService.ts]]
 
 ## ユニットテストガイドライン
 ![[guideline_test_unit.md]]
 
 ## TypeScriptガイドライン
 ![[guideline_coding]]
+
+## 参考にすべきファイル
+### 実装
+'''ts
+![[extension.ts]]
+'''
+
+### テストコード
+'''ts
+![[extension.test.ts]]
+'''
