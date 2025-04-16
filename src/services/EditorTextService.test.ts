@@ -68,7 +68,7 @@ describe('EditorTextService', () => {
     expect(mockDocument.getText).toHaveBeenCalledWith(mockSelection);
   });
 
-  it('getTextFromEditor_アクティブエディタが存在しない場合_TextNotFoundExceptionをスロー', async () => {
+  it('getTextFromEditor_NoActiveEditor_ThrowsTextNotFoundException', async () => {
     vi.mocked(vscode.window).activeTextEditor = null;
 
     await expect(target.getTextFromEditor()).rejects.toThrow(TextNotFoundException);
@@ -77,7 +77,7 @@ describe('EditorTextService', () => {
     );
   });
 
-  it('getTextFromEditor_テキストが空の場合_TextNotFoundExceptionをスロー', async () => {
+  it('getTextFromEditor_EmptyText_ThrowsTextNotFoundException', async () => {
     const mockSelection = {
       isEmpty: true,
     };
