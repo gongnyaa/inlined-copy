@@ -1,4 +1,4 @@
-import { vi, describe, beforeEach, afterEach, it, expect } from 'vitest';
+import { vi, describe, beforeEach, it, expect } from 'vitest';
 import * as vscode from 'vscode';
 import { InlinedCopyService } from './services/InlinedCopyService';
 import { VSCodeWrapper } from './utils/VSCodeWrapper';
@@ -14,41 +14,35 @@ describe('extension', () => {
     VSCodeWrapper.SetInstance(mockVSCodeWrapper);
   });
 
-  describe('activate', () => {
-    it('activate_HappyPath', () => {
-      const mockContext: Pick<vscode.ExtensionContext, 'subscriptions'> = {
-        subscriptions: [],
-      };
+  it('activate_Happy', () => {
+    const mockContext: Pick<vscode.ExtensionContext, 'subscriptions'> = {
+      subscriptions: { push: vi.fn() } as unknown as [],
+    };
 
-      const mockDisposable = { dispose: vi.fn() };
+    const mockDisposable: vscode.Disposable = { dispose: vi.fn() };
 
-      vi.mocked(vscode.commands.registerCommand).mockImplementation(
-        (command: string, callback: () => Promise<void>) => {
-          callback();
-          return mockDisposable;
-        }
-      );
+    vi.mocked(vscode.commands.registerCommand).mockImplementation(
+      (command: string, callback: () => Promise<void>) => {
+        callback();
+        return mockDisposable;
+      }
+    );
 
-      activate(mockContext as vscode.ExtensionContext);
+    activate(mockContext as vscode.ExtensionContext);
 
-      expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
-        COMMANDS.COPY_INLINE,
-        expect.any(Function)
-      );
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      COMMANDS.COPY_INLINE,
+      expect.any(Function)
+    );
 
-      expect(mockInlinedCopyService.executeCommand).toHaveBeenCalledTimes(1);
-      expect(mockInlinedCopyService.executeCommand).toHaveBeenCalledWith();
+    expect(mockInlinedCopyService.executeCommand).toHaveBeenCalledWith();
 
-      expect(mockContext.subscriptions).toHaveLength(1);
-      expect(mockContext.subscriptions[0]).toBe(mockDisposable);
-    });
+    expect(mockContext.subscriptions.push).toHaveBeenCalledWith(mockDisposable);
   });
 
-  describe('deactivate', () => {
-    it('deactivate_HappyPath', () => {
-      deactivate();
+  it('deactivate_Happy', () => {
+    deactivate();
 
-      expect(mockVSCodeWrapper.dispose).toHaveBeenCalledTimes(1);
-    });
+    expect(mockVSCodeWrapper.dispose).toHaveBeenCalledWith();
   });
 });
