@@ -9,5 +9,13 @@ export const mockVSCodeWrapper: IVSCodeWrapper = {
     .fn()
     .mockImplementation(<T>(section: string, key: string, defaultValue: T) => defaultValue),
   writeClipboard: vi.fn().mockResolvedValue(undefined),
+  getSelectionText: vi.fn().mockReturnValue({
+    text: 'モックされた選択テキスト',
+    currentDir: '/mock/dir',
+  }),
+  getDocumentText: vi.fn().mockReturnValue({
+    text: 'モックされた文書テキスト',
+    currentDir: '/mock/dir',
+  }),
   dispose: vi.fn(),
 };

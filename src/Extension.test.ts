@@ -29,6 +29,8 @@ describe('LogWrapper 機能テスト', () => {
       showErrorMessage: vi.fn(),
       getConfiguration: vi.fn(),
       writeClipboard: vi.fn(),
+      getSelectionText: vi.fn().mockReturnValue({ text: 'テスト', currentDir: '/test' }),
+      getDocumentText: vi.fn().mockReturnValue({ text: 'テスト', currentDir: '/test' }),
       dispose: vi.fn(),
     };
     VSCodeWrapper.SetInstance(mockVSCodeEnv);

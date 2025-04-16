@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export interface IVSCodeWrapper {
   appendLine(message: string, needShow: boolean): void;
@@ -6,6 +7,8 @@ export interface IVSCodeWrapper {
   showErrorMessage(message: string): Thenable<string | undefined>;
   getConfiguration<T>(section: string, key: string, defaultValue: T): T;
   writeClipboard(text: string): Thenable<void>;
+  getSelectionText(): { text: string | null; currentDir: string };
+  getDocumentText(): { text: string | null; currentDir: string };
   dispose(): void;
 }
 
@@ -47,6 +50,35 @@ export class VSCodeWrapper implements IVSCodeWrapper {
 
   public writeClipboard(text: string): Thenable<void> {
     return vscode.env.clipboard.writeText(text);
+  }
+
+  public getSelectionText(): { text: string | null; currentDir: string } {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return { text: null, currentDir: '' };
+    }
+
+    const selection = editor.selection;
+    if (selection.isEmpty) {
+      return { text: null, currentDir: '' };
+    }
+
+    const text = editor.document.getText(selection);
+    const currentFilePath = editor.document.uri.fsPath;
+    const currentDir = path.dirname(currentFilePath);
+    return { text, currentDir };
+  }
+
+  public getDocumentText(): { text: string | null; currentDir: string } {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return { text: null, currentDir: '' };
+    }
+
+    const text = editor.document.getText();
+    const currentFilePath = editor.document.uri.fsPath;
+    const currentDir = path.dirname(currentFilePath);
+    return { text, currentDir };
   }
 
   public dispose(): void {
