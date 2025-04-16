@@ -36,7 +36,7 @@ export interface IFileResolver {
 /**
  * ファイル解決を行うサービスクラス
  */
-export class FileResolver implements IFileResolver {
+export class FileResolverService implements IFileResolver {
   private static _instance: IFileResolver | null = null;
 
   /**
@@ -44,7 +44,7 @@ export class FileResolver implements IFileResolver {
    */
   public static Instance(): IFileResolver {
     if (!this._instance) {
-      this._instance = new FileResolver();
+      this._instance = new FileResolverService();
     }
     return this._instance;
   }
