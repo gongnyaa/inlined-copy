@@ -25,8 +25,44 @@ export function fileFailure(error: string): FileResult {
   return { success: false, error };
 }
 
-export class FileResolverService {
-  public static async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
+/**
+ * ファイル解決のためのインターフェース
+ */
+export interface IFileResolver {
+  resolveFilePath(filePath: string, basePath: string): Promise<FileResult>;
+  getSuggestions(filePath: string): Promise<string[]>;
+}
+
+/**
+ * ファイル解決を行うサービスクラス
+ */
+export class FileResolverService implements IFileResolver {
+  private static _instance: IFileResolver | null = null;
+
+  /**
+   * シングルトンインスタンスを取得
+   */
+  public static Instance(): IFileResolver {
+    if (!this._instance) {
+      this._instance = new FileResolverService();
+    }
+    return this._instance;
+  }
+
+  /**
+   * テスト用にインスタンスを設定
+   */
+  public static SetInstance(instance: IFileResolver | null): void {
+    this._instance = instance;
+  }
+
+  /**
+   * ファイルパスを解決する
+   * @param filePath 解決するファイルパス
+   * @param basePath 基準となるパス
+   * @returns 解決結果
+   */
+  public async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
     try {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -90,7 +126,12 @@ export class FileResolverService {
     }
   }
 
-  public static async getSuggestions(filePath: string): Promise<string[]> {
+  /**
+   * ファイルパスの候補を取得する
+   * @param filePath ファイルパス
+   * @returns 候補の配列
+   */
+  public async getSuggestions(filePath: string): Promise<string[]> {
     try {
       const fileName = path.parse(filePath).name;
       const searchPattern = `**/${fileName}.*`;

@@ -105,10 +105,10 @@ export class FileExpanderService implements IFileExpanderService {
   }
 
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
-    const result = await FileResolverService.resolveFilePath(filePath, basePath);
+    const result = await FileResolverService.Instance().resolveFilePath(filePath, basePath);
 
     if (!result.success) {
-      await FileResolverService.getSuggestions(filePath);
+      await FileResolverService.Instance().getSuggestions(filePath);
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
