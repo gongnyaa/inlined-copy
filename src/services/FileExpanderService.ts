@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileResolverService } from './FileResolverService';
+import { FileResolver } from './FileResolver';
 import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
 import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { LogWrapper } from '../utils/LogWrapper';
@@ -105,10 +105,10 @@ export class FileExpanderService implements IFileExpanderService {
   }
 
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
-    const result = await FileResolverService.resolveFilePath(filePath, basePath);
+    const result = await FileResolver.Instance().resolveFilePath(filePath, basePath);
 
     if (!result.success) {
-      await FileResolverService.getSuggestions(filePath);
+      await FileResolver.Instance().getSuggestions(filePath);
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
