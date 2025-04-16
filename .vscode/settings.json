@@ -3,6 +3,10 @@
         ".obsidian/**": true,
         "node_modules/**": true,
         "out/**": true,
-        ".eslintcache":true
+        ".eslintcache":true,
+        "vitest.config.js": true,
+        "vitest.config.js.map": true,
+        "vitest.setup.js": true,
+        "vitest.setup.js.map": true
       }
 }

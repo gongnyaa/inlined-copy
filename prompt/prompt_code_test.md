@@ -5,7 +5,7 @@
 テスト実行してください。
 
 ## テスト対象クラス
-![[inlinedCopyService.ts]]
+![[extension.ts]]
 
 ## ユニットテストガイドライン
 ![[guideline_test_unit.md]]

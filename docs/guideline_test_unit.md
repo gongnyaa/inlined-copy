@@ -4,10 +4,10 @@
 
 - `vitest` を使用
 - `vi.clearAllMocks()` を `beforeEach` に記述
-- テストケース名は日本語で具体的に
+- テストケース名はメソッド名_HappyPathまたはメソッド名_Errorの形式
 - 独自クラスへの依存はxxx.mock.tsでモック。その他クラスは、vi.mockでモック
 - `vi.mock`の使用方法：
-  1. ファイル先頭に記述
+  1. 利用する場合は、テストファイル先頭に記述
   2. 外部変数に依存させない（ホイスティングの問題を防ぐため）
   3. 基本的なモック定義のみを含める
   4. 複雑なモックや外部依存が必要な場合は：
@@ -16,7 +16,7 @@
 
 ---
 
-## テスト構成
+## ファイル構成
 対象ファイルと同ディレクトリに配置
 | ファイル名 | 用途 |
 |------------|------|
@@ -34,6 +34,8 @@
 - インターフェース準拠
 - `vi.fn()` で関数モック化
 - `xxx.mock.ts` 内で `mockXxx` 名で export
+- テスト固有のモックオブジェクトは、各テストケース内で作成することも許容する
+- 複数のテストで共通で使用するモックは`beforeEach`内で初期化することを推奨
 
 ```ts
 // logWrapper.mock.ts
@@ -54,40 +56,8 @@ let target: TargetClass;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // 依存のモックを設定
   DependencyClass.SetInstance(mockDependency);
-  // テスト対象の初期化
   target = new TargetClass();
-});
-```
-
-## VSCode API のモック化
-
-### 基本的なアプローチ
-
-1. モックの定義
-```ts
-vi.mock('vscode', async () => ({
-  window: {
-    createOutputChannel: vi.fn(),
-    showInformationMessage: vi.fn()
-  }
-}));
-
-// 2. テストファイル内での使用
-describe('テスト対象', () => {
-  let vscode: any;
-  let mockOutputChannel: any;
-  
-  beforeEach(async () => {
-    // モジュールの再インポートとモックの設定
-    vscode = await import('vscode');
-    mockOutputChannel = {
-      appendLine: vi.fn(),
-      show: vi.fn()
-    };
-    vi.mocked(vscode.window.createOutputChannel).mockReturnValue(mockOutputChannel);
-  });
 });
 ```
 
