@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export interface IVSCodeWrapper {
   appendLine(message: string, needShow: boolean): void;
@@ -7,6 +8,8 @@ export interface IVSCodeWrapper {
   getConfiguration<T>(section: string, key: string, defaultValue: T): T;
   writeClipboard(text: string): Thenable<void>;
   dispose(): void;
+  getActiveTextEditor(): vscode.TextEditor | undefined;
+  getEditorText(editor: vscode.TextEditor): { text: string; currentDir: string };
 }
 
 export class VSCodeWrapper implements IVSCodeWrapper {
@@ -54,5 +57,19 @@ export class VSCodeWrapper implements IVSCodeWrapper {
       this._outputChannel.dispose();
       this._outputChannel = undefined;
     }
+  }
+
+  public getActiveTextEditor(): vscode.TextEditor | undefined {
+    return vscode.window.activeTextEditor;
+  }
+
+  public getEditorText(editor: vscode.TextEditor): { text: string; currentDir: string } {
+    const selection = editor.selection;
+    const text = selection.isEmpty ? editor.document.getText() : editor.document.getText(selection);
+
+    const currentFilePath = editor.document.uri.fsPath;
+    const currentDir = path.dirname(currentFilePath);
+
+    return { text, currentDir };
   }
 }

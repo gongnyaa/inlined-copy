@@ -30,6 +30,8 @@ describe('LogWrapper 機能テスト', () => {
       getConfiguration: vi.fn(),
       writeClipboard: vi.fn(),
       dispose: vi.fn(),
+      getActiveTextEditor: vi.fn(),
+      getEditorText: vi.fn(),
     };
     VSCodeWrapper.SetInstance(mockVSCodeEnv);
 
