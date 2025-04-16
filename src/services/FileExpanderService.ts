@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileResolver } from './fileResolver/FileResolver';
-import { LargeDataException, CircularReferenceException } from './errors/ErrorTypes';
-import { IVSCodeWrapper, VSCodeWrapper } from './utils/VSCodeWrapper';
-import { LogWrapper } from './utils/LogWrapper';
+import { FileResolverService } from './FileResolverService';
+import { LargeDataException, CircularReferenceException } from '../errors/ErrorTypes';
+import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
+import { LogWrapper } from '../utils/LogWrapper';
 
-export interface IFileExpander {
+export interface IFileExpanderService {
   /**
    *
    */
@@ -17,22 +17,22 @@ export interface IFileExpander {
   ): Promise<string>;
 }
 
-export class FileExpander implements IFileExpander {
-  private static _instance: IFileExpander;
+export class FileExpanderService implements IFileExpanderService {
+  private static _instance: IFileExpanderService;
   private _vscodeEnvironment: IVSCodeWrapper;
 
   constructor(vscodeEnvironment: IVSCodeWrapper = VSCodeWrapper.Instance()) {
     this._vscodeEnvironment = vscodeEnvironment;
   }
 
-  public static Instance(): IFileExpander {
+  public static Instance(): IFileExpanderService {
     if (!this._instance) {
-      this._instance = new FileExpander();
+      this._instance = new FileExpanderService();
     }
     return this._instance;
   }
 
-  public static SetInstance(instance: IFileExpander): void {
+  public static SetInstance(instance: IFileExpanderService): void {
     this._instance = instance;
   }
 
@@ -105,10 +105,10 @@ export class FileExpander implements IFileExpander {
   }
 
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
-    const result = await FileResolver.resolveFilePath(filePath, basePath);
+    const result = await FileResolverService.resolveFilePath(filePath, basePath);
 
     if (!result.success) {
-      await FileResolver.getSuggestions(filePath);
+      await FileResolverService.getSuggestions(filePath);
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
