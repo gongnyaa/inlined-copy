@@ -8,7 +8,7 @@ import { mockEditorTextService } from './EditorTextService.mock';
 import { mockFileExpanderService } from './FileExpanderService.mock';
 import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
-import { TextNotFoundException } from '../errors/ErrorTypes';
+import { TextNotFoundError } from '../errors/ErrorTypes';
 import { t } from '../utils/I18n';
 import { MESSAGE_KEYS } from '../constants/Messages';
 
@@ -54,7 +54,7 @@ describe('InlinedCopyService', () => {
     // モックの設定
     // テスト用に一時的にモックの実装を上書き
     (mockEditorTextService.getTextFromEditor as any).mockImplementationOnce(() => {
-      return Promise.reject(new TextNotFoundException(t(MESSAGE_KEYS.TEXT_NOT_FOUND)));
+      return Promise.reject(new TextNotFoundError(t(MESSAGE_KEYS.TEXT_NOT_FOUND)));
     });
 
     // 実行

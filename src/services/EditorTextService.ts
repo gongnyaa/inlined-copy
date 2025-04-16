@@ -1,4 +1,4 @@
-import { TextNotFoundException } from '../errors/ErrorTypes';
+import { TextNotFoundError } from '../errors/ErrorTypes';
 import { VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { MESSAGE_KEYS } from '../constants/Messages';
 import { t } from '../utils/I18n';
@@ -7,7 +7,7 @@ export interface IEditorTextService {
   /**
    * アクティブなエディタからテキストを取得する
    * @returns 取得したテキストと現在のディレクトリのパス
-   * @throws TextNotFoundException テキストが見つからない場合にスローされる
+   * @throws TextNotFoundError テキストが見つからない場合にスローされる
    */
   getTextFromEditor(): Promise<{ text: string; currentDir: string }>;
 }
@@ -33,7 +33,7 @@ export class EditorTextService implements IEditorTextService {
 
     const documentResult = VSCodeWrapper.Instance().getDocumentText();
     if (!documentResult.text) {
-      throw new TextNotFoundException(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
+      throw new TextNotFoundError(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
     }
 
     return { text: documentResult.text, currentDir: documentResult.currentDir };
