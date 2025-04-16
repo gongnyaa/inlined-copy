@@ -6,22 +6,38 @@
 ```
 inlined-copy/
 ├── src/                     # ソースコードディレクトリ
+│   ├── constants/           # 定数と文字列リソース
+│   │   ├── Commands.ts      # コマンド定義
+│   │   ├── DefaultMessages.ts # デフォルトメッセージ
+│   │   └── Messages.ts      # メッセージキー定義
 │   ├── errors/              # エラー処理関連
-│   │   └── errorTypes.ts    # カスタムエラータイプ定義
+│   │   └── ErrorTypes.ts    # カスタムエラータイプ定義
 │   ├── extension.ts         # 拡張機能のエントリーポイント
-│   ├── fileExpander.ts      # ファイル参照展開ロジック
-│   ├── fileResolver/        # ファイルパス解決関連
-│   │   ├── fileResolver.ts  # インテリジェントなファイルパス解決
-│   │   └── fileResult.ts    # ファイル操作結果型定義
-│   ├── parameterProcessor.ts # パラメータ処理ロジック
-│   ├── sectionExtractor.ts  # 見出しセクション抽出ロジック
+│   ├── Extension.test.ts    # 拡張機能のテスト
+│   ├── services/            # サービス実装
+│   │   ├── EditorTextService.ts    # エディタテキスト取得サービス
+│   │   ├── EditorTextService.test.ts # エディタテキストサービスのテスト
+│   │   ├── EditorTextService.mock.ts # エディタテキストサービスのモック
+│   │   ├── FileExpanderService.ts  # ファイル参照展開サービス
+│   │   ├── FileExpanderService.mock.ts # ファイル展開サービスのモック
+│   │   ├── FileResolverService.ts  # ファイルパス解決サービス
+│   │   ├── InlinedCopyService.ts   # メインサービス
+│   │   ├── InlinedCopyService.test.ts # メインサービスのテスト
+│   │   └── InlinedCopyService.mock.ts # メインサービスのモック
 │   └── utils/               # ユーティリティ関数
-│       ├── logManager.ts       # ログ出力ユーティリティ（log/errorメソッド）
-│       └── vscodeEnvironment.ts # VS Code環境操作ラッパー
-├── asset/                   # マーケット用素材
-├── test/                    # 結合テスト
-├── prompt/                  # 指示書ドキュメント
+│       ├── I18n.ts          # 国際化ユーティリティ
+│       ├── I18n.test.ts     # 国際化ユーティリティのテスト
+│       ├── I18n.mock.ts     # 国際化ユーティリティのモック
+│       ├── LogWrapper.ts    # ログ出力ユーティリティ
+│       ├── LogWrapper.test.ts # ログユーティリティのテスト
+│       ├── LogWrapper.mock.ts # ログユーティリティのモック
+│       ├── VSCodeWrapper.ts # VS Code環境操作ラッパー
+│       ├── VSCodeWrapper.test.ts # VS Codeラッパーのテスト
+│       └── VSCodeWrapper.mock.ts # VS Codeラッパーのモック
+├── assets/                  # マーケット用素材
 ├── docs/                    # ドキュメント
+├── examples/                # サンプルファイル
+├── prompt/                  # 指示書ドキュメント
 ├── .eslintrc.json           # ESLintの設定ファイル
 ├── .gitignore               # Gitの無視ファイル設定
 ├── .prettierrc.json         # Prettierの設定ファイル
@@ -35,7 +51,8 @@ inlined-copy/
 ├── CHANGELOG.md             # 変更履歴
 ├── package.json             # プロジェクト設定・依存関係定義
 ├── tsconfig.json            # TypeScript設定
-└── vitest.config.ts         # Vitestテスト設定
+├── vitest.config.ts         # Vitestテスト設定
+└── vitest.setup.ts          # Vitestセットアップファイル
 ```
 
 ## 補足事項
