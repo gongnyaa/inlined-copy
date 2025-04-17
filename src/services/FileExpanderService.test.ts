@@ -161,7 +161,7 @@ describe('FileExpanderService', () => {
       (mockFileResolverService.getSuggestions as any).mockResolvedValueOnce([]);
 
       vi.spyOn(target as any, 'resolveFilePath').mockImplementationOnce(async function () {
-        throw new Error('File not found: missing.txt');
+        throw new Error('ファイルが見つかりません: missing.txt');
       });
 
       vi.spyOn(LogWrapper.Instance(), 'log').mockImplementation(vi.fn());
