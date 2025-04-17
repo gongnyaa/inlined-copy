@@ -7,7 +7,7 @@ import { LogWrapper } from '../utils/LogWrapper';
 
 export interface IFileExpanderService {
   /**
-   *
+   * ファイル参照を展開する
    */
   expandFileReferences(
     text: string,
@@ -84,7 +84,7 @@ export class FileExpanderService implements IFileExpanderService {
 
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
-        if (error instanceof Error && error.message.startsWith('File not found:')) {
+        if (error instanceof Error && error.message.startsWith('ファイルが見つかりません:')) {
           LogWrapper.Instance().log(`![[${filePath}]] が見つかりませんでした`);
         } else {
           if (error instanceof LargeDataError) {
