@@ -13,7 +13,13 @@ export default defineConfig({
     },
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
-      exclude: ['vitest.setup.ts'],
+      exclude: [
+        'vitest.setup.ts',
+        'eslint.config.js',
+        'vitest.config.ts',
+        '**/*.test.ts',
+        '**/*.mock.ts',
+      ],
     },
   },
 });
