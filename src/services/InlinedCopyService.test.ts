@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InlinedCopyService } from './InlinedCopyService';
 import { EditorTextService } from './EditorTextService';
-import { FileExpander } from '../FileExpander';
+import { FileExpanderService } from './FileExpanderService';
 import { VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockEditorTextService } from './EditorTextService.mock';
-import { mockFileExpander } from '../FileExpander.mock';
+import { mockFileExpanderService } from './FileExpanderService.mock';
 import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
-import { TextNotFoundException } from '../errors/ErrorTypes';
+import { TextNotFoundError } from '../errors/ErrorTypes';
 import { t } from '../utils/I18n';
 import { MESSAGE_KEYS } from '../constants/Messages';
 
@@ -27,9 +27,9 @@ describe('InlinedCopyService', () => {
     });
 
     EditorTextService.SetInstance(mockEditorTextService);
-    (mockFileExpander.expandFileReferences as any).mockResolvedValue(mockExpandedText);
+    (mockFileExpanderService.expandFileReferences as any).mockResolvedValue(mockExpandedText);
 
-    FileExpander.SetInstance(mockFileExpander);
+    FileExpanderService.SetInstance(mockFileExpanderService);
     VSCodeWrapper.SetInstance(mockVSCodeWrapper);
     LogWrapper.SetInstance(mockLogWrapper);
 
@@ -42,7 +42,7 @@ describe('InlinedCopyService', () => {
 
     // Verify
     expect(mockEditorTextService.getTextFromEditor).toHaveBeenCalledTimes(1);
-    expect(mockFileExpander.expandFileReferences).toHaveBeenCalledWith(
+    expect(mockFileExpanderService.expandFileReferences).toHaveBeenCalledWith(
       mockTextFromEditor,
       mockCurrentDirFromEditor
     );
@@ -54,7 +54,7 @@ describe('InlinedCopyService', () => {
     // モックの設定
     // テスト用に一時的にモックの実装を上書き
     (mockEditorTextService.getTextFromEditor as any).mockImplementationOnce(() => {
-      return Promise.reject(new TextNotFoundException(t(MESSAGE_KEYS.TEXT_NOT_FOUND)));
+      return Promise.reject(new TextNotFoundError(t(MESSAGE_KEYS.TEXT_NOT_FOUND)));
     });
 
     // 実行
@@ -62,7 +62,7 @@ describe('InlinedCopyService', () => {
 
     // 検証
     expect(mockLogWrapper.notify).toHaveBeenCalledWith(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
-    expect(mockFileExpander.expandFileReferences).not.toHaveBeenCalled();
+    expect(mockFileExpanderService.expandFileReferences).not.toHaveBeenCalled();
     expect(mockVSCodeWrapper.writeClipboard).not.toHaveBeenCalled();
   });
 
@@ -81,7 +81,7 @@ describe('InlinedCopyService', () => {
     expect(mockLogWrapper.error).toHaveBeenCalledWith(
       t(MESSAGE_KEYS.UNEXPECTED_ERROR, { message: 'テストエラー' })
     );
-    expect(mockFileExpander.expandFileReferences).not.toHaveBeenCalled();
+    expect(mockFileExpanderService.expandFileReferences).not.toHaveBeenCalled();
     expect(mockVSCodeWrapper.writeClipboard).not.toHaveBeenCalled();
   });
 });

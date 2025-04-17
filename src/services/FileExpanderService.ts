@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolverService } from './FileResolverService';
-import { LargeDataException, CircularReferenceException } from '../errors/ErrorTypes';
+import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
 import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { LogWrapper } from '../utils/LogWrapper';
 
@@ -68,7 +68,7 @@ export class FileExpanderService implements IFileExpanderService {
 
         if (visitedPaths.includes(resolvedPath)) {
           const pathChain = [...visitedPaths, resolvedPath].map(p => path.basename(p)).join(' → ');
-          throw new CircularReferenceException(`Circular reference detected: ${pathChain}`);
+          throw new CircularReferenceError(`Circular reference detected: ${pathChain}`);
         }
 
         const fileContent = await this.readFileContent(resolvedPath);
@@ -84,12 +84,12 @@ export class FileExpanderService implements IFileExpanderService {
 
         result = result.replace(fullMatch, contentToInsert);
       } catch (error) {
-        if (error instanceof Error && error.message.startsWith('File not found:')) {
+        if (error instanceof Error && error.message.startsWith('ファイルが見つかりません:')) {
           LogWrapper.Instance().log(`![[${filePath}]] が見つかりませんでした`);
         } else {
-          if (error instanceof LargeDataException) {
+          if (error instanceof LargeDataError) {
             LogWrapper.Instance().log(`大きなファイルを検出: ${error.message}`);
-          } else if (error instanceof CircularReferenceException) {
+          } else if (error instanceof CircularReferenceError) {
             LogWrapper.Instance().error(error.message);
           } else {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -109,7 +109,7 @@ export class FileExpanderService implements IFileExpanderService {
 
     if (!result.success) {
       await FileResolverService.Instance().getSuggestions(filePath);
-      throw new Error(`File not found: ${filePath}`);
+      throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
     return result.path;
@@ -119,14 +119,17 @@ export class FileExpanderService implements IFileExpanderService {
     try {
       const stats = fs.statSync(filePath);
 
+      // デフォルト5MB
+      const DEFAULT_MAX_FILE_SIZE_MB = 5;
+      const MB_IN_BYTES = 1024 * 1024;
       const MAX_FILE_SIZE = this._vscodeEnvironment.getConfiguration(
         'inlined-copy',
         'maxFileSize',
-        1024 * 1024 * 5 // デフォルト5MB
+        DEFAULT_MAX_FILE_SIZE_MB * MB_IN_BYTES
       );
 
       if (stats.size > MAX_FILE_SIZE) {
-        throw new LargeDataException(
+        throw new LargeDataError(
           `ファイルサイズ(${(stats.size / 1024 / 1024).toFixed(2)}MB)が許容最大サイズ(${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)を超えています`
         );
       }
@@ -145,7 +148,7 @@ export class FileExpanderService implements IFileExpanderService {
         });
       });
     } catch (error) {
-      if (error instanceof LargeDataException) {
+      if (error instanceof LargeDataError) {
         throw error;
       }
       throw new Error(

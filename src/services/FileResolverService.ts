@@ -3,7 +3,7 @@ import * as path from 'path';
 import { LogWrapper } from '../utils/LogWrapper';
 
 /**
- * ファイル解決の結果型
+ * ファイル解決操作の結果型
  */
 export type FileResult = { success: true; path: string } | { success: false; error: string };
 
@@ -25,11 +25,17 @@ export function fileFailure(error: string): FileResult {
   return { success: false, error };
 }
 
+/**
+ * ファイル解決のためのインターフェース
+ */
 export interface IFileResolver {
   resolveFilePath(filePath: string, basePath: string): Promise<FileResult>;
   getSuggestions(filePath: string): Promise<string[]>;
 }
 
+/**
+ * ファイル解決を行うサービスクラス
+ */
 export class FileResolverService implements IFileResolver {
   private static _instance: IFileResolver | null = null;
 
@@ -53,7 +59,7 @@ export class FileResolverService implements IFileResolver {
   /**
    * ファイルパスを解決する
    * @param filePath 解決するファイルパス
-   * @param basePath 基準パス
+   * @param basePath 基準となるパス
    * @returns 解決結果
    */
   public async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
@@ -122,8 +128,8 @@ export class FileResolverService implements IFileResolver {
 
   /**
    * ファイルパスの候補を取得する
-   * @param filePath 解決するファイルパス
-   * @returns 候補パスのリスト
+   * @param filePath ファイルパス
+   * @returns 候補の配列
    */
   public async getSuggestions(filePath: string): Promise<string[]> {
     try {
