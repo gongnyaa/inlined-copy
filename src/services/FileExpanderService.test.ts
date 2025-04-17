@@ -34,6 +34,20 @@ describe('FileExpanderService', () => {
     LogWrapper.SetInstance(mockLogWrapper);
     FileResolverService.SetInstance(mockFileResolverService);
     target = new FileExpanderService(mockVSCodeWrapper as any);
+    
+    vi.spyOn(target as any, 'readFileContent').mockImplementation(async (filePath: string) => {
+      if (filePath === '/test/path/test.txt') return 'File content';
+      if (filePath === '/test/path/test1.txt') return 'File content 1';
+      if (filePath === '/test/path/test2.txt') return 'File content 2';
+      if (filePath === '/test/path/large.txt') {
+        throw new LargeDataException(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
+      }
+      if (filePath === '/test/path/error.txt') {
+        throw new Error(`ファイルの読み込みに失敗: 読み込みエラー`);
+      }
+      if (filePath === '/test/path/medium.txt') return 'File content';
+      return 'Default content';
+    });
   });
 
   describe('expandFileReferences', () => {
@@ -219,34 +233,67 @@ describe('FileExpanderService', () => {
   describe('readFileContent', () => {
     it('readFileContent_Happy', async () => {
       const filePath = '/test/path/test.txt';
-      const fileContent = 'File content';
-
+      
+      vi.spyOn(target as any, 'readFileContent').mockRestore();
+      
       mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
         (path: string, encoding: string, callback: (err: Error | null, data: string) => void) => {
-          callback(null, fileContent);
+          callback(null, 'File content');
           return undefined as any;
         }
       );
 
       const result = await (target as any).readFileContent(filePath);
 
-      expect(result).toEqual(fileContent);
+      expect(result).toEqual('File content');
+      
+      vi.spyOn(target as any, 'readFileContent').mockImplementation(async (filePath: string) => {
+        if (filePath === '/test/path/test.txt') return 'File content';
+        if (filePath === '/test/path/test1.txt') return 'File content 1';
+        if (filePath === '/test/path/test2.txt') return 'File content 2';
+        if (filePath === '/test/path/large.txt') {
+          throw new LargeDataException(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
+        }
+        if (filePath === '/test/path/error.txt') {
+          throw new Error(`ファイルの読み込みに失敗: 読み込みエラー`);
+        }
+        if (filePath === '/test/path/medium.txt') return 'File content';
+        return 'Default content';
+      });
     });
 
     it('readFileContent_Error_LargeFile', async () => {
       const filePath = '/test/path/large.txt';
-
+      
+      vi.spyOn(target as any, 'readFileContent').mockRestore();
+      
       mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
       (fs.statSync as any).mockReturnValueOnce({ size: 10 * 1024 * 1024 }); // 10MB file size
 
       await expect((target as any).readFileContent(filePath)).rejects.toThrow(LargeDataException);
+      
+      vi.spyOn(target as any, 'readFileContent').mockImplementation(async (filePath: string) => {
+        if (filePath === '/test/path/test.txt') return 'File content';
+        if (filePath === '/test/path/test1.txt') return 'File content 1';
+        if (filePath === '/test/path/test2.txt') return 'File content 2';
+        if (filePath === '/test/path/large.txt') {
+          throw new LargeDataException(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
+        }
+        if (filePath === '/test/path/error.txt') {
+          throw new Error(`ファイルの読み込みに失敗: 読み込みエラー`);
+        }
+        if (filePath === '/test/path/medium.txt') return 'File content';
+        return 'Default content';
+      });
     });
 
     it('readFileContent_Error_ReadError', async () => {
       const filePath = '/test/path/error.txt';
-
+      
+      vi.spyOn(target as any, 'readFileContent').mockRestore();
+      
       mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
@@ -259,6 +306,20 @@ describe('FileExpanderService', () => {
       await expect((target as any).readFileContent(filePath)).rejects.toThrow(
         'ファイルの読み込みに失敗'
       );
+      
+      vi.spyOn(target as any, 'readFileContent').mockImplementation(async (filePath: string) => {
+        if (filePath === '/test/path/test.txt') return 'File content';
+        if (filePath === '/test/path/test1.txt') return 'File content 1';
+        if (filePath === '/test/path/test2.txt') return 'File content 2';
+        if (filePath === '/test/path/large.txt') {
+          throw new LargeDataException(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
+        }
+        if (filePath === '/test/path/error.txt') {
+          throw new Error(`ファイルの読み込みに失敗: 読み込みエラー`);
+        }
+        if (filePath === '/test/path/medium.txt') return 'File content';
+        return 'Default content';
+      });
     });
 
     it('readFileContent_Happy_StreamingForLargerFiles', async () => {
