@@ -151,6 +151,10 @@ describe('FileExpanderService', () => {
         fileSuccess(resolvedPath)
       );
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
+      
+      vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(() => {
+        throw new CircularReferenceException(`Circular reference detected: circular.txt → circular.txt`);
+      });
 
       const result = await target.expandFileReferences(testText, '/test/dir', [resolvedPath]);
 
@@ -191,10 +195,12 @@ describe('FileExpanderService', () => {
         }
       );
 
+      vi.spyOn(LogWrapper.Instance(), 'error');
+
       const result = await target.expandFileReferences(testText, '/test/dir');
 
       expect(result).toEqual(expectedResult);
-      expect(mockLogWrapper.error).toHaveBeenCalled();
+      expect(LogWrapper.Instance().error).toHaveBeenCalled();
     });
 
     it('expandFileReferences_MaxRecursionDepth', async () => {
@@ -215,6 +221,7 @@ describe('FileExpanderService', () => {
       const filePath = '/test/path/test.txt';
       const fileContent = 'File content';
 
+      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
         (path: string, encoding: string, callback: (err: Error | null, data: string) => void) => {
@@ -231,8 +238,8 @@ describe('FileExpanderService', () => {
     it('readFileContent_Error_LargeFile', async () => {
       const filePath = '/test/path/large.txt';
 
-      (fs.statSync as any).mockReturnValueOnce({ size: 10 * 1024 * 1024 }); // 10MB
-      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB
+      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
+      (fs.statSync as any).mockReturnValueOnce({ size: 10 * 1024 * 1024 }); // 10MB file size
 
       await expect((target as any).readFileContent(filePath)).rejects.toThrow(LargeDataException);
     });
@@ -240,6 +247,7 @@ describe('FileExpanderService', () => {
     it('readFileContent_Error_ReadError', async () => {
       const filePath = '/test/path/error.txt';
 
+      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
         (path: string, encoding: string, callback: (err: Error | null, data: string) => void) => {
