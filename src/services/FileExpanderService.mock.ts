@@ -1,8 +1,10 @@
-import { FileExpanderService, expandSuccess } from './FileExpanderService';
+import { FileExpanderService, IFileExpanderService } from './FileExpanderService';
 import { vi } from 'vitest';
 
-export const mockFileExpanderService = {
-  expandFiles: vi.fn().mockResolvedValue(expandSuccess('展開されたテキスト')),
+export const mockFileExpanderService: IFileExpanderService = {
+  expandFileReferences: vi.fn().mockResolvedValue('展開されたテキスト'),
 };
 
-vi.spyOn(FileExpanderService, 'Instance').mockReturnValue(mockFileExpanderService as any);
+vi.spyOn(FileExpanderService, 'Instance').mockReturnValue(
+  mockFileExpanderService as unknown as FileExpanderService
+);
