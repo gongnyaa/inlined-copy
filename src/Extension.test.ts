@@ -1,11 +1,22 @@
 import { vi, describe, beforeEach, it, expect } from 'vitest';
-import * as vscode from 'vscode';
 import { InlinedCopyService } from './services/InlinedCopyService';
 import { VSCodeWrapper } from './utils/VSCodeWrapper';
 import { mockVSCodeWrapper } from './utils/VSCodeWrapper.mock';
 import { mockInlinedCopyService } from './services/InlinedCopyService.mock';
 import { activate, deactivate } from './extension';
 import { COMMANDS } from './constants/Commands';
+
+vi.mock('vscode', () => {
+  return {
+    commands: {
+      registerCommand: vi.fn(),
+    },
+    ExtensionContext: vi.fn(),
+    Disposable: vi.fn(),
+  };
+});
+
+import * as vscode from 'vscode';
 
 describe('extension', () => {
   beforeEach(async () => {

@@ -6,6 +6,19 @@ import { TextNotFoundError } from '../errors/ErrorTypes';
 import { MESSAGE_KEYS } from '../constants/Messages';
 import { t } from '../utils/I18n';
 
+vi.mock('vscode', () => {
+  return {
+    window: {
+      activeTextEditor: null,
+      showInformationMessage: vi.fn(),
+      createOutputChannel: vi.fn(),
+    },
+    workspace: {
+      getConfiguration: vi.fn(),
+    },
+  };
+});
+
 vi.mock('../utils/I18n', () => ({
   t: vi.fn(key => {
     if (key === MESSAGE_KEYS.TEXT_NOT_FOUND) {

@@ -11,6 +11,6 @@ export default defineConfig({
         external: ['vscode'],
       },
     },
-    setupFiles: ['./vitest.setup.ts'],
+    // setupFiles: ['./vitest.setup.ts'],
   },
 });

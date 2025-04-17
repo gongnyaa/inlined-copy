@@ -12,6 +12,21 @@ import { TextNotFoundError } from '../errors/ErrorTypes';
 import { t } from '../utils/I18n';
 import { MESSAGE_KEYS } from '../constants/Messages';
 
+vi.mock('vscode', () => {
+  return {
+    window: {
+      showInformationMessage: vi.fn(),
+      createOutputChannel: vi.fn().mockReturnValue({
+        appendLine: vi.fn(),
+        show: vi.fn(),
+      }),
+    },
+    workspace: {
+      getConfiguration: vi.fn(),
+    },
+  };
+});
+
 const mockTextFromEditor = 'mockTextFromEditor';
 const mockCurrentDirFromEditor = '/test/dir';
 const mockExpandedText = 'mockExpandedText';

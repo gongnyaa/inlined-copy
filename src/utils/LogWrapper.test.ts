@@ -3,6 +3,18 @@ import { LogWrapper } from './LogWrapper';
 import { VSCodeWrapper } from './VSCodeWrapper';
 import { mockVSCodeWrapper } from './VSCodeWrapper.mock';
 
+vi.mock('vscode', () => {
+  return {
+    window: {
+      showInformationMessage: vi.fn(),
+      createOutputChannel: vi.fn().mockReturnValue({
+        appendLine: vi.fn(),
+        show: vi.fn(),
+      }),
+    },
+  };
+});
+
 describe('LogWrapper', () => {
   let target: LogWrapper;
 
