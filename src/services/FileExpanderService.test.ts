@@ -5,7 +5,7 @@ import { FileResolverService, fileSuccess, fileFailure } from './FileResolverSer
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
 import { mockFileResolverService } from './FileResolverService.mock';
-import { LargeDataException, CircularReferenceException } from '../errors/ErrorTypes';
+import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
 
 vi.mock('fs', () => ({
   readFile: vi.fn(),
@@ -183,7 +183,7 @@ describe('FileExpanderService', () => {
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
 
       vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(() => {
-        throw new CircularReferenceException(
+        throw new CircularReferenceError(
           `Circular reference detected: circular.txt → circular.txt`
         );
       });
@@ -210,7 +210,7 @@ describe('FileExpanderService', () => {
       });
 
       vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(async function () {
-        throw new LargeDataException(
+        throw new LargeDataError(
           `ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`
         );
       });
@@ -293,7 +293,7 @@ describe('FileExpanderService', () => {
         if (filePath === '/test/path/test1.txt') return 'File content 1';
         if (filePath === '/test/path/test2.txt') return 'File content 2';
         if (filePath === '/test/path/large.txt') {
-          throw new LargeDataException(
+          throw new LargeDataError(
             `ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`
           );
         }
@@ -313,7 +313,7 @@ describe('FileExpanderService', () => {
       mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
       (fs.statSync as any).mockReturnValueOnce({ size: 10 * 1024 * 1024 }); // 10MB file size
 
-      await expect(freshTarget['readFileContent'](filePath)).rejects.toThrow(LargeDataException);
+      await expect(freshTarget['readFileContent'](filePath)).rejects.toThrow(LargeDataError);
     });
 
     it('readFileContent_Error_ReadError', async () => {
