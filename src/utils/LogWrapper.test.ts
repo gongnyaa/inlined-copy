@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogWrapper } from './LogWrapper';
-import { VSCodeWrapper } from './VSCodeWrapper';
-import { mockVSCodeWrapper } from './VSCodeWrapper.mock';
+import { LogWrapper, VSCodeWrapper, mockVSCodeWrapper, t } from './';
+import { MESSAGE_KEYS } from '../constants/Messages';
 
 describe('LogWrapper', () => {
   let target: LogWrapper;
@@ -13,19 +12,21 @@ describe('LogWrapper', () => {
   });
 
   it('log_Happy', () => {
-    target.log('テストメッセージ');
+    const testMessage = 'テストメッセージ';
+    target.log(testMessage);
 
     expect(mockVSCodeWrapper.appendLine).toHaveBeenCalledWith(
-      '[Inlined Copy] テストメッセージ',
+      `${t(MESSAGE_KEYS.LOG_PREFIX)} ${testMessage}`,
       false
     );
   });
 
   it('error_Happy', () => {
-    target.error('エラーメッセージ');
+    const testMessage = 'エラーメッセージ';
+    target.error(testMessage);
 
     expect(mockVSCodeWrapper.appendLine).toHaveBeenCalledWith(
-      '[Inlined Copy] ERROR エラーメッセージ',
+      `${t(MESSAGE_KEYS.LOG_PREFIX)} ${t(MESSAGE_KEYS.LOG_ERROR_PREFIX)} ${testMessage}`,
       true
     );
   });
@@ -36,7 +37,18 @@ describe('LogWrapper', () => {
     await target.notify(testMessage);
 
     expect(mockVSCodeWrapper.showInformationMessage).toHaveBeenCalledWith(
-      '[Inlined Copy] テスト通知メッセージ'
+      `${t(MESSAGE_KEYS.LOG_PREFIX)} ${testMessage}`
+    );
+  });
+
+  it('warn_Happy', async () => {
+    const testMessage = 'テスト警告メッセージ';
+
+    await target.warn(testMessage);
+
+    expect(mockVSCodeWrapper.appendLine).toHaveBeenCalledWith(
+      `${t(MESSAGE_KEYS.LOG_PREFIX)} ${t(MESSAGE_KEYS.LOG_WARN_PREFIX)} ${testMessage}`,
+      false
     );
   });
 });

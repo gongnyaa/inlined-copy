@@ -1,9 +1,6 @@
-export { IVSCodeWrapper } from './VSCodeWrapper';
-export { ILogWrapper } from './LogWrapper';
-
-export { VSCodeWrapper } from './VSCodeWrapper';
-export { LogWrapper } from './LogWrapper';
 export { SingletonBase } from './SingletonBase';
+export { VSCodeWrapper, IVSCodeWrapper } from './VSCodeWrapper';
+export { LogWrapper, ILogWrapper } from './LogWrapper';
 
 export { t } from './I18n';
 

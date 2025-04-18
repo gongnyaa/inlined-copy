@@ -5,12 +5,20 @@
 - `vitest` を使用
 - `vi.clearAllMocks()` を `beforeEach` に記述
 - テストケース名は `メソッド名_シナリオタイプ` の形式を基本とする
+- テストケースは AAA（Arrange / Act / Assert）パターンでフェーズを明示して書く
 - シナリオタイプの例：
   - `HappyPath`: 正常系処理のテスト
   - `Error`: 異常系・例外処理のテスト
 - 例：
   ```typescript
-  it('getTextFromEditor_HappyPath_ReturnsSelectedText', async () => {});
+  it('getTextFromEditor_HappyPath_ReturnsSelectedText', async () => {
+  // Arrange
+  // …
+  // Act
+  // …
+  // Assert
+  // …
+  });
   it('getTextFromEditor_Error_ThrowsTextNotFoundError', async () => {});
   ```
 - 独自クラスへの依存はxxx.mock.tsでモック。その他クラスは、vi.mockでモック

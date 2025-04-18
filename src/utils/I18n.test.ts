@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { t } from './I18n';
+import { t, setT } from './I18n';
 import { MESSAGE_KEYS } from '../constants/Messages';
 import { DEFAULT_MESSAGES } from '../constants/DefaultMessages';
 
@@ -45,5 +45,38 @@ describe('I18n', () => {
     const result = t(nonExistentKey as any);
 
     expect(result).toBe(nonExistentKey);
+  });
+
+  it('setT_Happy_CustomImplementation', () => {
+    // オリジナルのt実装を保存
+    const originalT = t;
+
+    // カスタム翻訳関数の実装
+    const customT = vi.fn().mockImplementation(key => `カスタム: ${key}`);
+
+    // setT関数でカスタム実装を設定
+    setT(customT);
+
+    // 結果の確認
+    const result = t(MESSAGE_KEYS.COPY_SUCCESS);
+    expect(result).toBe(`カスタム: ${MESSAGE_KEYS.COPY_SUCCESS}`);
+    expect(customT).toHaveBeenCalledWith(MESSAGE_KEYS.COPY_SUCCESS, undefined);
+
+    // テスト後にオリジナルの実装を復元するための設定
+    // 注：originalTはただの関数なので、直接使うことはできないため
+    // デフォルトの実装と同じロジックを持つ新しい関数を作成
+    setT((key, params) => {
+      let message = DEFAULT_MESSAGES[key] || key;
+      if (params) {
+        Object.entries(params).forEach(([paramKey, paramValue]) => {
+          message = message.replace(new RegExp(`{{${paramKey}}}`, 'g'), String(paramValue));
+        });
+      }
+      return message;
+    });
+
+    // 復元できたかの確認
+    const restoredResult = t(MESSAGE_KEYS.COPY_SUCCESS);
+    expect(restoredResult).toBe(DEFAULT_MESSAGES[MESSAGE_KEYS.COPY_SUCCESS]);
   });
 });

@@ -31,7 +31,7 @@ export class InlinedCopyService
         LogWrapper.Instance().notify(t(MESSAGE_KEYS.TEXT_NOT_FOUND));
         return;
       }
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = String(error);
       LogWrapper.Instance().error(t(MESSAGE_KEYS.UNEXPECTED_ERROR, { message: errorMessage }));
     }
   }
