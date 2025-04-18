@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
-import { FileResolverService, fileSuccess, fileFailure } from './FileResolverService';
+import { FileResolverService, FileResult } from './FileResolverService';
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
 
@@ -30,7 +30,7 @@ describe('FileResolverService', () => {
 
       const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
 
-      expect(result).toEqual(fileSuccess('/test/workspace/src/test.ts'));
+      expect(result).toEqual({ path: '/test/workspace/src/test.ts' });
       expect(vscode.workspace.findFiles).toHaveBeenCalledWith(
         'src/**/test.ts',
         '**/node_modules/**',
@@ -44,7 +44,7 @@ describe('FileResolverService', () => {
 
       const result = await target.resolveFilePath('utils/test.ts', '/test/workspace/src');
 
-      expect(result).toEqual(fileSuccess('/test/workspace/src/utils/test.ts'));
+      expect(result).toEqual({ path: '/test/workspace/src/utils/test.ts' });
       expect(vscode.workspace.findFiles).toHaveBeenCalledWith(
         'src/utils/test.ts',
         '**/node_modules/**',
@@ -58,7 +58,7 @@ describe('FileResolverService', () => {
 
       const result = await target.resolveFilePath('test', '/test/workspace/src');
 
-      expect(result).toEqual(fileSuccess('/test/workspace/src/test.ts'));
+      expect(result).toEqual({ path: '/test/workspace/src/test.ts' });
       expect(vscode.workspace.findFiles).toHaveBeenCalledWith(
         'src/**/test.*',
         '**/node_modules/**',
@@ -75,7 +75,7 @@ describe('FileResolverService', () => {
 
       const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
 
-      expect(result).toEqual(fileFailure('ワークスペースが見つかりません'));
+      expect(result).toEqual({ error: 'ワークスペースが見つかりません' });
 
       Object.defineProperty(vscode.workspace, 'workspaceFolders', {
         get: () => originalWorkspaceFolders,
@@ -88,7 +88,7 @@ describe('FileResolverService', () => {
 
       const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
 
-      expect(result).toEqual(fileFailure('ファイルが見つかりません: test.ts'));
+      expect(result).toEqual({ error: 'ファイルが見つかりません: test.ts' });
     });
 
     it('resolveFilePath_Error_Exception', async () => {
@@ -97,7 +97,7 @@ describe('FileResolverService', () => {
 
       const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
 
-      expect(result).toEqual(fileFailure('エラー: テストエラー'));
+      expect(result).toEqual({ error: 'エラー: テストエラー' });
       expect(mockLogWrapper.error).toHaveBeenCalledWith('ファイル解決エラー: Error: テストエラー');
     });
   });

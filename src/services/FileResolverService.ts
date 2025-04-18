@@ -3,27 +3,12 @@ import * as path from 'path';
 import { LogWrapper, SingletonBase } from '../utils';
 
 /**
- * ファイル解決操作の結果型
+ * ファイル解決の結果型
  */
-export type FileResult = { success: true; path: string } | { success: false; error: string };
-
-/**
- * 成功したファイル結果を作成
- * @param path 解決されたファイルパス
- * @returns 成功したファイル結果
- */
-export function fileSuccess(path: string): FileResult {
-  return { success: true, path };
-}
-
-/**
- * 失敗したファイル結果を作成
- * @param error エラーメッセージ
- * @returns 失敗したファイル結果
- */
-export function fileFailure(error: string): FileResult {
-  return { success: false, error };
-}
+export type FileResult = {
+  path?: string;
+  error?: string;
+};
 
 /**
  * ファイル解決のためのインターフェース
@@ -45,66 +30,137 @@ export class FileResolverService extends SingletonBase<IFileResolver> implements
    */
   public async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
     try {
-      const workspaceFolders = vscode.workspace.workspaceFolders;
-      if (!workspaceFolders || workspaceFolders.length === 0) {
-        return fileFailure('ワークスペースが見つかりません');
+      const workspaceRoot = this.getWorkspaceRoot();
+      if (!workspaceRoot) {
+        LogWrapper.Instance().error('ワークスペースが見つかりません');
+        return { error: 'ワークスペースが見つかりません' };
       }
 
-      const workspaceRoot = workspaceFolders[0].uri.fsPath;
-      const parsedPath = path.parse(filePath);
-      const hasExtension = parsedPath.ext !== '';
-
-      const hasParentFolder = parsedPath.dir !== '';
-      const parentFolder = hasParentFolder ? parsedPath.dir : '';
-
-      const baseSearchPattern = hasExtension
-        ? parsedPath.base // "fileName.ext"
-        : `${parsedPath.name}.*`; // "fileName.*"
-
-      let currentPath = basePath;
-
-      while (currentPath.startsWith(workspaceRoot)) {
-        const relativeBase = path.relative(workspaceRoot, currentPath);
-
-        let searchPattern: string;
-
-        if (hasParentFolder) {
-          searchPattern = path.join(relativeBase, parentFolder, baseSearchPattern);
-        } else {
-          searchPattern = path.join(relativeBase, '**', baseSearchPattern);
-        }
-
-        const files = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 10);
-
-        if (files.length > 0) {
-          if (hasParentFolder) {
-            const matchingFiles = files.filter(file => {
-              const relativeFilePath = path.relative(workspaceRoot, file.fsPath);
-              const actualParentDir = path.dirname(relativeFilePath);
-              const expectedParentDir = path.join(relativeBase, parentFolder);
-              return actualParentDir === expectedParentDir;
-            });
-
-            if (matchingFiles.length > 0) {
-              return fileSuccess(matchingFiles[0].fsPath);
-            }
-          } else {
-            return fileSuccess(files[0].fsPath);
-          }
-        }
-
-        const parentPath = path.dirname(currentPath);
-        if (parentPath === currentPath) {
-          break;
-        }
-        currentPath = parentPath;
-      }
-
-      return fileFailure(`ファイルが見つかりません: ${filePath}`);
+      const pathInfo = this.parseFilePathInfo(filePath);
+      return await this.searchFileInParentDirectories(pathInfo, basePath, workspaceRoot);
     } catch (error) {
+      const errorMessage = `エラー: ${error instanceof Error ? error.message : String(error)}`;
       LogWrapper.Instance().error(`ファイル解決エラー: ${error}`);
-      return fileFailure(`エラー: ${error instanceof Error ? error.message : String(error)}`);
+      return { error: errorMessage };
     }
+  }
+
+  private getWorkspaceRoot(): string | null {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+      return null;
+    }
+    return workspaceFolders[0].uri.fsPath;
+  }
+
+  private parseFilePathInfo(filePath: string): {
+    parsedPath: path.ParsedPath;
+    hasExtension: boolean;
+    hasParentFolder: boolean;
+    parentFolder: string;
+    baseSearchPattern: string;
+  } {
+    const parsedPath = path.parse(filePath);
+    const hasExtension = parsedPath.ext !== '';
+    const hasParentFolder = parsedPath.dir !== '';
+    const parentFolder = hasParentFolder ? parsedPath.dir : '';
+    const baseSearchPattern = hasExtension ? parsedPath.base : `${parsedPath.name}.*`;
+
+    return {
+      parsedPath,
+      hasExtension,
+      hasParentFolder,
+      parentFolder,
+      baseSearchPattern,
+    };
+  }
+
+  private async searchFileInParentDirectories(
+    pathInfo: {
+      parsedPath: path.ParsedPath;
+      hasExtension: boolean;
+      hasParentFolder: boolean;
+      parentFolder: string;
+      baseSearchPattern: string;
+    },
+    basePath: string,
+    workspaceRoot: string
+  ): Promise<FileResult> {
+    let currentPath = basePath;
+
+    while (currentPath.startsWith(workspaceRoot)) {
+      const relativeBase = path.relative(workspaceRoot, currentPath);
+      const searchPattern = this.buildSearchPattern(relativeBase, pathInfo);
+
+      const files = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 10);
+      const result = this.processFoundFiles(files, pathInfo, relativeBase, workspaceRoot);
+
+      if (result) {
+        return { path: result };
+      }
+
+      const parentPath = path.dirname(currentPath);
+      if (parentPath === currentPath) {
+        break;
+      }
+      currentPath = parentPath;
+    }
+
+    const errorMessage = `ファイルが見つかりません: ${pathInfo.parsedPath.base}`;
+    LogWrapper.Instance().error(errorMessage);
+    return { error: errorMessage };
+  }
+
+  private buildSearchPattern(
+    relativeBase: string,
+    pathInfo: { hasParentFolder: boolean; parentFolder: string; baseSearchPattern: string }
+  ): string {
+    if (pathInfo.hasParentFolder) {
+      return path.join(relativeBase, pathInfo.parentFolder, pathInfo.baseSearchPattern);
+    } else {
+      return path.join(relativeBase, '**', pathInfo.baseSearchPattern);
+    }
+  }
+
+  private processFoundFiles(
+    files: vscode.Uri[],
+    pathInfo: { hasParentFolder: boolean; parentFolder: string },
+    relativeBase: string,
+    workspaceRoot: string
+  ): string | null {
+    if (files.length === 0) {
+      return null;
+    }
+
+    if (pathInfo.hasParentFolder) {
+      const matchingFiles = this.filterFilesByParentDirectory(
+        files,
+        workspaceRoot,
+        relativeBase,
+        pathInfo.parentFolder
+      );
+
+      if (matchingFiles.length > 0) {
+        return matchingFiles[0].fsPath;
+      }
+      return null;
+    } else {
+      return files[0].fsPath;
+    }
+  }
+
+  private filterFilesByParentDirectory(
+    files: vscode.Uri[],
+    workspaceRoot: string,
+    relativeBase: string,
+    parentFolder: string
+  ): vscode.Uri[] {
+    return files.filter(file => {
+      const relativeFilePath = path.relative(workspaceRoot, file.fsPath);
+      const actualParentDir = path.dirname(relativeFilePath);
+      const expectedParentDir = path.join(relativeBase, parentFolder);
+      return actualParentDir === expectedParentDir;
+    });
   }
 
   /**

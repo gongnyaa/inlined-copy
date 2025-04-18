@@ -97,12 +97,12 @@ export class FileExpanderService
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
     const result = await FileResolverService.Instance().resolveFilePath(filePath, basePath);
 
-    if (!result.success) {
+    if (result.error) {
       await FileResolverService.Instance().getSuggestions(filePath);
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
-    return result.path;
+    return result.path!;
   }
 
   private async readFileContent(filePath: string): Promise<string> {

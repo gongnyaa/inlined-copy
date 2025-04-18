@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'fs';
 import { FileExpanderService } from './FileExpanderService';
-import { FileResolverService, fileSuccess, fileFailure } from './FileResolverService';
+import { FileResolverService, FileResult } from './FileResolverService';
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
 import { mockFileResolverService } from './FileResolverService.mock';
@@ -143,8 +143,8 @@ describe('FileExpanderService', () => {
         .mockResolvedValueOnce(resolvedPath2);
 
       (mockFileResolverService.resolveFilePath as any)
-        .mockResolvedValueOnce(fileSuccess(resolvedPath1))
-        .mockResolvedValueOnce(fileSuccess(resolvedPath2));
+        .mockResolvedValueOnce({ path: resolvedPath1 })
+        .mockResolvedValueOnce({ path: resolvedPath2 });
 
       const result = await target.expandFileReferences(testText, '/test/dir');
 
@@ -155,9 +155,9 @@ describe('FileExpanderService', () => {
       const testText = 'This is a test with ![[missing.txt]]';
       const expectedResult = 'This is a test with ![[missing.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(
-        fileFailure('ファイルが見つかりません')
-      );
+      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
+        error: 'ファイルが見つかりません',
+      });
       (mockFileResolverService.getSuggestions as any).mockResolvedValueOnce([]);
 
       vi.spyOn(target as any, 'resolveFilePath').mockImplementationOnce(async function () {
@@ -177,9 +177,9 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/circular.txt';
       const expectedResult = 'This is a test with ![[circular.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(
-        fileSuccess(resolvedPath)
-      );
+      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
+        path: resolvedPath,
+      });
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
 
       vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(() => {
@@ -201,9 +201,9 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/large.txt';
       const expectedResult = 'This is a test with ![[large.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(
-        fileSuccess(resolvedPath)
-      );
+      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
+        path: resolvedPath,
+      });
 
       vi.spyOn(target as any, 'resolveFilePath').mockImplementationOnce(async function () {
         return resolvedPath;
@@ -226,9 +226,9 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/error.txt';
       const expectedResult = 'This is a test with ![[error.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(
-        fileSuccess(resolvedPath)
-      );
+      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
+        path: resolvedPath,
+      });
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
         (path: string, encoding: string, callback: (err: Error | null, data: string) => void) => {
