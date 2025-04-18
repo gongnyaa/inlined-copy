@@ -17,12 +17,8 @@ class TestSingleton extends SingletonBase<TestSingleton> {
 describe('SingletonBase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // テスト前にインスタンスをクリア
     TestSingleton.SetInstance(null);
   });
-
-  // ガイドラインによると、Instance()とSetInstance()はテスト対象外とされていますが、
-  // シングルトンの基本動作を確認するためのテストとして実装します
 
   it('Instance_HappyPath_ReturnsSameInstance', () => {
     // Arrange
@@ -32,7 +28,7 @@ describe('SingletonBase', () => {
     const instance2 = TestSingleton.Instance();
 
     // Assert
-    expect(instance1).toBe(instance2); // 同じインスタンスが返されることを確認
+    expect(instance1).toBe(instance2);
   });
 
   it('Instance_HappyPath_MaintainsState', () => {
@@ -45,7 +41,7 @@ describe('SingletonBase', () => {
     const instance2 = TestSingleton.Instance();
 
     // Assert
-    expect(instance2.getValue()).toBe(testValue); // 状態が維持されることを確認
+    expect(instance2.getValue()).toBe(testValue);
   });
 
   it('SetInstance_HappyPath_SetsCustomInstance', () => {
@@ -59,8 +55,8 @@ describe('SingletonBase', () => {
     const retrievedInstance = TestSingleton.Instance();
 
     // Assert
-    expect(retrievedInstance).toBe(customInstance); // 設定したインスタンスが取得できることを確認
-    expect(retrievedInstance.getValue()).toBe(testValue); // 状態が維持されることを確認
+    expect(retrievedInstance).toBe(customInstance);
+    expect(retrievedInstance.getValue()).toBe(testValue);
   });
 
   it('SetInstance_HappyPath_ClearsInstance', () => {
@@ -72,6 +68,6 @@ describe('SingletonBase', () => {
     const instance2 = TestSingleton.Instance();
 
     // Assert
-    expect(instance1).not.toBe(instance2); // 異なるインスタンスが返されることを確認
+    expect(instance1).not.toBe(instance2);
   });
 });
