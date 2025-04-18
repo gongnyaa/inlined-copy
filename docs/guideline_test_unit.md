@@ -39,6 +39,24 @@
 - テスト固有のモックオブジェクトは、各テストケース内で作成することも許容する
 - 複数のテストで共通で使用するモックは`beforeEach`内で初期化することを推奨
 
+### classでない場合の依存性注入
+
+- 関数やオブジェクトを直接exportしている場合は、差し替え用のsetter関数（例：`setT(fn)`）を用意し、テスト時にモック実装へ差し替える
+- 実装例：
+
+```ts
+// 本体
+let tImpl = (...args) => { /* 通常処理 */ };
+export function setT(fn) { tImpl = fn; }
+export function t(...args) { return tImpl(...args); }
+
+// テスト
+import { t, setT } from './I18n';
+import { mockT } from './I18n.mock';
+setT(mockT);
+```
+- この方法により、class以外でも依存性の注入・モック化が容易に行える
+
 ```ts
 // logWrapper.mock.ts
 import { ILogWrapper } from './logWrapper';

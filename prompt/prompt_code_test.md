@@ -7,7 +7,7 @@
 作成にあたり、参考にすべきファイルを理解し、準拠すること。
 
 ## テスト対象クラス
-![[EditorTextService.ts]]
+![[FileResolverService.ts]]
 
 ## ユニットテストガイドライン
 ![[guideline_test_unit.md]]
