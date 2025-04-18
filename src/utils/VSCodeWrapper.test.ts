@@ -9,11 +9,37 @@ vi.mock('vscode', () => {
     dispose: vi.fn(),
   };
 
+  const mockSelection = {
+    isEmpty: false,
+  };
+
+  const mockEmptySelection = {
+    isEmpty: true,
+  };
+
+  const mockDocument = {
+    getText: vi.fn().mockReturnValue('テストテキスト'),
+    uri: {
+      fsPath: '/test/path/file.md',
+    },
+  };
+
+  const mockEditor = {
+    selection: mockSelection,
+    document: mockDocument,
+  };
+
+  const mockEmptyEditor = {
+    selection: mockEmptySelection,
+    document: mockDocument,
+  };
+
   const mockVSCode = {
     window: {
       createOutputChannel: vi.fn().mockReturnValue(mockOutputChannel),
       showInformationMessage: vi.fn().mockResolvedValue(undefined),
       showErrorMessage: vi.fn().mockResolvedValue(undefined),
+      activeTextEditor: mockEditor,
     },
     workspace: {
       getConfiguration: vi.fn().mockReturnValue({
@@ -88,6 +114,55 @@ describe('VSCodeWrapper', () => {
   it('writeClipboardがテキストをクリップボードに書き込むこと', async () => {
     await wrapper.writeClipboard('コピーテキスト');
     expect(vscode.env.clipboard.writeText).toHaveBeenCalledWith('コピーテキスト');
+  });
+
+  it('getSelectionText_Happy', () => {
+    const result = wrapper.getSelectionText();
+
+    expect(result.text).toBe('テストテキスト');
+    expect(result.currentDir).toBe('/test/path');
+  });
+
+  it('getSelectionText_EmptySelection', () => {
+    vi.mocked(vscode.window.activeTextEditor).selection.isEmpty = true;
+
+    const result = wrapper.getSelectionText();
+
+    expect(result.text).toBeNull();
+    expect(result.currentDir).toBe('');
+  });
+
+  it('getSelectionText_NoEditor', () => {
+    vi.mocked(vscode.window).activeTextEditor = null;
+
+    const result = wrapper.getSelectionText();
+
+    expect(result.text).toBeNull();
+    expect(result.currentDir).toBe('');
+  });
+
+  it('getDocumentText_Happy', () => {
+    vi.mocked(vscode.window).activeTextEditor = {
+      selection: { isEmpty: false },
+      document: {
+        getText: vi.fn().mockReturnValue('テストテキスト'),
+        uri: { fsPath: '/test/path/file.md' },
+      },
+    };
+
+    const result = wrapper.getDocumentText();
+
+    expect(result.text).toBe('テストテキスト');
+    expect(result.currentDir).toBe('/test/path');
+  });
+
+  it('getDocumentText_NoEditor', () => {
+    vi.mocked(vscode.window).activeTextEditor = null;
+
+    const result = wrapper.getDocumentText();
+
+    expect(result.text).toBeNull();
+    expect(result.currentDir).toBe('');
   });
 
   it('disposeが出力チャンネルを破棄すること', () => {

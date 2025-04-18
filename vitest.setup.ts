@@ -1,13 +1,20 @@
 import { vi } from 'vitest';
 
-// Mock the vscode module
+/**
+ * 最小限のグローバルモック定義
+ *
+ * このファイルは複数のテストファイルで共通して使用される
+ * 基本的なvscodeとfsモジュールのモックを提供します。
+ * 各テストファイルは必要に応じて独自のモックを追加できます。
+ */
+
 vi.mock('vscode', () => {
   return {
     workspace: {
       workspaceFolders: [{ uri: { fsPath: '/workspace/root' } }],
       findFiles: vi.fn().mockResolvedValue([]),
-      asRelativePath: vi.fn().mockImplementation(uri => {
-        return typeof uri === 'string' ? uri : uri.fsPath.replace('/workspace/root/', '');
+      getConfiguration: vi.fn().mockReturnValue({
+        get: vi.fn(),
       }),
     },
     window: {
@@ -17,7 +24,6 @@ vi.mock('vscode', () => {
       createOutputChannel: vi.fn().mockReturnValue({
         appendLine: vi.fn(),
         show: vi.fn(),
-        clear: vi.fn(),
         dispose: vi.fn(),
       }),
     },
@@ -26,40 +32,16 @@ vi.mock('vscode', () => {
         writeText: vi.fn(),
       },
     },
-    Uri: {
-      file: vi.fn().mockImplementation(path => ({ fsPath: path })),
-      parse: vi.fn().mockImplementation(uri => ({ fsPath: uri })),
-    },
     commands: {
       registerCommand: vi.fn(),
-    },
-    extensions: {
-      getExtension: vi.fn(),
-    },
-    ConfigurationTarget: {
-      Global: 1,
-      Workspace: 2,
-      WorkspaceFolder: 3,
     },
   };
 });
 
-// Mock fs module to avoid "Cannot redefine property" errors
 vi.mock('fs', () => {
   return {
     existsSync: vi.fn().mockReturnValue(true),
-    readFile: vi.fn().mockImplementation((path, options, callback) => {
-      if (typeof options === 'function') {
-        callback = options;
-      }
-      callback(null, 'Mock file content');
-    }),
+    readFile: vi.fn(),
     statSync: vi.fn().mockReturnValue({ size: 1024 }),
-    mkdirSync: vi.fn(),
-    writeFileSync: vi.fn(),
-    readdirSync: vi.fn().mockReturnValue([]),
-    unlinkSync: vi.fn(),
-    rmdirSync: vi.fn(),
-    rmSync: vi.fn(),
   };
 });

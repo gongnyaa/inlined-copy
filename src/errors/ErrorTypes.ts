@@ -1,61 +1,74 @@
+import { t } from '../utils/I18n';
+import { MESSAGE_KEYS } from '../constants/Messages';
+
+/**
+ * inlined-copy拡張機能の基本例外インターフェース
+ */
+export interface IInlinedCopyError {
+  name: string;
+  message: string;
+}
+
 /**
  * inlined-copy拡張機能の基本例外クラス
  */
-export class InlinedCopyError extends Error {
+export class InlinedCopyBaseError extends Error implements IInlinedCopyError {
   constructor(message: string) {
     super(message);
-    this.name = 'InlinedCopyError';
-    Object.setPrototypeOf(this, InlinedCopyError.prototype);
+    this.name = 'InlinedCopyBaseError';
+    Object.setPrototypeOf(this, InlinedCopyBaseError.prototype);
   }
 }
 
 /**
  * サイズ制限を超えるデータを処理しようとした時にスローされる例外
  */
-export class LargeDataException extends InlinedCopyError {
+export class LargeDataError extends InlinedCopyBaseError {
   constructor(message: string) {
     super(message);
-    this.name = 'LargeDataException';
-    Object.setPrototypeOf(this, LargeDataException.prototype);
+    this.name = 'LargeDataError';
+    Object.setPrototypeOf(this, LargeDataError.prototype);
   }
 }
 
 /**
  * 重複ファイル参照が検出された時にスローされる例外
  */
-export class DuplicateReferenceException extends InlinedCopyError {
+export class DuplicateReferenceError extends InlinedCopyBaseError {
   constructor(message: string) {
     super(message);
-    this.name = 'DuplicateReferenceException';
-    Object.setPrototypeOf(this, DuplicateReferenceException.prototype);
+    this.name = 'DuplicateReferenceError';
+    Object.setPrototypeOf(this, DuplicateReferenceError.prototype);
   }
 }
 
 /**
  * 循環参照が検出された時にスローされる例外
  */
-export class CircularReferenceException extends InlinedCopyError {
+export class CircularReferenceError extends InlinedCopyBaseError {
   constructor(message: string) {
     super(message);
-    this.name = 'CircularReferenceException';
-    Object.setPrototypeOf(this, CircularReferenceException.prototype);
+    this.name = 'CircularReferenceError';
+    Object.setPrototypeOf(this, CircularReferenceError.prototype);
   }
 }
 
 /**
  * 対象となる元テキストが見つからない場合にスローされる例外
  */
-export class TextNotFoundException extends InlinedCopyError {
-  constructor(message: string = '対象となる元テキストが見つかりません') {
-    super(message);
-    this.name = 'TextNotFoundException';
-    Object.setPrototypeOf(this, TextNotFoundException.prototype);
+export class TextNotFoundError extends InlinedCopyBaseError {
+  constructor(message?: string) {
+    super(message || t(MESSAGE_KEYS.TEXT_NOT_FOUND));
+    this.name = 'TextNotFoundError';
+    Object.setPrototypeOf(this, TextNotFoundError.prototype);
   }
 }
 
 /**
  * ErrorオブジェクトをFileResult形式に変換する
  */
-export function errorToFileResult(error: Error): import('../fileResolver/FileResult').FileResult {
+export function errorToFileResult(
+  error: Error
+): import('../services/FileResolverService').FileResult {
   return { success: false, error: `${error.name}: ${error.message}` };
 }

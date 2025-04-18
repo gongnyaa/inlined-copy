@@ -14,14 +14,22 @@ type TranslationParams = Record<string, string | number>;
  * @param params 置換パラメータ
  * @returns 翻訳されたメッセージ
  */
-export function t(key: MessageKey, params?: TranslationParams): string {
-  let message = DEFAULT_MESSAGES[key] || key;
+export type TFunction = (key: MessageKey, params?: TranslationParams) => string;
 
+let tImpl: TFunction = (key, params) => {
+  let message = DEFAULT_MESSAGES[key] || key;
   if (params) {
     Object.entries(params).forEach(([paramKey, paramValue]) => {
       message = message.replace(new RegExp(`{{${paramKey}}}`, 'g'), String(paramValue));
     });
   }
-
   return message;
+};
+
+export function setT(fn: TFunction) {
+  tImpl = fn;
+}
+
+export function t(key: MessageKey, params?: TranslationParams): string {
+  return tImpl(key, params);
 }
