@@ -68,6 +68,7 @@ describe('InlinedCopyService', () => {
 
   it('executeCommand_Error_UnexpectedError', async () => {
     // モックの設定
+
     const testError = new Error('テストエラー');
     // テスト用に一時的にモックの実装を上書き
     (mockEditorTextService.getTextFromEditor as any).mockImplementationOnce(() => {
@@ -78,10 +79,12 @@ describe('InlinedCopyService', () => {
     await target.executeCommand();
 
     // 検証
-    expect(mockLogWrapper.error).toHaveBeenCalledWith(
-      t(MESSAGE_KEYS.UNEXPECTED_ERROR, { message: 'テストエラー' })
-    );
+    expect(mockEditorTextService.getTextFromEditor).toHaveBeenCalledWith();
     expect(mockFileExpanderService.expandFileReferences).not.toHaveBeenCalled();
+
+    expect(mockLogWrapper.error).toHaveBeenCalledWith(
+      t(MESSAGE_KEYS.UNEXPECTED_ERROR, { message: String(testError) })
+    );
     expect(mockVSCodeWrapper.writeClipboard).not.toHaveBeenCalled();
   });
 });

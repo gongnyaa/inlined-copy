@@ -1,5 +1,4 @@
-import { VSCodeWrapper } from './VSCodeWrapper';
-import { SingletonBase } from './SingletonBase';
+import { VSCodeWrapper, SingletonBase } from './';
 
 export interface ILogWrapper {
   log(message: string): void;
