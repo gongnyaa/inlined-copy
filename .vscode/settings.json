@@ -7,6 +7,7 @@
         "vitest.config.js": true,
         "vitest.config.js.map": true,
         "vitest.setup.js": true,
-        "vitest.setup.js.map": true
+        "vitest.setup.js.map": true,
+        "coverage/**": true
       }
 }

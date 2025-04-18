@@ -9,7 +9,7 @@
 その他クラスや観点外の変更については、最後に提案し、修正は実施しないこと。
 
 ## 対象クラス
-![[logManager.ts]]
+![[FileResolverService.ts]]
 
 ## ガイドライン
 ![[guideline_coding]]
