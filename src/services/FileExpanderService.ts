@@ -4,6 +4,7 @@ import { FileResolverService } from './FileResolverService';
 import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
 import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { LogWrapper } from '../utils/LogWrapper';
+import { SingletonBase } from '../utils/SingletonBase';
 
 export interface IFileExpanderService {
   /**
@@ -17,25 +18,16 @@ export interface IFileExpanderService {
   ): Promise<string>;
 }
 
-export class FileExpanderService implements IFileExpanderService {
-  private static _instance: IFileExpanderService;
+export class FileExpanderService
+  extends SingletonBase<IFileExpanderService>
+  implements IFileExpanderService
+{
   private _vscodeEnvironment: IVSCodeWrapper;
 
   constructor(vscodeEnvironment: IVSCodeWrapper = VSCodeWrapper.Instance()) {
+    super();
     this._vscodeEnvironment = vscodeEnvironment;
   }
-
-  public static Instance(): IFileExpanderService {
-    if (!this._instance) {
-      this._instance = new FileExpanderService();
-    }
-    return this._instance;
-  }
-
-  public static SetInstance(instance: IFileExpanderService): void {
-    this._instance = instance;
-  }
-
   public async expandFileReferences(
     text: string,
     basePath: string,

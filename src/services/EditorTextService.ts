@@ -2,6 +2,7 @@ import { TextNotFoundError } from '../errors/ErrorTypes';
 import { VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { MESSAGE_KEYS } from '../constants/Messages';
 import { t } from '../utils/I18n';
+import { SingletonBase } from '../utils/SingletonBase';
 
 export interface IEditorTextService {
   /**
@@ -12,19 +13,10 @@ export interface IEditorTextService {
   getTextFromEditor(): Promise<{ text: string; currentDir: string }>;
 }
 
-export class EditorTextService implements IEditorTextService {
-  private static _instance: IEditorTextService;
-
-  public static Instance(): IEditorTextService {
-    if (!this._instance) {
-      this._instance = new EditorTextService();
-    }
-    return this._instance;
-  }
-  public static SetInstance(instance: IEditorTextService): void {
-    this._instance = instance;
-  }
-
+export class EditorTextService
+  extends SingletonBase<IEditorTextService>
+  implements IEditorTextService
+{
   public async getTextFromEditor(): Promise<{ text: string; currentDir: string }> {
     const { text, currentDir } = VSCodeWrapper.Instance().getSelectionText();
     if (text) {

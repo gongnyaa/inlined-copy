@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { LogWrapper } from '../utils/LogWrapper';
+import { SingletonBase } from '../utils/SingletonBase';
 
 /**
  * ファイル解決操作の結果型
@@ -36,26 +37,7 @@ export interface IFileResolver {
 /**
  * ファイル解決を行うサービスクラス
  */
-export class FileResolverService implements IFileResolver {
-  private static _instance: IFileResolver | null = null;
-
-  /**
-   * シングルトンインスタンスを取得
-   */
-  public static Instance(): IFileResolver {
-    if (!this._instance) {
-      this._instance = new FileResolverService();
-    }
-    return this._instance;
-  }
-
-  /**
-   * テスト用にインスタンスを設定
-   */
-  public static SetInstance(instance: IFileResolver | null): void {
-    this._instance = instance;
-  }
-
+export class FileResolverService extends SingletonBase<IFileResolver> implements IFileResolver {
   /**
    * ファイルパスを解決する
    * @param filePath 解決するファイルパス

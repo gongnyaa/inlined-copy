@@ -210,9 +210,7 @@ describe('FileExpanderService', () => {
       });
 
       vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(async function () {
-        throw new LargeDataError(
-          `ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`
-        );
+        throw new LargeDataError(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
       });
 
       vi.spyOn(LogWrapper.Instance(), 'log').mockImplementation(vi.fn());
@@ -293,9 +291,7 @@ describe('FileExpanderService', () => {
         if (filePath === '/test/path/test1.txt') return 'File content 1';
         if (filePath === '/test/path/test2.txt') return 'File content 2';
         if (filePath === '/test/path/large.txt') {
-          throw new LargeDataError(
-            `ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`
-          );
+          throw new LargeDataError(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
         }
         if (filePath === '/test/path/error.txt') {
           throw new Error(`ファイルの読み込みに失敗: 読み込みエラー`);

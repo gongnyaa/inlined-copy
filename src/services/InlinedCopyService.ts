@@ -7,25 +7,16 @@ import { EditorTextService } from './EditorTextService';
 import { TextNotFoundError } from '../errors/ErrorTypes';
 import { t } from '../utils/I18n';
 import { MESSAGE_KEYS } from '../constants/Messages';
+import { SingletonBase } from '../utils/SingletonBase';
 
 export interface IInlinedCopyService {
   executeCommand(): Promise<void>;
 }
 
-export class InlinedCopyService implements IInlinedCopyService {
-  private static _instance: IInlinedCopyService;
-
-  public static Instance(): IInlinedCopyService {
-    if (!this._instance) {
-      this._instance = new InlinedCopyService();
-    }
-    return this._instance;
-  }
-
-  public static SetInstance(instance: IInlinedCopyService): void {
-    this._instance = instance;
-  }
-
+export class InlinedCopyService
+  extends SingletonBase<IInlinedCopyService>
+  implements IInlinedCopyService
+{
   public async executeCommand(): Promise<void> {
     try {
       const { text, currentDir } = await EditorTextService.Instance().getTextFromEditor();

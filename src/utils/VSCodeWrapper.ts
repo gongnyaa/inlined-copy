@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { SingletonBase } from './SingletonBase';
 
 export interface IVSCodeWrapper {
   appendLine(message: string, needShow: boolean): void;
@@ -12,23 +13,12 @@ export interface IVSCodeWrapper {
   dispose(): void;
 }
 
-export class VSCodeWrapper implements IVSCodeWrapper {
-  private static _instance: IVSCodeWrapper;
+export class VSCodeWrapper extends SingletonBase<IVSCodeWrapper> implements IVSCodeWrapper {
   private _outputChannel: vscode.OutputChannel | undefined;
 
   constructor() {
+    super();
     this._outputChannel = vscode.window.createOutputChannel('Inlined Copy');
-  }
-
-  public static Instance(): IVSCodeWrapper {
-    if (!this._instance) {
-      this._instance = new VSCodeWrapper();
-    }
-    return this._instance;
-  }
-
-  public static SetInstance(instance: IVSCodeWrapper): void {
-    this._instance = instance;
   }
 
   public appendLine(message: string, needShow: boolean): void {
