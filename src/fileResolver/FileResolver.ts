@@ -2,11 +2,15 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileResult, fileSuccess, fileFailure } from './FileResult';
 import { LogWrapper } from '../utils/LogWrapper';
+import { SingletonBase } from '../utils/SingletonBase';
 
-export class FileResolver {
-  // シングルトンを使用するため、個別のセッターは不要
-  // テスト時は LogWrapper.SetInstance() を使用
-  public static async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
+export interface IFileResolver {
+  resolveFilePath(filePath: string, basePath: string): Promise<FileResult>;
+  getSuggestions(filePath: string): Promise<string[]>;
+}
+
+export class FileResolver extends SingletonBase<IFileResolver> implements IFileResolver {
+  public async resolveFilePath(filePath: string, basePath: string): Promise<FileResult> {
     try {
       // ワークスペースのルートフォルダを取得
       const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -92,7 +96,7 @@ export class FileResolver {
     }
   }
 
-  public static async getSuggestions(filePath: string): Promise<string[]> {
+  public async getSuggestions(filePath: string): Promise<string[]> {
     try {
       const fileName = path.parse(filePath).name;
       // 単純にワークスペース全体から fileName.* を拾う例

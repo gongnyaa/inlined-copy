@@ -4,6 +4,7 @@ import { FileResolver } from './fileResolver/FileResolver';
 import { LargeDataException, CircularReferenceException } from './errors/ErrorTypes';
 import { IVSCodeWrapper, VSCodeWrapper } from './utils/VSCodeWrapper';
 import { LogWrapper } from './utils/LogWrapper';
+import { SingletonBase } from './utils/SingletonBase';
 
 export interface IFileExpander {
   /**
@@ -17,23 +18,12 @@ export interface IFileExpander {
   ): Promise<string>;
 }
 
-export class FileExpander implements IFileExpander {
-  private static _instance: IFileExpander;
+export class FileExpander extends SingletonBase<IFileExpander> implements IFileExpander {
   private _vscodeEnvironment: IVSCodeWrapper;
 
   constructor(vscodeEnvironment: IVSCodeWrapper = VSCodeWrapper.Instance()) {
+    super();
     this._vscodeEnvironment = vscodeEnvironment;
-  }
-
-  public static Instance(): IFileExpander {
-    if (!this._instance) {
-      this._instance = new FileExpander();
-    }
-    return this._instance;
-  }
-
-  public static SetInstance(instance: IFileExpander): void {
-    this._instance = instance;
   }
 
   public async expandFileReferences(
@@ -105,10 +95,11 @@ export class FileExpander implements IFileExpander {
   }
 
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
-    const result = await FileResolver.resolveFilePath(filePath, basePath);
+    const fileResolver = FileResolver.Instance();
+    const result = await fileResolver.resolveFilePath(filePath, basePath);
 
     if (!result.success) {
-      await FileResolver.getSuggestions(filePath);
+      await fileResolver.getSuggestions(filePath);
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 
