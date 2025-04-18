@@ -2,9 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolverService } from './FileResolverService';
 import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
-import { IVSCodeWrapper, VSCodeWrapper } from '../utils/VSCodeWrapper';
-import { LogWrapper } from '../utils/LogWrapper';
-import { SingletonBase } from '../utils/SingletonBase';
+import { IVSCodeWrapper, VSCodeWrapper, LogWrapper, SingletonBase } from '../utils';
 
 export interface IFileExpanderService {
   /**

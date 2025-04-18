@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { InlinedCopyService } from './services/InlinedCopyService';
-import { VSCodeWrapper } from './utils/VSCodeWrapper';
+import { VSCodeWrapper } from './utils';
 import { COMMANDS } from './constants/Commands';
 
 export function activate(context: vscode.ExtensionContext): void {

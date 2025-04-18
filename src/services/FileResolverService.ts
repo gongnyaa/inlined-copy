@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { LogWrapper } from '../utils/LogWrapper';
-import { SingletonBase } from '../utils/SingletonBase';
+import { LogWrapper, SingletonBase } from '../utils';
 
 /**
  * ファイル解決操作の結果型
