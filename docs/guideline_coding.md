@@ -130,3 +130,20 @@ const content = readFile('/path/to/file.txt');
 processContent(content);
 
 ```
+
+### コード記述スタイル
+- オブジェクトからのプロパティ取得には積極的にデストラクチャリングを活用する
+  ```typescript
+  // ✅ 推奨
+  const { text, currentDir } = VSCodeWrapper.Instance().getSelectionText();
+  if (text) {
+    return { text, currentDir };
+  }
+  
+  // ❌ 非推奨
+  const selectionResult = VSCodeWrapper.Instance().getSelectionText();
+  if (selectionResult.text) {
+    return { text: selectionResult.text, currentDir: selectionResult.currentDir };
+  }
+  ```
+
