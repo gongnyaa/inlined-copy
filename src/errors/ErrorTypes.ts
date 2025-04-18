@@ -1,4 +1,4 @@
-import { t } from '../utils/I18n';
+import { t } from '../utils';
 import { MESSAGE_KEYS } from '../constants/Messages';
 
 /**
