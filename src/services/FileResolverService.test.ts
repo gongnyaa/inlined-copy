@@ -101,29 +101,4 @@ describe('FileResolverService', () => {
       expect(mockLogWrapper.error).toHaveBeenCalledWith('ファイル解決エラー: Error: テストエラー');
     });
   });
-
-  describe('getSuggestions', () => {
-    it('getSuggestions_Happy', async () => {
-      const mockUris = [
-        { fsPath: '/test/workspace/src/test.ts' },
-        { fsPath: '/test/workspace/src/test.js' },
-      ];
-      vi.mocked(vscode.workspace.findFiles).mockResolvedValueOnce(mockUris as any);
-
-      const result = await target.getSuggestions('test.ts');
-
-      expect(result).toEqual(['/test/workspace/src/test.ts', '/test/workspace/src/test.js']);
-      expect(vscode.workspace.findFiles).toHaveBeenCalledWith('**/test.*', '**/node_modules/**', 5);
-    });
-
-    it('getSuggestions_Error_Exception', async () => {
-      const testError = new Error('テストエラー');
-      vi.mocked(vscode.workspace.findFiles).mockRejectedValueOnce(testError);
-
-      const result = await target.getSuggestions('test.ts');
-
-      expect(result).toEqual([]);
-      expect(mockLogWrapper.error).toHaveBeenCalledWith('候補取得エラー: Error: テストエラー');
-    });
-  });
 });

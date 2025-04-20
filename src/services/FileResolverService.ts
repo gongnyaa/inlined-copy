@@ -15,7 +15,6 @@ export type FileResult = {
  */
 export interface IFileResolver {
   resolveFilePath(filePath: string, basePath: string): Promise<FileResult>;
-  getSuggestions(filePath: string): Promise<string[]>;
 }
 
 /**
@@ -161,23 +160,5 @@ export class FileResolverService extends SingletonBase<IFileResolver> implements
       const expectedParentDir = path.join(relativeBase, parentFolder);
       return actualParentDir === expectedParentDir;
     });
-  }
-
-  /**
-   * ファイルパスの候補を取得する
-   * @param filePath ファイルパス
-   * @returns 候補の配列
-   */
-  public async getSuggestions(filePath: string): Promise<string[]> {
-    try {
-      const fileName = path.parse(filePath).name;
-      const searchPattern = `**/${fileName}.*`;
-
-      const uris = await vscode.workspace.findFiles(searchPattern, '**/node_modules/**', 5);
-      return uris.map(uri => vscode.workspace.asRelativePath(uri));
-    } catch (error) {
-      LogWrapper.Instance().error(`候補取得エラー: ${error}`);
-      return [];
-    }
   }
 }

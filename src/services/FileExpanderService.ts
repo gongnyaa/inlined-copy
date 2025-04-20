@@ -98,7 +98,6 @@ export class FileExpanderService
     const result = await FileResolverService.Instance().resolveFilePath(filePath, basePath);
 
     if (result.error) {
-      await FileResolverService.Instance().getSuggestions(filePath);
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
 

@@ -18,7 +18,6 @@ classDiagram
         -static resolveByProximity(filePath, basePath): Promise~string|null~
         -static findFileInWorkspace(filePath): Promise~string[]~
         -static selectBestFileCandidate(candidates, basePath): Promise~string|null~
-        +static getSuggestions(filePath): Promise~string[]~
     }
     
     class VSCodeEnvironment {

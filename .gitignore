@@ -12,3 +12,4 @@ vitest.config.js
 vitest.config.js.map
 vitest.setup.js
 vitest.setup.js.map
+.DS_Store
