@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FileResolverService } from './FileResolverService';
 import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
-import { IVSCodeWrapper, VSCodeWrapper, LogWrapper, SingletonBase } from '../utils';
+import { VSCodeWrapper, LogWrapper, SingletonBase } from '../utils';
 
 export interface IFileExpanderService {
   /**
@@ -20,19 +20,13 @@ export class FileExpanderService
   extends SingletonBase<IFileExpanderService>
   implements IFileExpanderService
 {
-  private _vscodeEnvironment: IVSCodeWrapper;
-
-  constructor(vscodeEnvironment: IVSCodeWrapper = VSCodeWrapper.Instance()) {
-    super();
-    this._vscodeEnvironment = vscodeEnvironment;
-  }
   public async expandFileReferences(
     text: string,
     basePath: string,
     visitedPaths: string[] = [],
     currentDepth: number = 0
   ): Promise<string> {
-    const MAX_RECURSION_DEPTH = this._vscodeEnvironment.getConfiguration(
+    const MAX_RECURSION_DEPTH = VSCodeWrapper.Instance().getConfiguration(
       'inlined-copy',
       'maxRecursionDepth',
       1
@@ -47,7 +41,7 @@ export class FileExpanderService
 
     const fileReferenceRegex = /!\[\[(.*?)\]\]/g;
     let result = text;
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = fileReferenceRegex.exec(text)) !== null) {
       const fullMatch = match[0];
@@ -58,15 +52,13 @@ export class FileExpanderService
 
         if (visitedPaths.includes(resolvedPath)) {
           const pathChain = [...visitedPaths, resolvedPath].map(p => path.basename(p)).join(' → ');
-          throw new CircularReferenceError(`Circular reference detected: ${pathChain}`);
+          throw new CircularReferenceError(`循環参照が検出されました: ${pathChain}`);
         }
 
         const fileContent = await this.readFileContent(resolvedPath);
-        let contentToInsert = fileContent;
-
         const newVisitedPaths = [...visitedPaths, resolvedPath];
-        contentToInsert = await this.expandFileReferences(
-          contentToInsert,
+        const contentToInsert = await this.expandFileReferences(
+          fileContent,
           path.dirname(resolvedPath),
           newVisitedPaths,
           currentDepth + 1
@@ -76,15 +68,13 @@ export class FileExpanderService
       } catch (error) {
         if (error instanceof Error && error.message.startsWith('ファイルが見つかりません:')) {
           LogWrapper.Instance().log(`![[${filePath}]] が見つかりませんでした`);
+        } else if (error instanceof LargeDataError) {
+          LogWrapper.Instance().log(`大きなファイルを検出: ${error.message}`);
+        } else if (error instanceof CircularReferenceError) {
+          LogWrapper.Instance().error(error.message);
         } else {
-          if (error instanceof LargeDataError) {
-            LogWrapper.Instance().log(`大きなファイルを検出: ${error.message}`);
-          } else if (error instanceof CircularReferenceError) {
-            LogWrapper.Instance().error(error.message);
-          } else {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            LogWrapper.Instance().error(`ファイル参照の展開エラー: ${errorMessage}`);
-          }
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          LogWrapper.Instance().error(`ファイル参照の展開エラー: ${errorMessage}`);
         }
 
         result = result.replace(fullMatch, fullMatch);
@@ -95,23 +85,23 @@ export class FileExpanderService
   }
 
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
-    const result = await FileResolverService.Instance().resolveFilePath(filePath, basePath);
-
-    if (result.error) {
+    try {
+      return await FileResolverService.Instance().resolveFilePath(filePath, basePath);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error(`ファイルが見つかりません: ${filePath}`);
     }
-
-    return result.path!;
   }
 
   private async readFileContent(filePath: string): Promise<string> {
     try {
       const stats = fs.statSync(filePath);
 
-      // デフォルト5MB
       const DEFAULT_MAX_FILE_SIZE_MB = 5;
       const MB_IN_BYTES = 1024 * 1024;
-      const MAX_FILE_SIZE = this._vscodeEnvironment.getConfiguration(
+      const MAX_FILE_SIZE = VSCodeWrapper.Instance().getConfiguration(
         'inlined-copy',
         'maxFileSize',
         DEFAULT_MAX_FILE_SIZE_MB * MB_IN_BYTES
@@ -119,7 +109,7 @@ export class FileExpanderService
 
       if (stats.size > MAX_FILE_SIZE) {
         throw new LargeDataError(
-          `ファイルサイズ(${(stats.size / 1024 / 1024).toFixed(2)}MB)が許容最大サイズ(${(MAX_FILE_SIZE / 1024 / 1024).toFixed(2)}MB)を超えています`
+          `ファイルサイズ(${(stats.size / MB_IN_BYTES).toFixed(2)}MB)が許容最大サイズ(${(MAX_FILE_SIZE / MB_IN_BYTES).toFixed(2)}MB)を超えています`
         );
       }
 
@@ -127,7 +117,7 @@ export class FileExpanderService
         return this.readFileContentStreaming(filePath);
       }
 
-      return await new Promise<string>((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
         fs.readFile(filePath, 'utf8', (err, data) => {
           if (err) {
             reject(new Error(`ファイルの読み込みに失敗: ${err.message}`));

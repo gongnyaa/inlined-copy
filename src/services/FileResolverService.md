@@ -9,12 +9,6 @@ classDiagram
     }
     
     class FileResolverService {
-        -getWorkspaceRoot() string|null
-        -parseFilePathInfo(filePath: string) object
-        -searchFileInParentDirectories(pathInfo: object, basePath: string, workspaceRoot: string) Promise~FileResult~
-        -buildSearchPattern(relativeBase: string, pathInfo: object) string
-        -processFoundFiles(files: vscode.Uri[], pathInfo: object, relativeBase: string, workspaceRoot: string) string|null
-        -filterFilesByParentDirectory(files: vscode.Uri[], workspaceRoot: string, relativeBase: string, parentFolder: string) vscode.Uri[]
         +resolveFilePath(filePath: string, basePath: string) Promise~FileResult~
     }
     
@@ -29,30 +23,44 @@ classDiagram
         +error?: string
     }
     
+    class IFileSearchService {
+        <<interface>>
+        +findFileInBase(filePath: string, basePath: string) Promise~FileSearchResult~
+        +findParent(basePath: string) Promise~FileSearchResult~
+    }
+    
+    class FileSearchService {
+        +findFileInBase(filePath: string, basePath: string) Promise~FileSearchResult~
+        +findParent(basePath: string) Promise~FileSearchResult~
+    }
+    
+    class FileSearchResult {
+        <<type>>
+        +path?: string
+        +error?: string
+    }
+    
     SingletonBase <|-- FileResolverService
     IFileResolver <|.. FileResolverService
+    SingletonBase <|-- FileSearchService
+    IFileSearchService <|.. FileSearchService
+    FileResolverService --> FileSearchService : uses
 ```
 
 ```mermaid
-%% resolveFilePath メソッドの処理フロー
+%% resolveFilePath メソッドの処理フロー（リファクタリング後）
 flowchart TD
-    A[resolveFilePath開始] --> B{ワークスペースルート取得}
-    B -->|成功| C[ファイルパス情報解析]
-    B -->|失敗| D[エラー: ワークスペースが見つかりません]
-    C --> E[親ディレクトリ検索開始]
-    E --> F{現在のパスはワークスペース内?}
-    F -->|はい| G[検索パターン構築]
-    F -->|いいえ| H[検索終了、ファイル未発見]
-    G --> I[vscodeで検索実行]
-    I --> J{ファイルが見つかった?}
-    J -->|はい| K[ファイル情報処理]
-    J -->|いいえ| L[親ディレクトリへ移動]
-    K --> M{処理結果あり?}
-    M -->|はい| N[成功結果を返す]
-    M -->|いいえ| L
-    L --> F
-    H --> O[エラー結果を返す]
-    D --> P[終了]
-    N --> P
-    O --> P
+    A[resolveFilePath開始] --> B[FileSearchServiceインスタンス取得]
+    B --> C[指定basePathでファイル検索]
+    C --> D{ファイルが見つかった?}
+    D -->|はい| E[結果を返す]
+    D -->|いいえ| F{エラーはファイル未発見?}
+    F -->|いいえ| E
+    F -->|はい| G[親ディレクトリ取得]
+    G --> H{親ディレクトリ取得成功?}
+    H -->|いいえ| I[エラー結果を返す]
+    H -->|はい| J[親ディレクトリでファイル検索]
+    J --> D
+    E --> K[終了]
+    I --> K
 ```

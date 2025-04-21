@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'fs';
 import { FileExpanderService } from './FileExpanderService';
-import { FileResolverService, FileResult } from './FileResolverService';
+import { FileResolverService } from './FileResolverService';
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
 import { mockFileResolverService } from './FileResolverService.mock';
 import { LargeDataError, CircularReferenceError } from '../errors/ErrorTypes';
+import { VSCodeWrapper } from '../utils';
 
 vi.mock('fs', () => ({
   readFile: vi.fn(),
@@ -33,7 +34,8 @@ describe('FileExpanderService', () => {
     vi.clearAllMocks();
     LogWrapper.SetInstance(mockLogWrapper);
     FileResolverService.SetInstance(mockFileResolverService);
-    target = new FileExpanderService(mockVSCodeWrapper as any);
+    VSCodeWrapper.SetInstance(mockVSCodeWrapper as any);
+    target = FileExpanderService.Instance();
 
     vi.spyOn(target as any, 'readFileContent').mockImplementation(async function (...args) {
       const filePath = args[0] as string;
@@ -47,7 +49,7 @@ describe('FileExpanderService', () => {
     vi.spyOn(target as any, 'resolveFilePath').mockImplementation(async function (...args) {
       const filePath = args[0] as string;
       if (filePath === 'missing.txt') {
-        throw new Error('File not found: missing.txt');
+        throw new Error('ファイルが見つかりません: missing.txt');
       }
       if (filePath === 'large.txt') {
         return '/test/path/large.txt';
@@ -143,8 +145,8 @@ describe('FileExpanderService', () => {
         .mockResolvedValueOnce(resolvedPath2);
 
       (mockFileResolverService.resolveFilePath as any)
-        .mockResolvedValueOnce({ path: resolvedPath1 })
-        .mockResolvedValueOnce({ path: resolvedPath2 });
+        .mockResolvedValueOnce(resolvedPath1)
+        .mockResolvedValueOnce(resolvedPath2);
 
       const result = await target.expandFileReferences(testText, '/test/dir');
 
@@ -155,9 +157,9 @@ describe('FileExpanderService', () => {
       const testText = 'This is a test with ![[missing.txt]]';
       const expectedResult = 'This is a test with ![[missing.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
-        error: 'ファイルが見つかりません',
-      });
+      (mockFileResolverService.resolveFilePath as any).mockRejectedValueOnce(
+        new Error('ファイルが見つかりません')
+      );
 
       vi.spyOn(target as any, 'resolveFilePath').mockImplementationOnce(async function () {
         throw new Error('ファイルが見つかりません: missing.txt');
@@ -176,15 +178,11 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/circular.txt';
       const expectedResult = 'This is a test with ![[circular.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
-        path: resolvedPath,
-      });
+      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(resolvedPath);
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
 
       vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(() => {
-        throw new CircularReferenceError(
-          `Circular reference detected: circular.txt → circular.txt`
-        );
+        throw new CircularReferenceError(`循環参照が検出されました: circular.txt → circular.txt`);
       });
 
       vi.spyOn(LogWrapper.Instance(), 'error').mockImplementation(vi.fn());
@@ -200,9 +198,7 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/large.txt';
       const expectedResult = 'This is a test with ![[large.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
-        path: resolvedPath,
-      });
+      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(resolvedPath);
 
       vi.spyOn(target as any, 'resolveFilePath').mockImplementationOnce(async function () {
         return resolvedPath;
@@ -266,57 +262,60 @@ describe('FileExpanderService', () => {
   });
 
   describe('readFileContent', () => {
+    beforeEach(() => {
+      vi.restoreAllMocks();
+      LogWrapper.SetInstance(mockLogWrapper);
+      FileResolverService.SetInstance(mockFileResolverService);
+      VSCodeWrapper.SetInstance(mockVSCodeWrapper as any);
+      target = FileExpanderService.Instance();
+    });
+
     it('readFileContent_Happy', async () => {
       const filePath = '/test/path/test.txt';
+      const fileContent = 'File content';
 
-      vi.restoreAllMocks();
-
-      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
         (path: string, encoding: string, callback: (err: Error | null, data: string) => void) => {
-          callback(null, 'File content');
+          callback(null, fileContent);
           return undefined as any;
         }
       );
 
       const result = await (target as any).readFileContent(filePath);
-
-      expect(result).toEqual('File content');
-
-      vi.spyOn(target as any, 'readFileContent').mockImplementation(async function (...args) {
-        const filePath = args[0] as string;
-        if (filePath === '/test/path/test.txt') return 'File content';
-        if (filePath === '/test/path/test1.txt') return 'File content 1';
-        if (filePath === '/test/path/test2.txt') return 'File content 2';
-        if (filePath === '/test/path/large.txt') {
-          throw new LargeDataError(`ファイルサイズ(10.00MB)が許容最大サイズ(5.00MB)を超えています`);
-        }
-        if (filePath === '/test/path/error.txt') {
-          throw new Error(`ファイルの読み込みに失敗: 読み込みエラー`);
-        }
-        if (filePath === '/test/path/medium.txt') return 'File content';
-        return 'Default content';
-      });
+      expect(result).toEqual(fileContent);
     });
 
     it('readFileContent_Error_LargeFile', async () => {
+      // 明示的にモックを再設定
+      vi.resetAllMocks();
+
+      // このテスト用の大きなファイルのパス
       const filePath = '/test/path/large.txt';
 
-      const freshTarget = new FileExpanderService(mockVSCodeWrapper as any);
+      // VSCodeWrapperのモックを設定
+      (mockVSCodeWrapper.getConfiguration as any).mockReturnValueOnce(5 * 1024 * 1024); // 5MB
 
-      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
-      (fs.statSync as any).mockReturnValueOnce({ size: 10 * 1024 * 1024 }); // 10MB file size
+      // fs.statSyncが大きなファイルサイズを返すようモック
+      (fs.statSync as any).mockReturnValueOnce({ size: 10 * 1024 * 1024 }); // 10MB
 
-      await expect(freshTarget['readFileContent'](filePath)).rejects.toThrow(LargeDataError);
+      // モック関数をスパイで上書きしないよう注意
+      vi.spyOn(target as any, 'readFileContent').mockRestore();
+
+      // エラーがスローされることを確認
+      await expect((target as any).readFileContent(filePath)).rejects.toThrow(LargeDataError);
     });
 
     it('readFileContent_Error_ReadError', async () => {
+      // 明示的にモックを再設定
+      vi.resetAllMocks();
+
       const filePath = '/test/path/error.txt';
 
-      const freshTarget = new FileExpanderService(mockVSCodeWrapper as any);
+      // VSCodeWrapperのモックを設定
+      (mockVSCodeWrapper.getConfiguration as any).mockReturnValueOnce(5 * 1024 * 1024); // 5MB
 
-      mockVSCodeWrapper.getConfiguration.mockReturnValueOnce(5 * 1024 * 1024); // 5MB max file size
+      // ファイルサイズは問題ないがreadFileでエラー
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
       (fs.readFile as any).mockImplementationOnce(
         (path: string, encoding: string, callback: (err: Error | null, data: string) => void) => {
@@ -325,7 +324,11 @@ describe('FileExpanderService', () => {
         }
       );
 
-      await expect(freshTarget['readFileContent'](filePath)).rejects.toThrow(
+      // モック関数をスパイで上書きしないよう注意
+      vi.spyOn(target as any, 'readFileContent').mockRestore();
+
+      // エラーがスローされることを確認
+      await expect((target as any).readFileContent(filePath)).rejects.toThrow(
         'ファイルの読み込みに失敗'
       );
     });

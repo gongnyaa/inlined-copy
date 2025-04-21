@@ -1,6 +1,6 @@
-import { IFileResolver, FileResult } from './FileResolverService';
+import { IFileResolver } from './FileResolverService';
 import { vi } from 'vitest';
 
 export const mockFileResolverService: IFileResolver = {
-  resolveFilePath: vi.fn().mockResolvedValue({ path: '/test/path/file.txt' } as FileResult),
+  resolveFilePath: vi.fn().mockResolvedValue('/test/path/file.txt'),
 };
