@@ -4,7 +4,7 @@ import { FileSearchService } from './FileSearchService';
 /**
  * ファイル解決のためのインターフェース
  */
-export interface IFileResolver {
+export interface IFileResolverService {
   /**
    * 指定ファイルのプロジェクト内のパスを取得する。
    * basePathを起点に、指定ファイルを探し、見つからない場合は親ディレクトリを辿って探す。
@@ -16,7 +16,10 @@ export interface IFileResolver {
   getFilePathInProject(filePath: string, basePath: string): Promise<string>;
 }
 
-export class FileResolverService extends SingletonBase<IFileResolver> implements IFileResolver {
+export class FileResolverService
+  extends SingletonBase<IFileResolverService>
+  implements IFileResolverService
+{
   public async getFilePathInProject(filePath: string, basePath: string): Promise<string> {
     let currentBasePath = basePath;
 

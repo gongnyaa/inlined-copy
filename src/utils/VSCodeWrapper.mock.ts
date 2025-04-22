@@ -28,5 +28,9 @@ export const mockVSCodeWrapper: IVSCodeWrapper = {
   writeClipboard: vi.fn().mockResolvedValue(undefined),
   getSelectionText: vi.fn().mockReturnValue(MOCK_SELECTION_TEXT),
   getDocumentText: vi.fn().mockReturnValue(MOCK_DOCUMENT_TEXT),
+  createUri: vi.fn().mockImplementation(path => ({ fsPath: path })),
+  createRelativePattern: vi.fn().mockImplementation((base, pattern) => ({ base, pattern })),
+  findFiles: vi.fn().mockResolvedValue([]),
+  getWorkspaceRootPath: vi.fn().mockReturnValue('/mock/workspace'),
   dispose: vi.fn(),
 };

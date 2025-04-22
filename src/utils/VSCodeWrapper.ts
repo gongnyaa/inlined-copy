@@ -10,6 +10,14 @@ export interface IVSCodeWrapper {
   writeClipboard(text: string): Thenable<void>;
   getSelectionText(): { text: string | null; currentDir: string };
   getDocumentText(): { text: string | null; currentDir: string };
+  createUri(path: string): vscode.Uri;
+  createRelativePattern(base: vscode.Uri, pattern: string): vscode.RelativePattern;
+  findFiles(
+    include: vscode.GlobPattern,
+    exclude: vscode.GlobPattern | null,
+    maxResults?: number
+  ): Thenable<vscode.Uri[]>;
+  getWorkspaceRootPath(): string | null;
   dispose(): void;
 }
 
@@ -76,5 +84,29 @@ export class VSCodeWrapper extends SingletonBase<IVSCodeWrapper> implements IVSC
       this._outputChannel.dispose();
       this._outputChannel = undefined;
     }
+  }
+
+  public createUri(path: string): vscode.Uri {
+    return vscode.Uri.file(path);
+  }
+
+  public createRelativePattern(base: vscode.Uri, pattern: string): vscode.RelativePattern {
+    return new vscode.RelativePattern(base, pattern);
+  }
+
+  public findFiles(
+    include: vscode.GlobPattern,
+    exclude: vscode.GlobPattern | null,
+    maxResults?: number
+  ): Thenable<vscode.Uri[]> {
+    return vscode.workspace.findFiles(include, exclude, maxResults);
+  }
+
+  public getWorkspaceRootPath(): string | null {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+      return null;
+    }
+    return workspaceFolders[0].uri.fsPath;
   }
 }

@@ -13,6 +13,13 @@ vi.mock('vscode', () => ({
     file: (path: string) => ({ fsPath: path }),
   },
   RelativePattern: vi.fn(),
+  window: {
+    createOutputChannel: vi.fn().mockReturnValue({
+      appendLine: vi.fn(),
+      show: vi.fn(),
+      dispose: vi.fn(),
+    }),
+  },
 }));
 
 describe('FileSearchService', () => {

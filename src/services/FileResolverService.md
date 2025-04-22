@@ -1,66 +1,68 @@
-## Markdown
+# FileResolverService 設計ドキュメント
 
+## 基本情報
+- 対象：FileResolverService
+- 目的：既存機能の可視化とリファクタリング
+- 主要メソッド：getFilePathInProject
+
+## クラス図
 ```mermaid
 %% FileResolverService クラス図
 classDiagram
-    class IFileResolver {
-        <<interface>>
-        +resolveFilePath(filePath: string, basePath: string) Promise~FileResult~
-    }
-    
     class FileResolverService {
-        +resolveFilePath(filePath: string, basePath: string) Promise~FileResult~
-    }
-    
-    class SingletonBase {
-        <<abstract>>
-        +Instance() T
-    }
-    
-    class FileResult {
-        <<type>>
-        +path?: string
-        +error?: string
-    }
-    
-    class IFileSearchService {
-        <<interface>>
-        +findFileInBase(filePath: string, basePath: string) Promise~FileSearchResult~
-        +findParent(basePath: string) Promise~FileSearchResult~
+        <<service>>
+        +getFilePathInProject(filePath: string, basePath: string) Promise~string~
     }
     
     class FileSearchService {
-        +findFileInBase(filePath: string, basePath: string) Promise~FileSearchResult~
-        +findParent(basePath: string) Promise~FileSearchResult~
+        <<service>>
+        +findFileInBase(filePath: string, basePath: string) Promise~string~
+        +findParent(basePath: string) Promise~string~
+        +isInProject(checkPath: string) boolean
+        +hasInBase(filePath: string, basePath: string) Promise~boolean~
     }
     
-    class FileSearchResult {
-        <<type>>
-        +path?: string
-        +error?: string
-    }
-    
-    SingletonBase <|-- FileResolverService
-    IFileResolver <|.. FileResolverService
-    SingletonBase <|-- FileSearchService
-    IFileSearchService <|.. FileSearchService
     FileResolverService --> FileSearchService : uses
+    
+    note for FileResolverService "プロジェクト内のファイルパスを解決する"
+    note for FileSearchService "ファイル検索機能を提供する"
 ```
 
+## 処理フロー
 ```mermaid
-%% resolveFilePath メソッドの処理フロー（リファクタリング後）
+%% getFilePathInProject メソッドの処理フロー
 flowchart TD
-    A[resolveFilePath開始] --> B[FileSearchServiceインスタンス取得]
-    B --> C[指定basePathでファイル検索]
-    C --> D{ファイルが見つかった?}
-    D -->|はい| E[結果を返す]
-    D -->|いいえ| F{エラーはファイル未発見?}
-    F -->|いいえ| E
-    F -->|はい| G[親ディレクトリ取得]
-    G --> H{親ディレクトリ取得成功?}
-    H -->|いいえ| I[エラー結果を返す]
-    H -->|はい| J[親ディレクトリでファイル検索]
-    J --> D
-    E --> K[終了]
-    I --> K
+    A[getFilePathInProject開始] --> B[現在のパスをbasePathに設定]
+    B --> C{現在のパスはプロジェクト内?}
+    C -->|いいえ| D[ファイル未発見エラーをスロー]
+    C -->|はい| E[現在のパスでファイル検索]
+    E --> F{ファイルが存在する?}
+    F -->|はい| G[ファイルパスを取得して返す]
+    F -->|いいえ| H[親ディレクトリを取得]
+    H --> C
+    G --> I[終了]
+    D --> I
 ```
+
+## 仕様詳細
+
+### サービス
+- **FileResolverService**
+  - プロジェクト内のファイルパスを解決するサービス
+  - メソッド：getFilePathInProject
+    - 引数：filePath (string), basePath (string)
+    - 戻り値：Promise<string>
+    - 説明：指定されたファイルのプロジェクト内での完全修飾パスを取得
+
+- **FileSearchService**
+  - ファイル検索機能を提供するサービス
+  - 主要メソッド：
+    - findFileInBase：指定パスでのファイル検索
+    - findParent：親ディレクトリの取得
+    - isInProject：パスがプロジェクト内か判定
+    - hasInBase：指定パスにファイルが存在するか判定
+
+### エラー処理
+- プロジェクト外のパスが指定された場合
+- ファイルが見つからない場合
+- 親ディレクトリの取得に失敗した場合
