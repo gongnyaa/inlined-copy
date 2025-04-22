@@ -147,3 +147,81 @@ processContent(content);
   }
   ```
 
+## 責務の分離と抽象化
+
+### 責務の明確な分離
+- 各クラスは単一の責務を持つべき
+- ユーティリティ機能は適切なWrapperクラスに分離する
+- 以下の責務は明確に分離する：
+  - パス操作 → PathWrapper
+  - ファイルシステム操作 → FileSystemWrapper
+  - VSCode API操作 → VSCodeWrapper
+  - ログ出力 → LogWrapper
+
+### 抽象化レベル
+- 各クラス内のメソッドは同じ抽象化レベルを保つ
+- 低レベルの操作は適切なWrapperクラスに委譲する
+- 複数の低レベル操作を組み合わせた処理は、専用のメソッドとして抽出する
+
+### 高レベルAPI設計
+- 複雑な処理は高レベルAPIとして抽象化し、実装詳細を隠蔽する
+- 例：
+  ```typescript
+  // ❌ 非推奨: 複数のステップを呼び出し元で管理
+  const pathInfo = PathWrapper.Instance().createPathInfo(filePath);
+  const searchPattern = PathWrapper.Instance().createSearchPattern(relativeBase, filePath);
+  const files = await VSCodeWrapper.Instance().findFiles(searchPattern, excludePattern);
+  const result = PathWrapper.Instance().filterMatchingFile(files.map(f => f.fsPath), pathInfo);
+  
+  // ✅ 推奨: 高レベルAPIとして提供
+  const result = await PathWrapper.Instance().findFileInWorkspace(
+    workspaceRoot, basePath, filePath, excludePattern, maxResults
+  );
+  ```
+
+### メソッドの最適サイズ
+- メソッドは20行以内を目標とする
+- 20行を超える場合は、責務の分割を検討する
+- 複雑なロジックは適切な名前の小さなメソッドに分割する
+
+## ユーティリティクラスの設計
+
+### 汎用ユーティリティの設計原則
+- 特定のドメインに依存しない純粋な機能を提供する
+- 副作用を最小限に抹える
+- 入力と出力の関係が明確である
+- テスト容易性を確保する
+- 例：PathWrapper, StringUtilsなど
+
+### ユーティリティの拡張方法
+- 新しい機能が必要な場合は、既存のユーティリティクラスを拡張する
+- 関連する機能をグループ化し、適切なクラスに配置する
+- 複数のクラスにまたがる機能は、新しいユーティリティクラスの作成を検討する
+
+### ユーティリティクラスの利用
+- 既存のユーティリティクラスがある場合は、それを利用し、重複を避ける
+- 例えば、パス操作は直接pathモジュールを使用せず、PathWrapperを使用する
+- テスト時には、ユーティリティクラスをモック化して依存関係を切り離す
+
+## 互換性と依存関係
+
+### VSCodeバージョンの互換性
+- VSCode拡張機能の互換性を確保するため、package.jsonの設定を適切に管理する
+- `engines.vscode`と`devDependencies`の`@types/vscode`は同じバージョンを指定する
+- Windsurfとの互換性を確保するため、バージョンは`^1.94.0`に設定する
+  ```json
+  {
+    "engines": {
+      "vscode": "^1.94.0"
+    },
+    "devDependencies": {
+      "@types/vscode": "^1.94.0"
+    }
+  }
+  ```
+
+### 外部依存関係の管理
+- 外部ライブラリへの依存は、適切なWrapperクラスを介してアクセスする
+- 直接的な依存関係は、モジュールのルートレベルに限定する
+- バージョンアップ時の影響範囲を最小限にするため、外部依存関係は集約する
+
