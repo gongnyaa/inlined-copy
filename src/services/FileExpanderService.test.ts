@@ -144,7 +144,7 @@ describe('FileExpanderService', () => {
         .mockResolvedValueOnce(resolvedPath1)
         .mockResolvedValueOnce(resolvedPath2);
 
-      (mockFileResolverService.resolveFilePath as any)
+      (mockFileResolverService.getFilePathInProject as any)
         .mockResolvedValueOnce(resolvedPath1)
         .mockResolvedValueOnce(resolvedPath2);
 
@@ -157,7 +157,7 @@ describe('FileExpanderService', () => {
       const testText = 'This is a test with ![[missing.txt]]';
       const expectedResult = 'This is a test with ![[missing.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockRejectedValueOnce(
+      (mockFileResolverService.getFilePathInProject as any).mockRejectedValueOnce(
         new Error('ファイルが見つかりません')
       );
 
@@ -178,7 +178,7 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/circular.txt';
       const expectedResult = 'This is a test with ![[circular.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(resolvedPath);
+      (mockFileResolverService.getFilePathInProject as any).mockResolvedValueOnce(resolvedPath);
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });
 
       vi.spyOn(target as any, 'readFileContent').mockImplementationOnce(() => {
@@ -198,7 +198,7 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/large.txt';
       const expectedResult = 'This is a test with ![[large.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce(resolvedPath);
+      (mockFileResolverService.getFilePathInProject as any).mockResolvedValueOnce(resolvedPath);
 
       vi.spyOn(target as any, 'resolveFilePath').mockImplementationOnce(async function () {
         return resolvedPath;
@@ -221,7 +221,7 @@ describe('FileExpanderService', () => {
       const resolvedPath = '/test/path/error.txt';
       const expectedResult = 'This is a test with ![[error.txt]]';
 
-      (mockFileResolverService.resolveFilePath as any).mockResolvedValueOnce({
+      (mockFileResolverService.getFilePathInProject as any).mockResolvedValueOnce({
         path: resolvedPath,
       });
       (fs.statSync as any).mockReturnValueOnce({ size: 1000 });

@@ -10,6 +10,8 @@ vi.mock('./FileSearchService', () => {
       Instance: vi.fn().mockReturnValue({
         findFileInBase: vi.fn(),
         findParent: vi.fn(),
+        isInProject: vi.fn(),
+        hasInBase: vi.fn(),
       }),
     },
   };
@@ -37,110 +39,88 @@ describe('FileResolverService', () => {
     target = FileResolverService.Instance();
     mockFileSearchService = FileSearchService.Instance();
     vi.spyOn(LogWrapper.Instance(), 'error').mockImplementation(() => {});
+
+    // デフォルトのモック動作を設定
+    mockFileSearchService.isInProject
+      .mockReturnValueOnce(true) // 最初の呼び出しでtrue
+      .mockReturnValue(false); // 以降の呼び出しでfalse
+    mockFileSearchService.hasInBase.mockResolvedValue(false);
   });
 
-  describe('resolveFilePath', () => {
-    it('resolveFilePath_HappyPath_ファイルが最初に見つかる場合', async () => {
-      // Arrange
+  describe('getFilePathInProject', () => {
+    it('getFilePathInProject_HappyPath_ファイルが最初に見つかる場合', async () => {
       const filePath = 'test.ts';
       const basePath = '/workspace/root/src';
       const expectedPath = '/workspace/root/src/test.ts';
-      mockFileSearchService.findFileInBase.mockResolvedValueOnce({
-        path: expectedPath,
-      });
 
-      // Act
-      const result = await target.resolveFilePath(filePath, basePath);
+      mockFileSearchService.hasInBase.mockResolvedValueOnce(true);
+      mockFileSearchService.findFileInBase.mockResolvedValueOnce(expectedPath);
 
-      // Assert
-      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, basePath);
+      const result = await target.getFilePathInProject(filePath, basePath);
+
       expect(result).toEqual(expectedPath);
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, basePath);
+      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, basePath);
     });
 
-    it('resolveFilePath_HappyPath_親ディレクトリ検索で見つかる場合', async () => {
-      // Arrange
+    it('getFilePathInProject_HappyPath_親ディレクトリ検索で見つかる場合', async () => {
       const filePath = 'test.ts';
       const basePath = '/workspace/root/src/components';
       const parentPath = '/workspace/root/src';
       const expectedPath = '/workspace/root/src/test.ts';
 
-      // 最初の検索は失敗
-      mockFileSearchService.findFileInBase.mockResolvedValueOnce({
-        error: 'ファイルが見つかりません: test.ts',
-      });
+      mockFileSearchService.isInProject
+        .mockReturnValueOnce(true) // 最初のパス
+        .mockReturnValueOnce(true) // 親ディレクトリ
+        .mockReturnValue(false); // それ以降
 
-      // 親ディレクトリの取得
-      mockFileSearchService.findParent.mockResolvedValueOnce({
-        path: parentPath,
-      });
+      mockFileSearchService.hasInBase
+        .mockResolvedValueOnce(false) // 最初のパスで見つからない
+        .mockResolvedValueOnce(true); // 親ディレクトリで見つかる
 
-      // 親ディレクトリでの検索は成功
-      mockFileSearchService.findFileInBase.mockResolvedValueOnce({
-        path: expectedPath,
-      });
+      mockFileSearchService.findParent.mockResolvedValueOnce(parentPath);
+      mockFileSearchService.findFileInBase.mockResolvedValueOnce(expectedPath);
 
-      // Act
-      const result = await target.resolveFilePath(filePath, basePath);
+      const result = await target.getFilePathInProject(filePath, basePath);
 
-      // Assert
-      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, basePath);
-      expect(mockFileSearchService.findParent).toHaveBeenCalledWith(basePath);
-      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, parentPath);
       expect(result).toEqual(expectedPath);
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, basePath);
+      expect(mockFileSearchService.findParent).toHaveBeenCalledWith(basePath);
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, parentPath);
+      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, parentPath);
     });
 
-    it('resolveFilePath_Error_親ディレクトリの取得に失敗する場合', async () => {
-      // Arrange
+    it('getFilePathInProject_Error_ファイルが見つからない場合', async () => {
       const filePath = 'test.ts';
       const basePath = '/workspace/root/src';
+      const parentPath = '/workspace/root';
 
-      // ファイル検索失敗
-      mockFileSearchService.findFileInBase.mockResolvedValueOnce({
-        error: 'ファイルが見つかりません: test.ts',
-      });
+      mockFileSearchService.isInProject
+        .mockReturnValueOnce(true) // 最初のパス
+        .mockReturnValue(false); // 親ディレクトリ以降
 
-      // 親ディレクトリ取得失敗
-      mockFileSearchService.findParent.mockResolvedValueOnce({
-        error: 'ワークスペース外のパスが検出されました',
-      });
+      mockFileSearchService.hasInBase.mockResolvedValue(false);
+      mockFileSearchService.findParent.mockResolvedValueOnce(parentPath);
 
-      // Act & Assert
-      await expect(target.resolveFilePath(filePath, basePath)).rejects.toThrow(
-        'ファイルが見つかりません: test.ts'
+      await expect(target.getFilePathInProject(filePath, basePath)).rejects.toThrow(
+        `ファイルが見つかりません: ${filePath}`
       );
+
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, basePath);
+      expect(mockFileSearchService.findParent).toHaveBeenCalledWith(basePath);
     });
 
-    it('resolveFilePath_Error_予期せぬエラーの場合', async () => {
-      // Arrange
+    it('getFilePathInProject_Error_ワークスペース外のパスが指定された場合', async () => {
       const filePath = 'test.ts';
-      const basePath = '/workspace/root/src';
+      const basePath = '/outside/workspace';
 
-      // ファイル検索で予期せぬエラー（pathもerrorもない）
-      mockFileSearchService.findFileInBase.mockResolvedValueOnce({});
+      mockFileSearchService.isInProject.mockReturnValue(false);
 
-      // Act & Assert
-      await expect(target.resolveFilePath(filePath, basePath)).rejects.toThrow(
-        `予期せぬエラー: ファイルパスが取得できませんでした - ${filePath}`
+      await expect(target.getFilePathInProject(filePath, basePath)).rejects.toThrow(
+        `ファイルが見つかりません: ${filePath}`
       );
-    });
 
-    it('resolveFilePath_Error_親ディレクトリのパスが取得できない場合', async () => {
-      // Arrange
-      const filePath = 'test.ts';
-      const basePath = '/workspace/root/src';
-
-      // ファイル検索失敗
-      mockFileSearchService.findFileInBase.mockResolvedValueOnce({
-        error: 'ファイルが見つかりません: test.ts',
-      });
-
-      // 親ディレクトリ取得で予期せぬエラー（pathもerrorもない）
-      mockFileSearchService.findParent.mockResolvedValueOnce({});
-
-      // Act & Assert
-      await expect(target.resolveFilePath(filePath, basePath)).rejects.toThrow(
-        `予期せぬエラー: 親ディレクトリのパスが取得できませんでした - ${basePath}`
-      );
+      expect(mockFileSearchService.isInProject).toHaveBeenCalledWith(basePath);
     });
   });
 });

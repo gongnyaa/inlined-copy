@@ -1,14 +1,9 @@
-import { IFileSearchService, FileSearchResult } from './FileSearchService';
+import { IFileSearchService } from './FileSearchService';
 import { vi } from 'vitest';
 
 export const mockFileSearchService: IFileSearchService = {
-  findFileInBase: vi
-    .fn()
-    .mockImplementation((filePath: string, _basePath: string): Promise<FileSearchResult> => {
-      return Promise.resolve({ path: `/mocked/path/${filePath}` });
-    }),
-  findParent: vi.fn().mockImplementation((basePath: string): Promise<FileSearchResult> => {
-    const parentPath = basePath.split('/').slice(0, -1).join('/');
-    return Promise.resolve({ path: parentPath || '/' });
-  }),
+  findFileInBase: vi.fn(),
+  findParent: vi.fn(),
+  isInProject: vi.fn().mockReturnValue(true),
+  hasInBase: vi.fn().mockResolvedValue(true),
 };

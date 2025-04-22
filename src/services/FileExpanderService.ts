@@ -86,7 +86,7 @@ export class FileExpanderService
 
   private async resolveFilePath(filePath: string, basePath: string): Promise<string> {
     try {
-      return await FileResolverService.Instance().resolveFilePath(filePath, basePath);
+      return await FileResolverService.Instance().getFilePathInProject(filePath, basePath);
     } catch (error) {
       if (error instanceof Error) {
         throw error;

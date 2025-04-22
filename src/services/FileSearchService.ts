@@ -3,14 +3,6 @@ import * as path from 'path';
 import { LogWrapper, SingletonBase } from '../utils';
 
 /**
- * ファイル検索の結果型
- */
-export type FileSearchResult = {
-  path?: string;
-  error?: string;
-};
-
-/**
  * ファイル検索のためのインターフェース
  */
 export interface IFileSearchService {
@@ -18,16 +10,37 @@ export interface IFileSearchService {
    * 指定されたベースパスにあるファイルを検索する
    * @param filePath 検索するファイルのパス
    * @param basePath 検索の基準となるパス
-   * @returns 検索結果
+   * @returns 検索されたファイルの完全修飾パス
+   * @throws Error ファイルが見つからない場合
+   * @throws Error ワークスペースが見つからない場合
+   * @throws Error ワークスペース外のパスが指定された場合
    */
-  findFileInBase(filePath: string, basePath: string): Promise<FileSearchResult>;
+  findFileInBase(filePath: string, basePath: string): Promise<string>;
 
   /**
    * 指定されたパスの親パスを取得する
    * @param basePath 基準となるパス
-   * @returns 親パスの結果
+   * @returns 親パスの完全修飾パス
+   * @throws Error 親ディレクトリが存在しない場合
+   * @throws Error ワークスペースが見つからない場合
+   * @throws Error ワークスペース外のパスが指定された場合
    */
-  findParent(basePath: string): Promise<FileSearchResult>;
+  findParent(basePath: string): Promise<string>;
+
+  /**
+   * 指定されたパスがプロジェクト内にあるかどうかを判定する
+   * @param checkPath 判定するパス
+   * @returns プロジェクト内にある場合はtrue
+   */
+  isInProject(checkPath: string): boolean;
+
+  /**
+   * 指定されたファイルが指定されたベースパスにあるかどうかを判定する
+   * @param filePath 判定するファイルのパス
+   * @param basePath 判定の基準となるパス
+   * @returns ファイルがベースパスにある場合はtrue
+   */
+  hasInBase(filePath: string, basePath: string): Promise<boolean>;
 }
 
 /**
@@ -38,22 +51,39 @@ export class FileSearchService
   implements IFileSearchService
 {
   /**
+   * filePath と同名のファイルが basePath 直下 (再帰) に存在するか判定
+   */
+  public async hasInBase(filePath: string, basePath: string): Promise<boolean> {
+    // ベースパスを VS Code が理解できる URI に
+    const baseUri = vscode.Uri.file(basePath);
+    const fileName = path.basename(filePath);
+
+    // basePath/**/fileName だけを対象に検索
+    const pattern = new vscode.RelativePattern(baseUri, `**/${fileName}`);
+    const [hit] = await vscode.workspace.findFiles(pattern, null, 1); // 1 件で十分
+
+    return Boolean(hit); // ヒットがあれば OK
+  }
+  /**
    * 指定されたベースパスにあるファイルを検索する
    * @param filePath 検索するファイルのパス
    * @param basePath 検索の基準となるパス
-   * @returns 検索結果
+   * @returns 検索されたファイルの完全修飾パス
+   * @throws Error ファイルが見つからない場合
+   * @throws Error ワークスペースが見つからない場合
+   * @throws Error ワークスペース外のパスが指定された場合
    */
-  public async findFileInBase(filePath: string, basePath: string): Promise<FileSearchResult> {
+  public async findFileInBase(filePath: string, basePath: string): Promise<string> {
     try {
       const workspaceRoot = this.getWorkspaceRoot();
       if (!workspaceRoot) {
         LogWrapper.Instance().error('ワークスペースが見つかりません');
-        return { error: 'ワークスペースが見つかりません' };
+        throw new Error('ワークスペースが見つかりません');
       }
 
       // ワークスペース外のパスが与えられた場合はエラー
       if (!this.isPathInWorkspace(basePath, workspaceRoot)) {
-        return { error: 'ワークスペース外のパスが指定されました' };
+        throw new Error('ワークスペース外のパスが指定されました');
       }
 
       const pathInfo = this.parseFilePathInfo(filePath);
@@ -64,53 +94,59 @@ export class FileSearchService
       const result = this.processFoundFiles(files, pathInfo, relativeBase, workspaceRoot);
 
       if (result) {
-        return { path: result };
+        return result;
       }
 
-      return { error: `ファイルが見つかりません: ${filePath}` };
+      throw new Error(`ファイルが見つかりません: ${filePath}`);
     } catch (error) {
-      const errorMessage = `エラー: ${error instanceof Error ? error.message : String(error)}`;
+      const errorMessage = error instanceof Error ? error.message : String(error);
       LogWrapper.Instance().error(`ファイル検索エラー: ${error}`);
-      return { error: errorMessage };
+      throw new Error(errorMessage);
     }
   }
 
   /**
    * 指定されたパスの親パスを取得する
    * @param basePath 基準となるパス
-   * @returns 親パスの結果
+   * @returns 親パスの完全修飾パス
+   * @throws Error 親ディレクトリが存在しない場合
+   * @throws Error ワークスペースが見つからない場合
+   * @throws Error ワークスペース外のパスが指定された場合
    */
-  public async findParent(basePath: string): Promise<FileSearchResult> {
+  public async findParent(basePath: string): Promise<string> {
     try {
       const workspaceRoot = this.getWorkspaceRoot();
       if (!workspaceRoot) {
         LogWrapper.Instance().error('ワークスペースが見つかりません');
-        return { error: 'ワークスペースが見つかりません' };
+        throw new Error('ワークスペースが見つかりません');
       }
 
       // ワークスペース外のパスが与えられた場合はエラー
       if (!this.isPathInWorkspace(basePath, workspaceRoot)) {
-        return { error: 'ワークスペース外のパスが指定されました' };
+        throw new Error('ワークスペース外のパスが指定されました');
       }
 
       const parentPath = path.dirname(basePath);
 
-      // 親パスがパス自身と同じ場合（ルートディレクトリの場合）
-      if (parentPath === basePath) {
-        return { error: '親ディレクトリが存在しません' };
-      }
-
-      // 親パスがワークスペース外の場合
-      if (!this.isPathInWorkspace(parentPath, workspaceRoot)) {
-        return { error: 'ワークスペース外のパスが検出されました' };
-      }
-
-      return { path: parentPath };
+      return parentPath;
     } catch (error) {
-      const errorMessage = `エラー: ${error instanceof Error ? error.message : String(error)}`;
+      const errorMessage = error instanceof Error ? error.message : String(error);
       LogWrapper.Instance().error(`親パス取得エラー: ${error}`);
-      return { error: errorMessage };
+      throw new Error(errorMessage);
     }
+  }
+
+  /**
+   * 指定されたパスがプロジェクト内にあるかどうかを判定する
+   * @param checkPath 判定するパス
+   * @returns プロジェクト内にある場合はtrue
+   */
+  public isInProject(checkPath: string): boolean {
+    const workspaceRoot = this.getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return false;
+    }
+    return this.isPathInWorkspace(checkPath, workspaceRoot);
   }
 
   private getWorkspaceRoot(): string | null {
