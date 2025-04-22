@@ -49,3 +49,22 @@ export class TextNotFoundError extends InlinedCopyBaseError {
     Object.setPrototypeOf(this, TextNotFoundError.prototype);
   }
 }
+
+/**
+ * ファイル検索エラーの種類
+ */
+export type FileSearchErrorType = 'NotFound' | 'OutsideWorkspace' | 'NoWorkspace';
+
+/**
+ * ファイル検索時に発生するエラー
+ */
+export class FileSearchError extends InlinedCopyBaseError {
+  constructor(
+    public readonly type: FileSearchErrorType,
+    message: string
+  ) {
+    super(message);
+    this.name = 'FileSearchError';
+    Object.setPrototypeOf(this, FileSearchError.prototype);
+  }
+}

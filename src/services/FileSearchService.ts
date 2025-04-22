@@ -1,6 +1,5 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
-import { LogWrapper, SingletonBase, VSCodeWrapper } from '../utils';
+import { LogWrapper, PathWrapper, SingletonBase, VSCodeWrapper } from '../utils';
+import { FileSearchError } from '../errors/ErrorTypes';
 
 /**
  * ファイル検索のためのインターフェース
@@ -11,9 +10,9 @@ export interface IFileSearchService {
    * @param filePath 検索するファイルのパス
    * @param basePath 検索の基準となるパス
    * @returns 検索されたファイルの完全修飾パス
-   * @throws Error ファイルが見つからない場合
-   * @throws Error ワークスペースが見つからない場合
-   * @throws Error ワークスペース外のパスが指定された場合
+   * @throws FileSearchError ファイルが見つからない場合 (type: NotFound)
+   * @throws FileSearchError ワークスペースが見つからない場合 (type: NoWorkspace)
+   * @throws FileSearchError ワークスペース外のパスが指定された場合 (type: OutsideWorkspace)
    */
   findFileInBase(filePath: string, basePath: string): Promise<string>;
 
@@ -21,9 +20,8 @@ export interface IFileSearchService {
    * 指定されたパスの親パスを取得する
    * @param basePath 基準となるパス
    * @returns 親パスの完全修飾パス
-   * @throws Error 親ディレクトリが存在しない場合
-   * @throws Error ワークスペースが見つからない場合
-   * @throws Error ワークスペース外のパスが指定された場合
+   * @throws FileSearchError ワークスペースが見つからない場合 (type: NoWorkspace)
+   * @throws FileSearchError ワークスペース外のパスが指定された場合 (type: OutsideWorkspace)
    */
   findParent(basePath: string): Promise<string>;
 
@@ -50,157 +48,91 @@ export class FileSearchService
   extends SingletonBase<IFileSearchService>
   implements IFileSearchService
 {
+  // 定数定義
+  private static readonly MAX_RESULTS = 10;
+  private static readonly NODE_MODULES_PATTERN = '**/node_modules/**';
+  private static readonly WILDCARD_PATTERN = '**';
+
   public async hasInBase(filePath: string, basePath: string): Promise<boolean> {
-    const baseUri = VSCodeWrapper.Instance().createUri(basePath);
-    const fileName = path.basename(filePath);
+    try {
+      // ワークスペース外のパスが指定された場合は常にfalseを返す
+      if (!this.isInProject(basePath)) {
+        return false;
+      }
 
-    const pattern = VSCodeWrapper.Instance().createRelativePattern(baseUri, `**/${fileName}`);
-    const [hit] = await VSCodeWrapper.Instance().findFiles(pattern, null, 1);
-
-    return Boolean(hit);
+      const fileName = PathWrapper.Instance().basename(filePath);
+      const uri = VSCodeWrapper.Instance().createUri(basePath);
+      const pattern = VSCodeWrapper.Instance().createRelativePattern(uri, `**/${fileName}`);
+      const files = await VSCodeWrapper.Instance().findFiles(pattern, null, 1);
+      return files.length > 0;
+    } catch {
+      return false;
+    }
   }
+
   public async findFileInBase(filePath: string, basePath: string): Promise<string> {
     try {
-      const workspaceRoot = this.getWorkspaceRoot();
-      if (!workspaceRoot) {
-        throw new Error('ワークスペースが見つかりません');
-      }
+      this.ensureWorkspace(basePath);
 
-      if (!this.isPathInWorkspace(basePath, workspaceRoot)) {
-        throw new Error('ワークスペース外のパスが指定されました');
-      }
-
-      const pathInfo = this.parseFilePathInfo(filePath);
-      const relativeBase = path.relative(workspaceRoot, basePath);
-      const searchPattern = this.buildSearchPattern(relativeBase, pathInfo);
-
-      const files = await VSCodeWrapper.Instance().findFiles(
-        searchPattern,
-        '**/node_modules/**',
-        10
+      const workspaceRoot = VSCodeWrapper.Instance().getWorkspaceRootPath()!;
+      const result = await PathWrapper.Instance().findFileInWorkspace(
+        workspaceRoot,
+        basePath,
+        filePath,
+        FileSearchService.NODE_MODULES_PATTERN,
+        FileSearchService.MAX_RESULTS
       );
-      const result = this.processFoundFiles(files, pathInfo, relativeBase, workspaceRoot);
 
-      if (result) {
-        return result;
+      if (!result) {
+        throw new FileSearchError('NotFound', `file_not_found:${filePath}`);
       }
 
-      throw new Error(`ファイルが見つかりません: ${filePath}`);
+      return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      LogWrapper.Instance().error(`ファイル検索エラー: ${errorMessage}`);
-      throw new Error(errorMessage);
+      this.handleError('find_file_error', error);
+      throw error;
     }
   }
 
   public async findParent(basePath: string): Promise<string> {
     try {
-      const workspaceRoot = this.getWorkspaceRoot();
-      if (!workspaceRoot) {
-        throw new Error('ワークスペースが見つかりません');
-      }
-
-      if (!this.isPathInWorkspace(basePath, workspaceRoot)) {
-        throw new Error('ワークスペース外のパスが指定されました');
-      }
-
-      return path.dirname(basePath);
+      this.ensureWorkspace(basePath);
+      return PathWrapper.Instance().dirname(basePath);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      LogWrapper.Instance().error(`親パス取得エラー: ${errorMessage}`);
-      throw new Error(errorMessage);
+      this.handleError('find_parent_error', error);
+      throw error;
     }
   }
 
   public isInProject(checkPath: string): boolean {
-    const workspaceRoot = this.getWorkspaceRoot();
-    if (!workspaceRoot) {
-      return false;
-    }
+    const workspaceRoot = VSCodeWrapper.Instance().getWorkspaceRootPath();
+    if (!workspaceRoot) return false;
+
     return this.isPathInWorkspace(checkPath, workspaceRoot);
   }
 
-  private getWorkspaceRoot(): string | null {
-    return VSCodeWrapper.Instance().getWorkspaceRootPath();
+  private ensureWorkspace(basePath: string): void {
+    const workspaceRoot = VSCodeWrapper.Instance().getWorkspaceRootPath();
+    if (!workspaceRoot) {
+      throw new FileSearchError('NoWorkspace', 'workspace_not_found');
+    }
+
+    if (!this.isPathInWorkspace(basePath, workspaceRoot)) {
+      throw new FileSearchError('OutsideWorkspace', 'path_outside_workspace');
+    }
   }
 
   private isPathInWorkspace(checkPath: string, workspaceRoot: string): boolean {
-    const normalizedCheckPath = path.normalize(checkPath);
-    const normalizedWorkspacePath = path.normalize(workspaceRoot);
-    return normalizedCheckPath.startsWith(normalizedWorkspacePath);
+    return PathWrapper.Instance().isPathInside(checkPath, workspaceRoot);
   }
 
-  private parseFilePathInfo(filePath: string): {
-    parsedPath: path.ParsedPath;
-    hasExtension: boolean;
-    hasParentFolder: boolean;
-    parentFolder: string;
-    baseSearchPattern: string;
-  } {
-    const parsedPath = path.parse(filePath);
-    const hasExtension = parsedPath.ext !== '';
-    const hasParentFolder = parsedPath.dir !== '';
-    const parentFolder = hasParentFolder ? parsedPath.dir : '';
-    const baseSearchPattern = hasExtension ? parsedPath.base : `${parsedPath.name}.*`;
-
-    return {
-      parsedPath,
-      hasExtension,
-      hasParentFolder,
-      parentFolder,
-      baseSearchPattern,
-    };
-  }
-
-  private buildSearchPattern(
-    relativeBase: string,
-    pathInfo: { hasParentFolder: boolean; parentFolder: string; baseSearchPattern: string }
-  ): string {
-    if (pathInfo.hasParentFolder) {
-      return path.join(relativeBase, pathInfo.parentFolder, pathInfo.baseSearchPattern);
+  private handleError(key: string, error: unknown): void {
+    if (error instanceof FileSearchError) {
+      LogWrapper.Instance().error(`${key}: type=${error.type}, message=${error.message}`);
     } else {
-      return path.join(relativeBase, '**', pathInfo.baseSearchPattern);
+      const message = error instanceof Error ? error.message : String(error);
+      LogWrapper.Instance().error(`${key}: message=${message}`);
+      throw new Error(message);
     }
-  }
-
-  private processFoundFiles(
-    files: vscode.Uri[],
-    pathInfo: { hasParentFolder: boolean; parentFolder: string },
-    relativeBase: string,
-    workspaceRoot: string
-  ): string | null {
-    if (files.length === 0) {
-      return null;
-    }
-
-    if (pathInfo.hasParentFolder) {
-      const matchingFiles = this.filterFilesByParentDirectory(
-        files,
-        workspaceRoot,
-        relativeBase,
-        pathInfo.parentFolder
-      );
-
-      if (matchingFiles.length > 0) {
-        return matchingFiles[0].fsPath;
-      }
-      return null;
-    }
-
-    return files[0].fsPath;
-  }
-
-  private filterFilesByParentDirectory(
-    files: vscode.Uri[],
-    workspaceRoot: string,
-    relativeBase: string,
-    parentFolder: string
-  ): vscode.Uri[] {
-    return files.filter(file => {
-      const relativeFilePath = path.relative(workspaceRoot, file.fsPath);
-      const actualParentDir = path.dirname(relativeFilePath);
-      const expectedParentDir = path.join(relativeBase, parentFolder);
-      return actualParentDir === expectedParentDir;
-    });
   }
 }
