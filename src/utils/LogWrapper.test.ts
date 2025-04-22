@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LogWrapper, VSCodeWrapper, mockVSCodeWrapper, t } from './';
+import { LogWrapper, VSCodeWrapper, t } from './';
+import { mockVSCodeWrapper } from './VSCodeWrapper.mock';
 import { MESSAGE_KEYS } from '../constants/Messages';
 
 describe('LogWrapper', () => {

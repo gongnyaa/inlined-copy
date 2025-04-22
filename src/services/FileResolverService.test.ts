@@ -1,129 +1,126 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as vscode from 'vscode';
-import { FileResolverService, fileSuccess, fileFailure } from './FileResolverService';
-import { LogWrapper } from '../utils/LogWrapper';
-import { mockLogWrapper } from '../utils/LogWrapper.mock';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { FileResolverService } from './FileResolverService';
+import { FileSearchService } from './FileSearchService';
+import { LogWrapper } from '../utils';
 
+// FileSearchServiceをモック
+vi.mock('./FileSearchService', () => {
+  return {
+    FileSearchService: {
+      Instance: vi.fn().mockReturnValue({
+        findFileInBase: vi.fn(),
+        findParent: vi.fn(),
+        isInProject: vi.fn(),
+        hasInBase: vi.fn(),
+      }),
+    },
+  };
+});
+
+// VSCodeのAPIをモック
 vi.mock('vscode', () => {
   return {
     workspace: {
-      workspaceFolders: [{ uri: { fsPath: '/test/workspace' } }],
       findFiles: vi.fn(),
-      asRelativePath: vi.fn(uri => uri.fsPath),
+      asRelativePath: vi.fn((uri: any) => {
+        if (typeof uri === 'string') return uri;
+        return uri.fsPath.replace('/workspace/root/', '');
+      }),
     },
   };
 });
 
 describe('FileResolverService', () => {
   let target: FileResolverService;
+  let mockFileSearchService: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    LogWrapper.SetInstance(mockLogWrapper);
-    target = new FileResolverService();
+    target = FileResolverService.Instance();
+    mockFileSearchService = FileSearchService.Instance();
+    vi.spyOn(LogWrapper.Instance(), 'error').mockImplementation(() => {});
+
+    // デフォルトのモック動作を設定
+    mockFileSearchService.isInProject
+      .mockReturnValueOnce(true) // 最初の呼び出しでtrue
+      .mockReturnValue(false); // 以降の呼び出しでfalse
+    mockFileSearchService.hasInBase.mockResolvedValue(false);
   });
 
-  describe('resolveFilePath', () => {
-    it('resolveFilePath_Happy', async () => {
-      const mockFiles = [{ fsPath: '/test/workspace/src/test.ts' }];
-      vi.mocked(vscode.workspace.findFiles).mockResolvedValueOnce(mockFiles as any);
+  describe('getFilePathInProject', () => {
+    it('getFilePathInProject_HappyPath_ファイルが最初に見つかる場合', async () => {
+      const filePath = 'test.ts';
+      const basePath = '/workspace/root/src';
+      const expectedPath = '/workspace/root/src/test.ts';
 
-      const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
+      mockFileSearchService.hasInBase.mockResolvedValueOnce(true);
+      mockFileSearchService.findFileInBase.mockResolvedValueOnce(expectedPath);
 
-      expect(result).toEqual(fileSuccess('/test/workspace/src/test.ts'));
-      expect(vscode.workspace.findFiles).toHaveBeenCalledWith(
-        'src/**/test.ts',
-        '**/node_modules/**',
-        10
+      const result = await target.getFilePathInProject(filePath, basePath);
+
+      expect(result).toEqual(expectedPath);
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, basePath);
+      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, basePath);
+    });
+
+    it('getFilePathInProject_HappyPath_親ディレクトリ検索で見つかる場合', async () => {
+      const filePath = 'test.ts';
+      const basePath = '/workspace/root/src/components';
+      const parentPath = '/workspace/root/src';
+      const expectedPath = '/workspace/root/src/test.ts';
+
+      mockFileSearchService.isInProject
+        .mockReturnValueOnce(true) // 最初のパス
+        .mockReturnValueOnce(true) // 親ディレクトリ
+        .mockReturnValue(false); // それ以降
+
+      mockFileSearchService.hasInBase
+        .mockResolvedValueOnce(false) // 最初のパスで見つからない
+        .mockResolvedValueOnce(true); // 親ディレクトリで見つかる
+
+      mockFileSearchService.findParent.mockResolvedValueOnce(parentPath);
+      mockFileSearchService.findFileInBase.mockResolvedValueOnce(expectedPath);
+
+      const result = await target.getFilePathInProject(filePath, basePath);
+
+      expect(result).toEqual(expectedPath);
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, basePath);
+      expect(mockFileSearchService.findParent).toHaveBeenCalledWith(basePath);
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, parentPath);
+      expect(mockFileSearchService.findFileInBase).toHaveBeenCalledWith(filePath, parentPath);
+    });
+
+    it('getFilePathInProject_Error_ファイルが見つからない場合', async () => {
+      const filePath = 'test.ts';
+      const basePath = '/workspace/root/src';
+      const parentPath = '/workspace/root';
+
+      mockFileSearchService.isInProject
+        .mockReturnValueOnce(true) // 最初のパス
+        .mockReturnValue(false); // 親ディレクトリ以降
+
+      mockFileSearchService.hasInBase.mockResolvedValue(false);
+      mockFileSearchService.findParent.mockResolvedValueOnce(parentPath);
+
+      await expect(target.getFilePathInProject(filePath, basePath)).rejects.toThrow(
+        `ファイルが見つかりません: ${filePath}`
       );
+
+      expect(mockFileSearchService.hasInBase).toHaveBeenCalledWith(filePath, basePath);
+      expect(mockFileSearchService.findParent).toHaveBeenCalledWith(basePath);
     });
 
-    it('resolveFilePath_Happy_WithParentFolder', async () => {
-      const mockFiles = [{ fsPath: '/test/workspace/src/utils/test.ts' }];
-      vi.mocked(vscode.workspace.findFiles).mockResolvedValueOnce(mockFiles as any);
+    it('getFilePathInProject_Error_ワークスペース外のパスが指定された場合', async () => {
+      const filePath = 'test.ts';
+      const basePath = '/outside/workspace';
 
-      const result = await target.resolveFilePath('utils/test.ts', '/test/workspace/src');
+      mockFileSearchService.isInProject.mockReturnValue(false);
 
-      expect(result).toEqual(fileSuccess('/test/workspace/src/utils/test.ts'));
-      expect(vscode.workspace.findFiles).toHaveBeenCalledWith(
-        'src/utils/test.ts',
-        '**/node_modules/**',
-        10
+      await expect(target.getFilePathInProject(filePath, basePath)).rejects.toThrow(
+        `ファイルが見つかりません: ${filePath}`
       );
-    });
 
-    it('resolveFilePath_Happy_WithoutExtension', async () => {
-      const mockFiles = [{ fsPath: '/test/workspace/src/test.ts' }];
-      vi.mocked(vscode.workspace.findFiles).mockResolvedValueOnce(mockFiles as any);
-
-      const result = await target.resolveFilePath('test', '/test/workspace/src');
-
-      expect(result).toEqual(fileSuccess('/test/workspace/src/test.ts'));
-      expect(vscode.workspace.findFiles).toHaveBeenCalledWith(
-        'src/**/test.*',
-        '**/node_modules/**',
-        10
-      );
-    });
-
-    it('resolveFilePath_Error_NoWorkspace', async () => {
-      const originalWorkspaceFolders = vscode.workspace.workspaceFolders;
-      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
-        get: vi.fn().mockReturnValue(undefined),
-        configurable: true,
-      });
-
-      const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
-
-      expect(result).toEqual(fileFailure('ワークスペースが見つかりません'));
-
-      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
-        get: () => originalWorkspaceFolders,
-        configurable: true,
-      });
-    });
-
-    it('resolveFilePath_Error_FileNotFound', async () => {
-      vi.mocked(vscode.workspace.findFiles).mockResolvedValue([] as any);
-
-      const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
-
-      expect(result).toEqual(fileFailure('ファイルが見つかりません: test.ts'));
-    });
-
-    it('resolveFilePath_Error_Exception', async () => {
-      const testError = new Error('テストエラー');
-      vi.mocked(vscode.workspace.findFiles).mockRejectedValueOnce(testError);
-
-      const result = await target.resolveFilePath('test.ts', '/test/workspace/src');
-
-      expect(result).toEqual(fileFailure('エラー: テストエラー'));
-      expect(mockLogWrapper.error).toHaveBeenCalledWith('ファイル解決エラー: Error: テストエラー');
-    });
-  });
-
-  describe('getSuggestions', () => {
-    it('getSuggestions_Happy', async () => {
-      const mockUris = [
-        { fsPath: '/test/workspace/src/test.ts' },
-        { fsPath: '/test/workspace/src/test.js' },
-      ];
-      vi.mocked(vscode.workspace.findFiles).mockResolvedValueOnce(mockUris as any);
-
-      const result = await target.getSuggestions('test.ts');
-
-      expect(result).toEqual(['/test/workspace/src/test.ts', '/test/workspace/src/test.js']);
-      expect(vscode.workspace.findFiles).toHaveBeenCalledWith('**/test.*', '**/node_modules/**', 5);
-    });
-
-    it('getSuggestions_Error_Exception', async () => {
-      const testError = new Error('テストエラー');
-      vi.mocked(vscode.workspace.findFiles).mockRejectedValueOnce(testError);
-
-      const result = await target.getSuggestions('test.ts');
-
-      expect(result).toEqual([]);
-      expect(mockLogWrapper.error).toHaveBeenCalledWith('候補取得エラー: Error: テストエラー');
+      expect(mockFileSearchService.isInProject).toHaveBeenCalledWith(basePath);
     });
   });
 });
