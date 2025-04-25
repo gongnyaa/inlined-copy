@@ -3,107 +3,30 @@ import { FileSearchService } from './FileSearchService';
 import { FileSearchError } from '../errors/ErrorTypes';
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
-import { PathInfo, PathWrapper, VSCodeWrapper } from '../utils';
+
+import { mockPathWrapper, MockPathInfo } from '../utils/PathWrapper.mock';
+import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
+
+// 共通エラーメッセージの定義
+const TEST_ERRORS = {
+  NO_EXCEPTION: '例外が発生しませんでした',
+  WRONG_EXCEPTION_TYPE: '期待とは異なる例外型が発生しました',
+} as const;
 
 // VSCodeWrapperのモック
 vi.mock('../utils/VSCodeWrapper', () => ({
   VSCodeWrapper: {
-    Instance: vi.fn().mockReturnValue({
-      getWorkspaceRootPath: vi.fn().mockReturnValue('/workspace'),
-      findFiles: vi.fn(),
-      createUri: vi.fn().mockImplementation(path => ({ fsPath: path })),
-      createRelativePattern: vi.fn().mockImplementation((_, pattern) => pattern),
-    }),
+    Instance: vi.fn().mockReturnValue(mockVSCodeWrapper),
   },
 }));
 
 // PathWrapperのモック
-vi.mock('../utils/PathWrapper', () => {
-  // 実際のPathInfoクラスをモックで使用するためのモック実装
-  class MockPathInfo {
-    hasExtension = true;
-    hasParentFolder = false;
-    parentFolder = '';
-    baseSearchPattern = '';
-
-    constructor(filePath: string) {
-      // テストケースに応じて値を設定
-      if (filePath.includes('/')) {
-        this.hasParentFolder = true;
-        this.parentFolder = filePath.substring(0, filePath.lastIndexOf('/'));
-      }
-      this.baseSearchPattern = filePath.substring(filePath.lastIndexOf('/') + 1);
-    }
-
-    buildSearchPattern(relativeBase: string, wildcardPattern: string): string {
-      if (this.hasParentFolder) {
-        return `${relativeBase}/${this.parentFolder}/${this.baseSearchPattern}`;
-      }
-      return `${relativeBase}/${wildcardPattern}/${this.baseSearchPattern}`;
-    }
-  }
-
-  return {
-    PathInfo: MockPathInfo,
-    PathWrapper: {
-      Instance: vi.fn().mockReturnValue({
-        createPathInfo: vi.fn().mockImplementation(filePath => new MockPathInfo(filePath)),
-        normalize: vi.fn().mockImplementation(path => path),
-        relative: vi.fn().mockImplementation((from, to) => to.replace(from + '/', '')),
-        dirname: vi.fn().mockImplementation(path => {
-          // ルートディレクトリの場合は'/'を返す
-          if (path === '/workspace') return '/';
-          const lastSlashIndex = path.lastIndexOf('/');
-          return lastSlashIndex !== -1 ? path.substring(0, lastSlashIndex) : '/';
-        }),
-        basename: vi.fn().mockImplementation(path => {
-          const lastSlashIndex = path.lastIndexOf('/');
-          return lastSlashIndex !== -1 ? path.substring(lastSlashIndex + 1) : path;
-        }),
-        join: vi.fn().mockImplementation((...paths) => paths.join('/')),
-        // 新しく追加したメソッドのモック
-        isPathInside: vi.fn().mockImplementation((checkPath, basePath) => {
-          // /workspaceで始まるパスはワークスペース内と判定
-          return checkPath.startsWith('/workspace');
-        }),
-        createSearchPattern: vi
-          .fn()
-          .mockImplementation((relativeBase, fileName, wildcardPattern = '**') => {
-            const pathInfo = new MockPathInfo(fileName);
-            return pathInfo.buildSearchPattern(relativeBase, wildcardPattern);
-          }),
-        filterMatchingFile: vi.fn().mockImplementation((files: string[], pathInfo) => {
-          if (files.length === 0) return null;
-          if (!pathInfo.hasParentFolder) return files[0];
-
-          const matchingFile = files.find((file: string) => {
-            const fileDir = file.substring(0, file.lastIndexOf('/'));
-            return fileDir.endsWith(pathInfo.parentFolder);
-          });
-
-          return matchingFile || null;
-        }),
-        findFileInWorkspace: vi
-          .fn()
-          .mockImplementation(
-            async (workspaceRoot, basePath, filePath, excludePattern, maxResults) => {
-              // ワークスペース外のパスの場合はエラーを投げる
-              if (!basePath.startsWith('/workspace')) {
-                throw new FileSearchError('OutsideWorkspace', 'path_outside_workspace');
-              }
-
-              // テストケースに応じて結果を返す
-              if (filePath === 'missing.ts') {
-                return null;
-              }
-
-              return `${basePath}/${filePath}`;
-            }
-          ),
-      }),
-    },
-  };
-});
+vi.mock('../utils/PathWrapper', () => ({
+  PathInfo: MockPathInfo,
+  PathWrapper: {
+    Instance: vi.fn().mockReturnValue(mockPathWrapper),
+  },
+}));
 
 describe('FileSearchService', () => {
   let target: FileSearchService;
@@ -115,120 +38,183 @@ describe('FileSearchService', () => {
   });
 
   describe('findFileInBase', () => {
-    it('findFileInBase_Happy_ファイルが見つかる場合', async () => {
+    it('findFileInBase_HappyPath_ReturnsFoundFilePath', async () => {
+      // Arrange
       const filePath = 'test.ts';
       const basePath = '/workspace/root/src';
       const expectedPath = '/workspace/root/src/test.ts';
+      // Uri型のモックオブジェクトを作成
+      const mockUri = {
+        fsPath: expectedPath,
+        scheme: 'file',
+        authority: '',
+        path: expectedPath,
+        query: '',
+        fragment: '',
+        with: vi.fn(),
+        toJSON: vi.fn(),
+      };
+      vi.mocked(mockVSCodeWrapper.findFiles).mockResolvedValueOnce([mockUri]);
 
-      (VSCodeWrapper.Instance().findFiles as any).mockResolvedValueOnce([{ fsPath: expectedPath }]);
-
+      // Act
       const result = await target.findFileInBase(filePath, basePath);
+
+      // Assert
       expect(result).toBe(expectedPath);
     });
 
-    it('findFileInBase_Error_ファイルが見つからない場合', async () => {
+    it('findFileInBase_Error_ThrowsNotFoundError', async () => {
+      // Arrange
       const filePath = 'missing.ts';
       const basePath = '/workspace/root/src';
+      vi.mocked(mockVSCodeWrapper.findFiles).mockResolvedValueOnce([]);
 
-      (VSCodeWrapper.Instance().findFiles as any).mockResolvedValueOnce([]);
-
+      // Act & Assert
       try {
         await target.findFileInBase(filePath, basePath);
-        // ここに到達した場合はテスト失敗
-        expect(true).toBe(false); // エラーが発生すべき
+        expect.fail(TEST_ERRORS.NO_EXCEPTION);
       } catch (error) {
-        expect(error).toBeInstanceOf(FileSearchError);
-        expect((error as FileSearchError).type).toBe('NotFound');
+        if (error instanceof FileSearchError) {
+          expect(error.type).toBe('NotFound');
+        } else {
+          expect.fail(TEST_ERRORS.WRONG_EXCEPTION_TYPE);
+        }
       }
     });
 
-    it('findFileInBase_Error_ワークスペース外のパスが指定された場合', async () => {
+    it('findFileInBase_Error_ThrowsOutsideWorkspaceError', async () => {
+      // Arrange
       const filePath = 'test.ts';
       const basePath = '/outside/workspace';
+      vi.mocked(mockVSCodeWrapper.getWorkspaceRootPath).mockReturnValue('/workspace');
 
-      // パスがワークスペース外であることをシミュレート
-      (VSCodeWrapper.Instance().getWorkspaceRootPath as any).mockReturnValue('/workspace');
-
+      // Act & Assert
       try {
         await target.findFileInBase(filePath, basePath);
-        // ここに到達した場合はテスト失敗
-        expect(true).toBe(false); // エラーが発生すべき
+        expect.fail(TEST_ERRORS.NO_EXCEPTION);
       } catch (error) {
-        expect(error).toBeInstanceOf(FileSearchError);
-        expect((error as FileSearchError).type).toBe('OutsideWorkspace');
+        if (error instanceof FileSearchError) {
+          expect(error.type).toBe('OutsideWorkspace');
+        } else {
+          expect.fail(TEST_ERRORS.WRONG_EXCEPTION_TYPE);
+        }
       }
     });
   });
 
   describe('findParent', () => {
-    it('指定されたパスの親ディレクトリを返す', async () => {
-      const result = await target.findParent('/workspace/test/path');
+    it('findParent_HappyPath_ReturnsParentDirectory', async () => {
+      // Arrange
+      const testPath = '/workspace/test/path';
+
+      // Act
+      const result = await target.findParent(testPath);
+
+      // Assert
       expect(result).toBe('/workspace/test');
     });
 
-    it('ワークスペース外のパスが指定された場合はエラーを投げる', async () => {
-      // パスがワークスペース外であることをシミュレート
-      (VSCodeWrapper.Instance().getWorkspaceRootPath as any).mockReturnValue('/workspace');
+    it('findParent_Error_ThrowsOutsideWorkspaceError', async () => {
+      // Arrange
+      vi.mocked(mockVSCodeWrapper.getWorkspaceRootPath).mockReturnValue('/workspace');
 
+      // Act & Assert
       try {
         await target.findParent('/outside/workspace');
-        // ここに到達した場合はテスト失敗
-        expect(true).toBe(false); // エラーが発生すべき
+        expect.fail(TEST_ERRORS.NO_EXCEPTION);
       } catch (error) {
-        expect(error).toBeInstanceOf(FileSearchError);
-        expect((error as FileSearchError).type).toBe('OutsideWorkspace');
+        if (error instanceof FileSearchError) {
+          expect(error.type).toBe('OutsideWorkspace');
+        } else {
+          expect.fail(TEST_ERRORS.WRONG_EXCEPTION_TYPE);
+        }
       }
     });
 
-    it('ワークスペースルートの場合は親ディレクトリを返す', async () => {
-      const result = await target.findParent('/workspace');
+    it('findParent_HappyPath_ReturnsRootParentForWorkspace', async () => {
+      // Arrange
+      const workspacePath = '/workspace';
+
+      // Act
+      const result = await target.findParent(workspacePath);
+
+      // Assert
       expect(result).toBe('/');
     });
   });
 
   describe('isInProject', () => {
-    it('isInProject_True_プロジェクト内のパスの場合', () => {
+    it('isInProject_HappyPath_ReturnsTrueForPathInProject', () => {
+      // Arrange
       const checkPath = '/workspace/root/src';
-      expect(target.isInProject(checkPath)).toBe(true);
+
+      // Act
+      const result = target.isInProject(checkPath);
+
+      // Assert
+      expect(result).toBe(true);
     });
 
-    it('isInProject_False_プロジェクト外のパスの場合', () => {
+    it('isInProject_HappyPath_ReturnsFalseForPathOutsideProject', () => {
+      // Arrange
       const checkPath = '/outside/workspace';
-      expect(target.isInProject(checkPath)).toBe(false);
+
+      // Act
+      const result = target.isInProject(checkPath);
+
+      // Assert
+      expect(result).toBe(false);
     });
   });
 
   describe('hasInBase', () => {
-    it('hasInBase_True_ファイルが指定のベースパスにある場合', async () => {
+    it('hasInBase_HappyPath_ReturnsTrueWhenFileExists', async () => {
+      // Arrange
       const filePath = 'test.ts';
       const basePath = '/workspace/root/src';
+      // Uri型のモックオブジェクトを作成
+      const mockUri = {
+        fsPath: '/workspace/root/src/test.ts',
+        scheme: 'file',
+        authority: '',
+        path: '/workspace/root/src/test.ts',
+        query: '',
+        fragment: '',
+        with: vi.fn(),
+        toJSON: vi.fn(),
+      };
+      vi.mocked(mockVSCodeWrapper.findFiles).mockResolvedValueOnce([mockUri]);
 
-      (VSCodeWrapper.Instance().findFiles as any).mockResolvedValueOnce([
-        { fsPath: '/workspace/root/src/test.ts' },
-      ]);
-
+      // Act
       const result = await target.hasInBase(filePath, basePath);
+
+      // Assert
       expect(result).toBe(true);
     });
 
-    it('hasInBase_False_ファイルが指定のベースパスにない場合', async () => {
+    it('hasInBase_HappyPath_ReturnsFalseWhenFileNotFound', async () => {
+      // Arrange
       const filePath = 'missing.ts';
       const basePath = '/workspace/root/src';
+      vi.mocked(mockVSCodeWrapper.findFiles).mockResolvedValueOnce([]);
 
-      (VSCodeWrapper.Instance().findFiles as any).mockResolvedValueOnce([]);
-
+      // Act
       const result = await target.hasInBase(filePath, basePath);
+
+      // Assert
       expect(result).toBe(false);
     });
 
-    it('hasInBase_False_ワークスペース外のパスが指定された場合', async () => {
+    it('hasInBase_HappyPath_ReturnsFalseForOutsideWorkspace', async () => {
+      // Arrange
       const filePath = 'test.ts';
       const basePath = '/outside/workspace';
+      vi.mocked(mockVSCodeWrapper.findFiles).mockRejectedValueOnce(new Error('Test error'));
 
-      // 例外をスローしてもfalseを返すことをテスト
-      (VSCodeWrapper.Instance().findFiles as any).mockRejectedValueOnce(new Error('Test error'));
-
+      // Act
       const result = await target.hasInBase(filePath, basePath);
+
+      // Assert
       expect(result).toBe(false);
     });
   });
