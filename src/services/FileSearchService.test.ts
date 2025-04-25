@@ -5,8 +5,10 @@ import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
 import { VSCodeWrapper } from '../utils/VSCodeWrapper';
 import { PathWrapper } from '../utils/PathWrapper';
-import { mockPathWrapper, MockPathInfo } from '../utils/PathWrapper.mock';
+import { mockPathWrapper } from '../utils/PathWrapper.mock';
 import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
+import { ValidPath } from '../types/ValidPath';
+import { MockValidPath, createMockValidPath } from '../types/ValidPath.mock';
 
 // 共通エラーメッセージの定義
 const TEST_ERRORS = {
@@ -34,8 +36,8 @@ describe('FileSearchService', () => {
   describe('findFileInBase', () => {
     it('findFileInBase_HappyPath_ReturnsFoundFilePath', async () => {
       // Arrange
-      const filePath = 'test.ts';
-      const basePath = '/workspace/root/src';
+      const filePath = createMockValidPath('test.ts');
+      const basePath = createMockValidPath('/workspace/root/src');
       const expectedPath = '/workspace/root/src/test.ts';
       // Uri型のモックオブジェクトを作成
       const mockUri = {
@@ -59,8 +61,8 @@ describe('FileSearchService', () => {
 
     it('findFileInBase_Error_ThrowsNotFoundError', async () => {
       // Arrange
-      const filePath = 'missing.ts';
-      const basePath = '/workspace/root/src';
+      const filePath = createMockValidPath('missing.ts');
+      const basePath = createMockValidPath('/workspace/root/src');
       vi.mocked(mockVSCodeWrapper.findFiles).mockResolvedValueOnce([]);
 
       // Act & Assert
@@ -78,9 +80,12 @@ describe('FileSearchService', () => {
 
     it('findFileInBase_Error_ThrowsOutsideWorkspaceError', async () => {
       // Arrange
-      const filePath = 'test.ts';
-      const basePath = '/outside/workspace';
+      const filePath = createMockValidPath('test.ts');
+      const basePath = createMockValidPath('/outside/workspace');
       vi.mocked(mockVSCodeWrapper.getWorkspaceRootPath).mockReturnValue('/workspace');
+
+      // isInWorkspaceをオーバーライド
+      vi.spyOn(basePath, 'isInWorkspace').mockReturnValue(false);
 
       // Act & Assert
       try {
@@ -99,7 +104,7 @@ describe('FileSearchService', () => {
   describe('findParent', () => {
     it('findParent_HappyPath_ReturnsParentDirectory', async () => {
       // Arrange
-      const testPath = '/workspace/test/path';
+      const testPath = createMockValidPath('/workspace/test/path');
 
       // Act
       const result = await target.findParent(testPath);
@@ -110,11 +115,15 @@ describe('FileSearchService', () => {
 
     it('findParent_Error_ThrowsOutsideWorkspaceError', async () => {
       // Arrange
+      const testPath = createMockValidPath('/outside/workspace');
       vi.mocked(mockVSCodeWrapper.getWorkspaceRootPath).mockReturnValue('/workspace');
+
+      // isInWorkspaceをオーバーライド
+      vi.spyOn(testPath, 'isInWorkspace').mockReturnValue(false);
 
       // Act & Assert
       try {
-        await target.findParent('/outside/workspace');
+        await target.findParent(testPath);
         expect.fail(TEST_ERRORS.NO_EXCEPTION);
       } catch (error) {
         if (error instanceof FileSearchError) {
@@ -127,7 +136,7 @@ describe('FileSearchService', () => {
 
     it('findParent_HappyPath_ReturnsRootParentForWorkspace', async () => {
       // Arrange
-      const workspacePath = '/workspace';
+      const workspacePath = createMockValidPath('/workspace');
 
       // Act
       const result = await target.findParent(workspacePath);
@@ -140,7 +149,8 @@ describe('FileSearchService', () => {
   describe('isInProject', () => {
     it('isInProject_HappyPath_ReturnsTrueForPathInProject', () => {
       // Arrange
-      const checkPath = '/workspace/root/src';
+      const checkPath = createMockValidPath('/workspace/root/src');
+      vi.spyOn(checkPath, 'isInWorkspace').mockReturnValue(true);
 
       // Act
       const result = target.isInProject(checkPath);
@@ -151,7 +161,8 @@ describe('FileSearchService', () => {
 
     it('isInProject_HappyPath_ReturnsFalseForPathOutsideProject', () => {
       // Arrange
-      const checkPath = '/outside/workspace';
+      const checkPath = createMockValidPath('/outside/workspace');
+      vi.spyOn(checkPath, 'isInWorkspace').mockReturnValue(false);
 
       // Act
       const result = target.isInProject(checkPath);
@@ -164,8 +175,8 @@ describe('FileSearchService', () => {
   describe('hasInBase', () => {
     it('hasInBase_HappyPath_ReturnsTrueWhenFileExists', async () => {
       // Arrange
-      const filePath = 'test.ts';
-      const basePath = '/workspace/root/src';
+      const filePath = createMockValidPath('test.ts');
+      const basePath = createMockValidPath('/workspace/root/src');
       // Uri型のモックオブジェクトを作成
       const mockUri = {
         fsPath: '/workspace/root/src/test.ts',
@@ -188,8 +199,8 @@ describe('FileSearchService', () => {
 
     it('hasInBase_HappyPath_ReturnsFalseWhenFileNotFound', async () => {
       // Arrange
-      const filePath = 'missing.ts';
-      const basePath = '/workspace/root/src';
+      const filePath = createMockValidPath('missing.ts');
+      const basePath = createMockValidPath('/workspace/root/src');
       vi.mocked(mockVSCodeWrapper.findFiles).mockResolvedValueOnce([]);
 
       // Act
@@ -201,8 +212,9 @@ describe('FileSearchService', () => {
 
     it('hasInBase_HappyPath_ReturnsFalseForOutsideWorkspace', async () => {
       // Arrange
-      const filePath = 'test.ts';
-      const basePath = '/outside/workspace';
+      const filePath = createMockValidPath('test.ts');
+      const basePath = createMockValidPath('/outside/workspace');
+      vi.spyOn(basePath, 'isInWorkspace').mockReturnValue(false);
       vi.mocked(mockVSCodeWrapper.findFiles).mockRejectedValueOnce(new Error('Test error'));
 
       // Act

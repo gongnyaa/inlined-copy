@@ -1,5 +1,6 @@
 import { LogWrapper, PathWrapper, SingletonBase, VSCodeWrapper } from '../utils';
 import { FileSearchError } from '../errors/ErrorTypes';
+import { ValidPath } from '../types/ValidPath';
 
 /**
  * ファイル検索のためのインターフェース
@@ -14,7 +15,7 @@ export interface IFileSearchService {
    * @throws FileSearchError ワークスペースが見つからない場合 (type: NoWorkspace)
    * @throws FileSearchError ワークスペース外のパスが指定された場合 (type: OutsideWorkspace)
    */
-  findFileInBase(filePath: string, basePath: string): Promise<string>;
+  findFileInBase(filePath: ValidPath, basePath: ValidPath): Promise<string>;
 
   /**
    * 指定されたパスの親パスを取得する
@@ -23,14 +24,14 @@ export interface IFileSearchService {
    * @throws FileSearchError ワークスペースが見つからない場合 (type: NoWorkspace)
    * @throws FileSearchError ワークスペース外のパスが指定された場合 (type: OutsideWorkspace)
    */
-  findParent(basePath: string): Promise<string>;
+  findParent(basePath: ValidPath): Promise<string>;
 
   /**
    * 指定されたパスがプロジェクト内にあるかどうかを判定する
    * @param checkPath 判定するパス
    * @returns プロジェクト内にある場合はtrue
    */
-  isInProject(checkPath: string): boolean;
+  isInProject(checkPath: ValidPath): boolean;
 
   /**
    * 指定されたファイルが指定されたベースパスにあるかどうかを判定する
@@ -38,7 +39,7 @@ export interface IFileSearchService {
    * @param basePath 判定の基準となるパス
    * @returns ファイルがベースパスにある場合はtrue
    */
-  hasInBase(filePath: string, basePath: string): Promise<boolean>;
+  hasInBase(filePath: ValidPath, basePath: ValidPath): Promise<boolean>;
 }
 
 /**
@@ -53,15 +54,15 @@ export class FileSearchService
   private static readonly NODE_MODULES_PATTERN = '**/node_modules/**';
   private static readonly WILDCARD_PATTERN = '**';
 
-  public async hasInBase(filePath: string, basePath: string): Promise<boolean> {
+  public async hasInBase(filePath: ValidPath, basePath: ValidPath): Promise<boolean> {
     try {
       // ワークスペース外のパスが指定された場合は常にfalseを返す
       if (!this.isInProject(basePath)) {
         return false;
       }
 
-      const fileName = PathWrapper.Instance().basename(filePath);
-      const uri = VSCodeWrapper.Instance().createUri(basePath);
+      const fileName = PathWrapper.Instance().basename(filePath.value);
+      const uri = VSCodeWrapper.Instance().createUri(basePath.value);
       const pattern = VSCodeWrapper.Instance().createRelativePattern(uri, `**/${fileName}`);
       const files = await VSCodeWrapper.Instance().findFiles(pattern, null, 1);
       return files.length > 0;
@@ -70,21 +71,21 @@ export class FileSearchService
     }
   }
 
-  public async findFileInBase(filePath: string, basePath: string): Promise<string> {
+  public async findFileInBase(filePath: ValidPath, basePath: ValidPath): Promise<string> {
     try {
       this.ensureWorkspace(basePath);
 
       const workspaceRoot = VSCodeWrapper.Instance().getWorkspaceRootPath()!;
       const result = await PathWrapper.Instance().findFileInWorkspace(
         workspaceRoot,
-        basePath,
-        filePath,
+        basePath.value,
+        filePath.value,
         FileSearchService.NODE_MODULES_PATTERN,
         FileSearchService.MAX_RESULTS
       );
 
       if (!result) {
-        throw new FileSearchError('NotFound', `file_not_found:${filePath}`);
+        throw new FileSearchError('NotFound', `file_not_found:${filePath.value}`);
       }
 
       return result;
@@ -94,36 +95,29 @@ export class FileSearchService
     }
   }
 
-  public async findParent(basePath: string): Promise<string> {
+  public async findParent(basePath: ValidPath): Promise<string> {
     try {
       this.ensureWorkspace(basePath);
-      return PathWrapper.Instance().dirname(basePath);
+      return PathWrapper.Instance().dirname(basePath.value);
     } catch (error) {
       this.handleError('find_parent_error', error);
       throw error;
     }
   }
 
-  public isInProject(checkPath: string): boolean {
-    const workspaceRoot = VSCodeWrapper.Instance().getWorkspaceRootPath();
-    if (!workspaceRoot) return false;
-
-    return this.isPathInWorkspace(checkPath, workspaceRoot);
+  public isInProject(checkPath: ValidPath): boolean {
+    return checkPath.isInWorkspace();
   }
 
-  private ensureWorkspace(basePath: string): void {
+  private ensureWorkspace(basePath: ValidPath): void {
     const workspaceRoot = VSCodeWrapper.Instance().getWorkspaceRootPath();
     if (!workspaceRoot) {
       throw new FileSearchError('NoWorkspace', 'workspace_not_found');
     }
 
-    if (!this.isPathInWorkspace(basePath, workspaceRoot)) {
+    if (!basePath.isInWorkspace()) {
       throw new FileSearchError('OutsideWorkspace', 'path_outside_workspace');
     }
-  }
-
-  private isPathInWorkspace(checkPath: string, workspaceRoot: string): boolean {
-    return PathWrapper.Instance().isPathInside(checkPath, workspaceRoot);
   }
 
   private handleError(key: string, error: unknown): void {

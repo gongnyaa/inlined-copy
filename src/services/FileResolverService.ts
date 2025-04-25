@@ -1,5 +1,6 @@
 import { SingletonBase } from '../utils';
 import { FileSearchService } from './FileSearchService';
+import { ValidPath } from '../types/ValidPath';
 
 /**
  * ファイル解決のためのインターフェース
@@ -21,15 +22,17 @@ export class FileResolverService
   implements IFileResolverService
 {
   public async getFilePathInProject(filePath: string, basePath: string): Promise<string> {
-    let currentBasePath = basePath;
+    const validFilePath = new ValidPath(filePath);
+    let currentBasePath = new ValidPath(basePath);
 
     while (FileSearchService.Instance().isInProject(currentBasePath)) {
-      if (await FileSearchService.Instance().hasInBase(filePath, currentBasePath)) {
-        return await FileSearchService.Instance().findFileInBase(filePath, currentBasePath);
+      if (await FileSearchService.Instance().hasInBase(validFilePath, currentBasePath)) {
+        return await FileSearchService.Instance().findFileInBase(validFilePath, currentBasePath);
       }
-      currentBasePath = await FileSearchService.Instance().findParent(currentBasePath);
+      const parentPath = await FileSearchService.Instance().findParent(currentBasePath);
+      currentBasePath = new ValidPath(parentPath);
     }
 
-    throw new Error(`ファイルが見つかりません: ${filePath}`);
+    throw new Error(`ファイルが見つかりません: ${validFilePath.value}`);
   }
 }
