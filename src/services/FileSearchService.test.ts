@@ -3,7 +3,8 @@ import { FileSearchService } from './FileSearchService';
 import { FileSearchError } from '../errors/ErrorTypes';
 import { LogWrapper } from '../utils/LogWrapper';
 import { mockLogWrapper } from '../utils/LogWrapper.mock';
-
+import { VSCodeWrapper } from '../utils/VSCodeWrapper';
+import { PathWrapper } from '../utils/PathWrapper';
 import { mockPathWrapper, MockPathInfo } from '../utils/PathWrapper.mock';
 import { mockVSCodeWrapper } from '../utils/VSCodeWrapper.mock';
 
@@ -14,25 +15,18 @@ const TEST_ERRORS = {
 } as const;
 
 // VSCodeWrapperのモック
-vi.mock('../utils/VSCodeWrapper', () => ({
-  VSCodeWrapper: {
-    Instance: vi.fn().mockReturnValue(mockVSCodeWrapper),
-  },
-}));
+vi.mock('../utils/VSCodeWrapper');
 
 // PathWrapperのモック
-vi.mock('../utils/PathWrapper', () => ({
-  PathInfo: MockPathInfo,
-  PathWrapper: {
-    Instance: vi.fn().mockReturnValue(mockPathWrapper),
-  },
-}));
+vi.mock('../utils/PathWrapper');
 
 describe('FileSearchService', () => {
   let target: FileSearchService;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(VSCodeWrapper.Instance).mockReturnValue(mockVSCodeWrapper);
+    vi.mocked(PathWrapper.Instance).mockReturnValue(mockPathWrapper);
     LogWrapper.SetInstance(mockLogWrapper);
     target = FileSearchService.Instance();
   });
